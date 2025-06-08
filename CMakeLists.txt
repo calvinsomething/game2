@@ -21,7 +21,8 @@ function(set_src_list)
 	set(src_list "${src_list}" PARENT_SCOPE)
 endfunction()
 
-set_src_list(main.cpp)
+set_src_list(main.cpp
+	Window.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)
 
