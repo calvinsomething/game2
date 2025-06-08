@@ -23,8 +23,14 @@ endfunction()
 
 set_src_list(main.cpp)
 
+set(CMAKE_WIN32_EXECUTABLE TRUE)
+
 add_executable(${PROJECT_NAME} ${src_list})
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+		UNICODE)
+
 if(CMAKE_BUILD_TYPE STREQUAL debug)
-	execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/compile_commands.json ${PROJECT_SOURCE_DIR}/compile_commands.json)
+	execute_process(COMMAND
+		${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/compile_commands.json ${PROJECT_SOURCE_DIR}/compile_commands.json)
 endif()
