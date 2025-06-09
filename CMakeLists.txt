@@ -29,7 +29,12 @@ set(CMAKE_WIN32_EXECUTABLE TRUE)
 add_executable(${PROJECT_NAME} ${src_list})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-		UNICODE)
+		UNICODE
+		WIN32_LEAN_AND_MEAN)
+
+target_link_libraries(${PROJECT_NAME}
+	d3d11
+	dxgi)
 
 if(CMAKE_BUILD_TYPE STREQUAL debug)
 	execute_process(COMMAND

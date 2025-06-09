@@ -6,7 +6,9 @@ class Window
     Window();
     ~Window();
 
-    operator bool();
+    void handle_messages();
+
+    HWND get_handle();
 
   private:
     HWND hwnd;

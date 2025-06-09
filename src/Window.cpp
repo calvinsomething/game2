@@ -21,11 +21,6 @@ Window::Window()
 
 Window::~Window(){};
 
-Window::operator bool()
-{
-    return !!hwnd;
-}
-
 LRESULT __stdcall Window::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     switch (msg)
@@ -35,14 +30,33 @@ LRESULT __stdcall Window::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         return 0;
 
     case WM_PAINT: {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hwnd, &ps);
+        // PAINTSTRUCT ps;
+        // HDC hdc = BeginPaint(hwnd, &ps);
 
-        FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+        // FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
 
-        EndPaint(hwnd, &ps);
+        // EndPaint(hwnd, &ps);
     }
         return 0;
     }
     return DefWindowProc(hwnd, msg, wp, lp);
+}
+
+void Window::handle_messages()
+{
+    if (hwnd)
+    {
+        MSG msg = {};
+
+        while (GetMessageW(&msg, hwnd, 0, 0) > 0)
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+}
+
+HWND Window::get_handle()
+{
+    return hwnd;
 }
