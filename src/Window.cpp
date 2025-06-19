@@ -4,7 +4,7 @@ Window::Window()
 {
     WNDCLASS wc = {};
     wc.lpszClassName = L"Main Window";
-    wc.hInstance = GetModuleHandleW(0);
+    wc.hInstance = GetModuleHandleW(nullptr);
     wc.lpfnWndProc = window_proc;
 
     RegisterClass(&wc);
@@ -12,10 +12,10 @@ Window::Window()
     hwnd = CreateWindowExW(0, wc.lpszClassName, wc.lpszClassName, WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                            // Size and position
                            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                           NULL, // Parent window
-                           NULL, // Menu
+                           nullptr, // Parent window
+                           nullptr, // Menu
                            wc.hInstance,
-                           NULL // Additional application data
+                           nullptr // Additional application data
     );
 }
 

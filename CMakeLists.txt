@@ -3,9 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 project(game2)
 
 if(CMAKE_BUILD_TYPE)
-	set(build_type)
-	string(TOLOWER "${CMAKE_BUILD_TYPE}" build_type)
-	set(CMAKE_BUILD_TYPE "${build_type}")
+	string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE)
 else()
 	set(CMAKE_BUILD_TYPE debug)
 endif()
@@ -22,13 +20,16 @@ function(set_src_list)
 endfunction()
 
 set_src_list(main.cpp
-	Window.cpp)
+	Window.cpp
+	Gfx.cpp
+	Error.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)
 
 add_executable(${PROJECT_NAME} ${src_list})
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
+target_compile_definitions(${PROJECT_NAME}
+	PRIVATE
 		UNICODE
 		WIN32_LEAN_AND_MEAN)
 
