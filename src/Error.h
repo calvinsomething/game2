@@ -1,14 +1,18 @@
 #include <exception>
 #include <windows.h>
 
-#ifndef HANDLE_HRESULT
-#define HANDLE_HRESULT(hr)                                                                                             \
+#ifndef GET_HRESULT_HANDLER
+
+#define GET_HRESULT_HANDLER(hr, error_type)                                                                            \
     {                                                                                                                  \
         if (FAILED(hr))                                                                                                \
         {                                                                                                              \
-            throw WindowsError(__FILE__, __LINE__);                                                                    \
+            throw error_type(__FILE__, __LINE__);                                                                      \
         }                                                                                                              \
     }
+
+#define HANDLE_HRESULT(hr) GET_HRESULT_HANDLER(hr, WindowsError)
+
 #endif
 
 class Error : public std::exception
@@ -20,6 +24,8 @@ class Error : public std::exception
     char message[1024] = {};
 };
 
+// WindowsError
+//
 class WindowsError : public Error
 {
   public:
@@ -29,3 +35,17 @@ class WindowsError : public Error
     const char *title() const override;
     const char *what() const override;
 };
+
+// GfxError
+//
+#ifndef NDEBUG
+class GfxError : public Error
+{
+  public:
+    GfxError(const char *file_name, int line_number);
+    ~GfxError();
+
+    const char *title() const override;
+    const char *what() const override;
+};
+#endif

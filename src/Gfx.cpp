@@ -2,6 +2,13 @@
 
 #include "Error.h"
 
+#ifndef NDEBUG
+namespace Global
+{
+ID3D11InfoQueue *info_queue;
+};
+#endif
+
 Gfx::Gfx(HWND hwnd)
 {
     DXGI_SWAP_CHAIN_DESC sd{};
@@ -33,27 +40,47 @@ Gfx::Gfx(HWND hwnd)
                                                  1, // feature level options and number of options
                                                  D3D11_SDK_VERSION, &sd, &swap_chain, &device, &feature_level, &ctx));
 
+#ifndef NDEBUG
+    HANDLE_HRESULT(device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void **>(&Global::info_queue)));
+
+    Global::info_queue->PushEmptyStorageFilter();
+    Global::info_queue->PushEmptyRetrievalFilter();
+
+#undef HANDLE_HRESULT
+#define HANDLE_HRESULT(hr) GET_HRESULT_HANDLER(hr, GfxError)
+#endif
+
     ID3D11Texture2D *pBackBuffer;
     ID3D11RenderTargetView *render_target_view;
 
-    HANDLE_HRESULT(swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pBackBuffer));
+    HANDLE_HRESULT(swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&pBackBuffer)));
 
     HANDLE_HRESULT(device->CreateRenderTargetView(pBackBuffer, nullptr, &render_target_view));
 
     ctx->OMSetRenderTargets(1, &render_target_view, nullptr);
 
-    D3D11_VIEWPORT vp;
-    vp.Width = 640;
-    vp.Height = 480;
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
+    // D3D11_VIEWPORT vp;
+    // vp.Width = 640;
+    // vp.Height = 480;
+    // vp.MinDepth = 0.0f;
+    // vp.MaxDepth = 1.0f;
+    // vp.TopLeftX = 0;
+    // vp.TopLeftY = 0;
 
-    ctx->RSSetViewports(1, &vp);
+    // ctx->RSSetViewports(1, &vp);
 
     FLOAT color[] = {0.1f, 0.7f, 0.1f, 1.0f};
     ctx->ClearRenderTargetView(render_target_view, color);
 
     HANDLE_HRESULT(swap_chain->Present(0, 0));
+}
+
+Gfx::~Gfx()
+{
+#ifndef NDEBUG
+    if (Global::info_queue)
+    {
+        Global::info_queue->Release();
+    }
+#endif
 }

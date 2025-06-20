@@ -2,13 +2,11 @@ cmake_minimum_required(VERSION 3.12)
 
 project(game2)
 
-if(CMAKE_BUILD_TYPE)
-	string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE)
-else()
-	set(CMAKE_BUILD_TYPE debug)
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL debug)
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 endif()
 
@@ -37,7 +35,7 @@ target_link_libraries(${PROJECT_NAME}
 	d3d11
 	dxgi)
 
-if(CMAKE_BUILD_TYPE STREQUAL debug)
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/compile_commands.json ${PROJECT_SOURCE_DIR}/compile_commands.json)
 endif()

@@ -5,6 +5,7 @@ class Gfx
 {
   public:
     Gfx(HWND hwnd);
+    ~Gfx();
 
   private:
     ID3D11DeviceContext *ctx = 0;
