@@ -5,7 +5,7 @@
 #include <fstream>
 #include <stdexcept>
 
-constexpr char SHADER_DIR[] = SHADER_SRC_DIR;
+constexpr char SHADER_DIR[] = SHADERS_BIN;
 
 Shader::Shader(Gfx &gfx) : device(gfx.device), ctx(gfx.ctx)
 {
@@ -13,15 +13,18 @@ Shader::Shader(Gfx &gfx) : device(gfx.device), ctx(gfx.ctx)
 
 std::vector<char> Shader::load(const char *file_name)
 {
-    std::string path(sizeof(SHADER_DIR) + 1 + strlen(file_name), '/');
-    path.replace(0, sizeof(SHADER_DIR), SHADER_DIR);
-    path.replace(sizeof(SHADER_DIR) + 1, path.size(), file_name);
+    std::string path;
+    path.reserve(sizeof(SHADER_DIR) + 1 + strlen(file_name));
+    path += SHADER_DIR;
+    path += '/';
+    path += file_name;
 
     std::ifstream fs(path, std::ios::binary | std::ios::ate);
 
     if (!fs.good())
     {
-        throw std::runtime_error("failed to open shader file");
+        std::string s = "failed to open shader file: " + path;
+        throw std::runtime_error(s.c_str());
     }
 
     size_t n = fs.tellg();
