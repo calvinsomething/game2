@@ -54,14 +54,15 @@ GfxError::GfxError(const char *file_name, int line_number)
     for (UINT64 i = 0; i < message_count; i++)
     {
         SIZE_T n = 0;
-        Global::info_queue->GetMessage(0, nullptr, &n);
+        Global::info_queue->GetMessageW(0, nullptr, &n);
 
         D3D11_MESSAGE *pm = static_cast<D3D11_MESSAGE *>(malloc(n));
 
-        Global::info_queue->GetMessage(0, pm, &n);
+        Global::info_queue->GetMessageW(0, pm, &n);
 
         char msg[512] = {};
-        int len = sprintf_s(msg, "%s:%d: %s (Error #%d)", file_name, line_number, pm->pDescription, pm->ID);
+        int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
+                            pm->Category, pm->Severity);
 
         if (i)
         {

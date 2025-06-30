@@ -1,3 +1,5 @@
+#pragma once
+
 #include <exception>
 #include <windows.h>
 
@@ -11,7 +13,15 @@
         }                                                                                                              \
     }
 
-#define HANDLE_HRESULT(hr) GET_HRESULT_HANDLER(hr, WindowsError)
+// Windows Error Handler
+#define HANDLE_WIN_ERR(hr) GET_HRESULT_HANDLER(hr, WindowsError)
+
+// Gfx Error Handler
+#ifdef NDEBUG
+#define HANDLE_GFX_ERR(hr) GET_HRESULT_HANDLER(hr, WindowsError)
+#else
+#define HANDLE_GFX_ERR(hr) GET_HRESULT_HANDLER(hr, GfxError)
+#endif
 
 #endif
 

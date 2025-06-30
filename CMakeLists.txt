@@ -19,8 +19,12 @@ endfunction()
 
 set_src_list(main.cpp
 	Window.cpp
-	Gfx.cpp
-	Error.cpp)
+	Error.cpp
+	Gfx/Gfx.cpp
+	Gfx/VertexBuffer.cpp
+	Gfx/Shader.cpp
+	Gfx/PixelShader.cpp
+	Gfx/VertexShader.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)
 
@@ -29,7 +33,8 @@ add_executable(${PROJECT_NAME} ${src_list})
 target_compile_definitions(${PROJECT_NAME}
 	PRIVATE
 		UNICODE
-		WIN32_LEAN_AND_MEAN)
+		WIN32_LEAN_AND_MEAN
+		SHADER_SRC_DIR="${CMAKE_BINARY_DIR}/../src/Gfx/shaders")
 
 target_link_libraries(${PROJECT_NAME}
 	d3d11
