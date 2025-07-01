@@ -10,11 +10,17 @@ struct VSOut
     float4 color : COLOR;
 };
 
+cbuffer VS_CONSTANT_BUFFER : register(b0)
+{
+	matrix model;
+};
+
 VSOut main(VSIn input)
 {
     VSOut output;
 
-	output.pos = input.pos;
+	output.pos = mul(input.pos, model);
+
 	output.color = input.color;
     
     return output;

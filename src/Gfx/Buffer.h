@@ -8,12 +8,13 @@
 class Buffer
 {
   public:
-    Buffer(Gfx &gfx) : device(gfx.device.Get()), ctx(gfx.ctx.Get())
-    {
-    }
     virtual void bind() = 0;
 
   protected:
+    Buffer(Gfx &gfx) : device(gfx.device.Get()), ctx(gfx.ctx.Get())
+    {
+    }
+
     ID3D11Device *device;
     ID3D11DeviceContext *ctx;
 

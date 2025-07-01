@@ -4,15 +4,7 @@
 
 #include <DirectXMath.h>
 
-struct Vec3
-{
-    float x, y, z;
-};
-
-struct Vec4
-{
-    float x, y, z, w;
-};
+#include "ConstantBuffer.h"
 
 struct Vertex
 {
@@ -21,8 +13,18 @@ struct Vertex
 
 class VertexShader : public Shader
 {
+    struct BufferData
+    {
+        struct
+        {
+            DirectX::XMMATRIX model;
+        } transforms;
+    };
+
   public:
     VertexShader(Gfx &gfx);
+
+    ConstantBuffer<BufferData> constant_buffer;
 
     void bind() override;
 

@@ -17,12 +17,12 @@ class Cube
     void draw();
 
   private:
-    Gfx &gfx;
-
-    bool initialized = false;
-
     static std::optional<VertexBuffer> vb;
     static std::optional<IndexBuffer> ib;
     static std::optional<VertexShader> vs;
     static std::optional<PixelShader> ps;
+
+    Gfx &gfx;
+
+    bool initialized = false;
 };

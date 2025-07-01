@@ -2,7 +2,19 @@
 
 #include "../Error.h"
 
-VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
+const DirectX::XMMATRIX identity_matrix(1, 0, 0, 0, //
+                                        0, 1, 0, 0, //
+                                        0, 0, 1, 0, //
+                                        0, 0, 0, 1);
+
+void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
+{
+    ctx->VSSetConstantBuffers(0, 1, &buffer);
+
+    // use XMFLOAT4 in Vertex, load into XMMATRIX/VECTOR with XMLoadFloat4
+}
+
+VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, {identity_matrix}, &bind_proc)
 {
     auto byte_code = load("vs.cso");
 
@@ -19,6 +31,8 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
 
 void VertexShader::bind()
 {
+    constant_buffer.bind();
+
     ctx->IASetInputLayout(input_layout.Get());
 
     ctx->VSSetShader(shader.Get(), nullptr, 0);
