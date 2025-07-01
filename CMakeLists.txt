@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 
 project(game2)
 
+set(CMAKE_CXX_STANDARD 17)
+
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -20,8 +22,10 @@ endfunction()
 set_src_list(main.cpp
 	Window.cpp
 	Error.cpp
+	models/Cube.cpp
 	Gfx/Gfx.cpp
 	Gfx/VertexBuffer.cpp
+	Gfx/IndexBuffer.cpp
 	Gfx/Shader.cpp
 	Gfx/PixelShader.cpp
 	Gfx/VertexShader.cpp)

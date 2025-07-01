@@ -5,10 +5,8 @@
 
 #include "Error.h"
 #include "Gfx/Gfx.h"
-#include "Gfx/PixelShader.h"
-#include "Gfx/VertexBuffer.h"
-#include "Gfx/VertexShader.h"
 #include "Window.h"
+#include "models/Cube.h"
 
 namespace Global
 {
@@ -23,16 +21,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     {
         Gfx gfx(window.get_handle());
 
-        float color[] = {0.5f, 0.2f, 0.2f, 1.0f};
-        uint32_t indices[] = {0, 1, 2};
-        Vertex vertices[] = {{DirectX::XMFLOAT4(0.0f, 0.5f, 0.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
-                             {DirectX::XMFLOAT4(0.5f, -0.5f, 0.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
-                             {DirectX::XMFLOAT4(-0.5f, -0.5f, 0.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)}};
+        Cube cube(gfx);
 
-        IndexBuffer ib(gfx, indices);
-        VertexBuffer vb(gfx, vertices);
-        VertexShader vs(gfx);
-        PixelShader ps(gfx);
+        float color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
         while (Global::running)
         {
@@ -40,12 +31,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             gfx.clear(color);
 
-            vs.bind();
-            vb.bind();
-            ib.bind();
-            ps.bind();
+            cube.bind();
 
-            gfx.end_frame();
+            cube.draw();
+
+            // gfx.end_frame();
         }
 
         return 0;

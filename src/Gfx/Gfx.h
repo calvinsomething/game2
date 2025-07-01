@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
+#include <wrl.h>
 
 class Shader;
 
@@ -19,9 +20,9 @@ class Gfx
     void end_frame();
 
   private:
-    ID3D11Device *device = 0;
-    IDXGISwapChain *swap_chain = 0;
-    ID3D11DeviceContext *ctx = 0;
+    Microsoft::WRL::ComPtr<ID3D11Device> device;
+    Microsoft::WRL::ComPtr<IDXGISwapChain> swap_chain;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
 
-    ID3D11RenderTargetView *render_target_view;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target_view;
 };

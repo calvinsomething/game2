@@ -35,10 +35,10 @@ Gfx::Gfx(HWND hwnd)
     D3D_FEATURE_LEVEL feature_level_options = D3D_FEATURE_LEVEL_11_0;
     D3D_FEATURE_LEVEL feature_level;
 
-    HANDLE_WIN_ERR(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags,
-                                                 &feature_level_options,
-                                                 1, // feature level options and number of options
-                                                 D3D11_SDK_VERSION, &sd, &swap_chain, &device, &feature_level, &ctx));
+    HANDLE_WIN_ERR(D3D11CreateDeviceAndSwapChain(
+        nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &feature_level_options,
+        1, // feature level options and number of options
+        D3D11_SDK_VERSION, &sd, swap_chain.GetAddressOf(), device.GetAddressOf(), &feature_level, ctx.GetAddressOf()));
 
 #ifndef NDEBUG
     // ID3D11Debug *debug;
@@ -75,13 +75,12 @@ Gfx::Gfx(HWND hwnd)
     Global::info_queue->AddStorageFilterEntries(&filter);
 #endif
 
-    ID3D11Texture2D *back_buffer;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;
 
-    HANDLE_GFX_ERR(swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&back_buffer)));
+    HANDLE_GFX_ERR(
+        swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(back_buffer.GetAddressOf())));
 
-    HANDLE_GFX_ERR(device->CreateRenderTargetView(back_buffer, nullptr, &render_target_view));
-
-    back_buffer->Release();
+    HANDLE_GFX_ERR(device->CreateRenderTargetView(back_buffer.Get(), nullptr, render_target_view.GetAddressOf()));
 
     D3D11_VIEWPORT vp;
     vp.Width = 640;
@@ -106,14 +105,14 @@ Gfx::~Gfx()
 
 void Gfx::clear(float *color)
 {
-    ctx->ClearRenderTargetView(render_target_view, color);
+    ctx->ClearRenderTargetView(render_target_view.Get(), color);
 }
 
 void Gfx::end_frame()
 {
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    ctx->OMSetRenderTargets(1, &render_target_view, nullptr);
+    ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), nullptr);
 
     ctx->DrawIndexed(3, 0, 0);
 

@@ -21,7 +21,7 @@ class VertexBuffer : public Buffer
         data.SysMemPitch = 0;
         data.SysMemSlicePitch = 0;
 
-        HANDLE_GFX_ERR(device->CreateBuffer(&bd, &data, &buffer));
+        HANDLE_GFX_ERR(device->CreateBuffer(&bd, &data, buffer.GetAddressOf()));
     }
 
     void bind() override;
