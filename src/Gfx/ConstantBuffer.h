@@ -2,31 +2,19 @@
 
 #include "Buffer.h"
 
-#include <utility>
+#include <cstring>
 
 #include "../Error.h"
 
 typedef void (*BindProc)(ID3D11DeviceContext *, ID3D11Buffer *);
 
-template <typename T> class ConstantBuffer : public Buffer
+class ConstantBuffer : public Buffer
 {
   public:
-    ConstantBuffer(Gfx &gfx, T &&data, BindProc bind_proc) : Buffer(gfx), data(std::move(data)), bind_proc(bind_proc)
+    ConstantBuffer(Gfx &gfx, BindProc bind_proc, size_t byte_width)
+        : Buffer(gfx, byte_width, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE),
+          bind_proc(bind_proc)
     {
-        D3D11_BUFFER_DESC bd = {};
-        bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        bd.ByteWidth = sizeof(T);
-        bd.Usage = D3D11_USAGE_DYNAMIC;
-        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        bd.MiscFlags = 0;
-        bd.StructureByteStride = 0;
-
-        D3D11_SUBRESOURCE_DATA sd = {};
-        sd.pSysMem = &data;
-        sd.SysMemPitch = 0;
-        sd.SysMemSlicePitch = 0;
-
-        HANDLE_GFX_ERR(device->CreateBuffer(&bd, &sd, buffer.GetAddressOf()));
     }
 
     void bind() override
@@ -37,8 +25,17 @@ template <typename T> class ConstantBuffer : public Buffer
         }
     }
 
-  private:
-    T data;
+    void write(void *data, size_t size)
+    {
+        D3D11_MAPPED_SUBRESOURCE mr;
 
+        HANDLE_GFX_ERR(ctx->Map(buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr));
+
+        std::memcpy(mr.pData, data, size);
+
+        ctx->Unmap(buffer.Get(), 0);
+    }
+
+  private:
     BindProc bind_proc;
 };

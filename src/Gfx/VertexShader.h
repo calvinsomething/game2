@@ -13,6 +13,7 @@ struct Vertex
 
 class VertexShader : public Shader
 {
+  public:
     struct BufferData
     {
         struct
@@ -21,12 +22,13 @@ class VertexShader : public Shader
         } transforms;
     };
 
-  public:
     VertexShader(Gfx &gfx);
 
-    ConstantBuffer<BufferData> constant_buffer;
+    ConstantBuffer constant_buffer;
 
     void bind() override;
+
+    void set_model_transform(DirectX::XMFLOAT3X3 mat);
 
     void update();
 

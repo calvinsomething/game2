@@ -1,5 +1,7 @@
 #include "VertexBuffer.h"
 
+#include "VertexShader.h"
+
 void VertexBuffer::bind()
 {
     UINT stride = sizeof(Vertex);

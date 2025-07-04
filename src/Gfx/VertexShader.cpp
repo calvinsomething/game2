@@ -11,10 +11,10 @@ void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
 {
     ctx->VSSetConstantBuffers(0, 1, &buffer);
 
-    // use XMFLOAT4 in Vertex, load into XMMATRIX/VECTOR with XMLoadFloat4
+    // TODO use XMFLOAT4 in Vertex, load into XMMATRIX/VECTOR with XMLoadFloat4
 }
 
-VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, {identity_matrix}, &bind_proc)
+VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, &bind_proc, sizeof(VertexShader::BufferData))
 {
     auto byte_code = load("vs.cso");
 
@@ -27,6 +27,13 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, {identi
 
     HANDLE_GFX_ERR(device->CreateInputLayout(layout, sizeof(layout) / sizeof(layout[0]), byte_code.data(),
                                              byte_code.size(), input_layout.GetAddressOf()));
+}
+
+void VertexShader::set_model_transform(DirectX::XMFLOAT3X3 mat)
+{
+    auto transform = DirectX::XMLoadFloat3x3(&mat);
+
+    constant_buffer.write(&transform, sizeof(transform));
 }
 
 void VertexShader::bind()

@@ -10,11 +10,21 @@ class Buffer
   public:
     virtual void bind() = 0;
 
-  protected:
-    Buffer(Gfx &gfx) : device(gfx.device.Get()), ctx(gfx.ctx.Get())
+    template <typename T>
+    Buffer(Gfx &gfx, T *data, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0, UINT pitch = 0,
+           UINT slice_pitch = 0)
+        : device(gfx.device.Get()), ctx(gfx.ctx.Get())
     {
+        init(data, sizeof(T), bind_flags, usage, cpu_access_flags, pitch, slice_pitch);
     }
 
+    Buffer(Gfx &gfx, size_t byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0, UINT pitch = 0,
+           UINT slice_pitch = 0);
+
+    void init(void *data, size_t byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0,
+              UINT pitch = 0, UINT slice_pitch = 0);
+
+  protected:
     ID3D11Device *device;
     ID3D11DeviceContext *ctx;
 
