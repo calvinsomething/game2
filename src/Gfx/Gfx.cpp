@@ -1,12 +1,17 @@
 #include "Gfx.h"
 
+#include <dxgidebug.h>
+
 #include "../Error.h"
 
 #ifndef NDEBUG
 namespace Global
 {
+IDXGIDebug *infrastructure_debug;
+IDXGIInfoQueue *infrastructure_info;
+ID3D11Debug *debug;
 ID3D11InfoQueue *info_queue;
-};
+}; // namespace Global
 #endif
 
 Gfx::Gfx(HWND hwnd)
@@ -41,38 +46,21 @@ Gfx::Gfx(HWND hwnd)
         D3D11_SDK_VERSION, &sd, swap_chain.GetAddressOf(), device.GetAddressOf(), &feature_level, ctx.GetAddressOf()));
 
 #ifndef NDEBUG
-    // ID3D11Debug *debug;
-    // HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void **>(&debug)));
+    // C:\Windows\System32
+    HMODULE lib = LoadLibraryA("DXGIDebug.dll");
+
+    auto get_debug_interface =
+        reinterpret_cast<decltype(DXGIGetDebugInterface) *>(GetProcAddress(lib, "DXGIGetDebugInterface"));
+
+    HANDLE_WIN_ERR(get_debug_interface(__uuidof(IDXGIDebug), reinterpret_cast<void **>(&Global::infrastructure_debug)));
+
+    HANDLE_WIN_ERR(
+        get_debug_interface(__uuidof(IDXGIInfoQueue), reinterpret_cast<void **>(&Global::infrastructure_info)));
+
+    HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void **>(&Global::debug)));
 
     HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void **>(&Global::info_queue)));
 
-    // Global::info_queue->PushEmptyStorageFilter();
-    // Global::info_queue->PushEmptyRetrievalFilter();
-
-    D3D11_MESSAGE_CATEGORY categories[] = {D3D11_MESSAGE_CATEGORY_APPLICATION_DEFINED,
-                                           D3D11_MESSAGE_CATEGORY_MISCELLANEOUS,
-                                           D3D11_MESSAGE_CATEGORY_INITIALIZATION,
-                                           D3D11_MESSAGE_CATEGORY_CLEANUP,
-                                           D3D11_MESSAGE_CATEGORY_COMPILATION,
-                                           D3D11_MESSAGE_CATEGORY_STATE_CREATION,
-                                           D3D11_MESSAGE_CATEGORY_STATE_SETTING,
-                                           D3D11_MESSAGE_CATEGORY_STATE_GETTING,
-                                           D3D11_MESSAGE_CATEGORY_RESOURCE_MANIPULATION,
-                                           D3D11_MESSAGE_CATEGORY_EXECUTION,
-                                           D3D11_MESSAGE_CATEGORY_SHADER};
-
-    D3D11_MESSAGE_SEVERITY severities[] = {D3D11_MESSAGE_SEVERITY_CORRUPTION, D3D11_MESSAGE_SEVERITY_ERROR,
-                                           D3D11_MESSAGE_SEVERITY_WARNING};
-
-    D3D11_INFO_QUEUE_FILTER filter = {};
-    filter.AllowList = {
-        11,
-        categories,
-        3,
-        severities,
-    };
-
-    Global::info_queue->AddStorageFilterEntries(&filter);
 #endif
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;
