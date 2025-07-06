@@ -24,9 +24,11 @@ set_src_list(main.cpp
 	Error.cpp
 	models/Cube.cpp
 	Gfx/Gfx.cpp
+	Gfx/Camera.cpp
 	Gfx/Buffer.cpp
 	Gfx/VertexBuffer.cpp
 	Gfx/IndexBuffer.cpp
+	Gfx/ConstantBuffer.cpp
 	Gfx/Shader.cpp
 	Gfx/PixelShader.cpp
 	Gfx/VertexShader.cpp)

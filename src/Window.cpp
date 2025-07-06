@@ -49,7 +49,7 @@ LRESULT __stdcall Window::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
     return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-void Window::handle_message()
+void Window::handle_messages()
 {
     while (PeekMessageW(&msg, hwnd, 0, 0, PM_REMOVE))
     {

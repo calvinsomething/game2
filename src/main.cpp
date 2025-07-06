@@ -4,6 +4,7 @@
 #include <exception>
 
 #include "Error.h"
+#include "Gfx/Camera.h"
 #include "Gfx/Gfx.h"
 #include "Window.h"
 #include "models/Cube.h"
@@ -21,21 +22,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     {
         Gfx gfx(window.get_handle());
 
+        Camera camera(gfx);
+
         Cube cube(gfx);
 
         float color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
         while (Global::running)
         {
-            window.handle_message();
+            window.handle_messages();
 
             gfx.clear(color);
 
             cube.bind();
 
-            cube.draw();
+            cube.update();
 
-            // gfx.end_frame();
+            camera.update();
+
+            gfx.end_frame();
         }
 
         return 0;

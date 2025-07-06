@@ -19,6 +19,7 @@ class VertexShader : public Shader
         struct
         {
             DirectX::XMMATRIX model;
+            DirectX::XMMATRIX world;
         } transforms;
     };
 
@@ -28,10 +29,10 @@ class VertexShader : public Shader
 
     void bind() override;
 
-    void set_model_transform(DirectX::XMFLOAT3X3 mat);
-
-    void update();
+    void set_transforms(DirectX::XMFLOAT3X3 model, DirectX::XMFLOAT3X3 world);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
+
+    BufferData buffer_data;
 };

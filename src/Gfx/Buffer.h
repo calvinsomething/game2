@@ -18,15 +18,15 @@ class Buffer
         init(data, sizeof(T), bind_flags, usage, cpu_access_flags, pitch, slice_pitch);
     }
 
-    Buffer(Gfx &gfx, size_t byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0, UINT pitch = 0,
+    Buffer(Gfx &gfx, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0, UINT pitch = 0,
            UINT slice_pitch = 0);
-
-    void init(void *data, size_t byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0,
-              UINT pitch = 0, UINT slice_pitch = 0);
 
   protected:
     ID3D11Device *device;
     ID3D11DeviceContext *ctx;
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
+
+    void init(void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0,
+              UINT pitch = 0, UINT slice_pitch = 0);
 };

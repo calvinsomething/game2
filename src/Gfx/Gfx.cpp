@@ -46,7 +46,6 @@ Gfx::Gfx(HWND hwnd)
         D3D11_SDK_VERSION, &sd, swap_chain.GetAddressOf(), device.GetAddressOf(), &feature_level, ctx.GetAddressOf()));
 
 #ifndef NDEBUG
-    // C:\Windows\System32
     HMODULE lib = LoadLibraryA("DXGIDebug.dll");
 
     auto get_debug_interface =
@@ -60,7 +59,6 @@ Gfx::Gfx(HWND hwnd)
     HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void **>(&Global::debug)));
 
     HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void **>(&Global::info_queue)));
-
 #endif
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;

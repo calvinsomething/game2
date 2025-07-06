@@ -6,7 +6,7 @@ class Window
     Window();
     ~Window();
 
-    void handle_message();
+    void handle_messages();
 
     HWND get_handle();
 

@@ -2,16 +2,9 @@
 
 #include "../Error.h"
 
-const DirectX::XMMATRIX identity_matrix(1, 0, 0, 0, //
-                                        0, 1, 0, 0, //
-                                        0, 0, 1, 0, //
-                                        0, 0, 0, 1);
-
-void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
+static void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
 {
-    ctx->VSSetConstantBuffers(0, 1, &buffer);
-
-    // TODO use XMFLOAT4 in Vertex, load into XMMATRIX/VECTOR with XMLoadFloat4
+    ctx->VSSetConstantBuffers(1, 1, &buffer);
 }
 
 VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, &bind_proc, sizeof(VertexShader::BufferData))
@@ -29,11 +22,13 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, &bind_p
                                              byte_code.size(), input_layout.GetAddressOf()));
 }
 
-void VertexShader::set_model_transform(DirectX::XMFLOAT3X3 mat)
+void VertexShader::set_transforms(DirectX::XMFLOAT3X3 model, DirectX::XMFLOAT3X3 world)
 {
-    auto transform = DirectX::XMLoadFloat3x3(&mat);
+    buffer_data.transforms.model = DirectX::XMLoadFloat3x3(&model);
 
-    constant_buffer.write(&transform, sizeof(transform));
+    buffer_data.transforms.world = DirectX::XMLoadFloat3x3(&world);
+
+    constant_buffer.write(&buffer_data, sizeof(buffer_data));
 }
 
 void VertexShader::bind()

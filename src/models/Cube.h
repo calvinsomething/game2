@@ -14,18 +14,17 @@ class Cube
 
     void bind();
 
-    void draw();
+    void update();
 
   private:
     static std::optional<VertexBuffer> vb;
-    static std::optional<VertexBuffer> instance_vb;
     static std::optional<IndexBuffer> ib;
     static std::optional<VertexShader> vs;
     static std::optional<PixelShader> ps;
 
-    DirectX::XMFLOAT3X3 *model_transform;
-
     Gfx &gfx;
 
     bool initialized = false;
+
+    DirectX::XMFLOAT3X3 model_xform, world_xform;
 };
