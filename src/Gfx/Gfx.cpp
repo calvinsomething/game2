@@ -19,7 +19,7 @@ Gfx::Gfx(HWND hwnd)
     DXGI_SWAP_CHAIN_DESC sd{};
     sd.BufferCount = 2;
     sd.BufferDesc.Width = 640;
-    sd.BufferDesc.Height = 480;
+    sd.BufferDesc.Height = 640;
     sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     sd.BufferDesc.RefreshRate.Numerator = 60;
     sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -70,7 +70,7 @@ Gfx::Gfx(HWND hwnd)
 
     D3D11_VIEWPORT vp;
     vp.Width = 640;
-    vp.Height = 480;
+    vp.Height = 640;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = 0;
@@ -92,15 +92,11 @@ Gfx::~Gfx()
 void Gfx::clear(float *color)
 {
     ctx->ClearRenderTargetView(render_target_view.Get(), color);
+
+    ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), nullptr);
 }
 
 void Gfx::end_frame()
 {
-    ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), nullptr);
-
-    ctx->DrawIndexed(3, 0, 0);
-
     HANDLE_GFX_ERR(swap_chain->Present(0, 0));
 }

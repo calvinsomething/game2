@@ -26,5 +26,5 @@ class Cube
 
     bool initialized = false;
 
-    DirectX::XMFLOAT3X3 model_xform, world_xform;
+    VertexShader::BufferData buffer_data;
 };

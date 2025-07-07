@@ -29,7 +29,9 @@ class VertexShader : public Shader
 
     void bind() override;
 
-    void set_transforms(DirectX::XMFLOAT3X3 model, DirectX::XMFLOAT3X3 world);
+    void set_buffer(BufferData *data);
+
+    void draw_indexed(UINT count);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;

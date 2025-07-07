@@ -22,13 +22,9 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, &bind_p
                                              byte_code.size(), input_layout.GetAddressOf()));
 }
 
-void VertexShader::set_transforms(DirectX::XMFLOAT3X3 model, DirectX::XMFLOAT3X3 world)
+void VertexShader::set_buffer(VertexShader::BufferData *data)
 {
-    buffer_data.transforms.model = DirectX::XMLoadFloat3x3(&model);
-
-    buffer_data.transforms.world = DirectX::XMLoadFloat3x3(&world);
-
-    constant_buffer.write(&buffer_data, sizeof(buffer_data));
+    constant_buffer.write(data, sizeof(*data));
 }
 
 void VertexShader::bind()
@@ -38,4 +34,11 @@ void VertexShader::bind()
     ctx->IASetInputLayout(input_layout.Get());
 
     ctx->VSSetShader(shader.Get(), nullptr, 0);
+}
+
+void VertexShader::draw_indexed(UINT count)
+{
+    ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    ctx->DrawIndexed(count, 0, 0);
 }
