@@ -2,7 +2,7 @@
 
 #include "../Error.h"
 
-ConstantBuffer::ConstantBuffer(Gfx &gfx, BindProc bind_proc, size_t byte_width)
+ConstantBuffer::ConstantBuffer(Gfx &gfx, BindProc bind_proc, UINT byte_width)
     : Buffer(gfx, byte_width, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE),
       bind_proc(bind_proc)
 {

@@ -40,5 +40,5 @@ void VertexShader::draw_indexed(UINT count)
 {
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    ctx->DrawIndexed(count, 0, 0);
+    HANDLE_GFX_INFO(ctx->DrawIndexed(count, 0, 0));
 }

@@ -44,7 +44,8 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	d3d11
-	dxgi)
+	dxgi
+	dxguid)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	execute_process(COMMAND

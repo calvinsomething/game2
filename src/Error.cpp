@@ -5,6 +5,10 @@
 
 #include <d3d11.h>
 
+// Error static
+//
+char Error::message[1024] = {};
+
 // WindowsError
 //
 WindowsError::WindowsError(const char *file_name, int line_number)
@@ -39,26 +43,21 @@ const char *WindowsError::what() const
 
 // GfxError
 //
-#ifndef NDEBUG
-
-namespace Global
-{
-extern ID3D11InfoQueue *info_queue;
-};
 
 GfxError::GfxError(const char *file_name, int line_number)
 {
-    UINT64 message_count = Global::info_queue->GetNumStoredMessages();
+    set_mark();
 
     size_t j = 0;
-    for (UINT64 i = 0; i < message_count; i++)
+
+    for (UINT64 i = 0; i < dxgi_message_count; i++)
     {
         SIZE_T n = 0;
-        Global::info_queue->GetMessageW(0, nullptr, &n);
+        dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, 0, nullptr, &n);
 
-        D3D11_MESSAGE *pm = static_cast<D3D11_MESSAGE *>(malloc(n));
+        DXGI_INFO_QUEUE_MESSAGE *pm = static_cast<DXGI_INFO_QUEUE_MESSAGE *>(malloc(n));
 
-        Global::info_queue->GetMessageW(0, pm, &n);
+        dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, 0, pm, &n);
 
         char msg[512] = {};
         int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
@@ -75,7 +74,32 @@ GfxError::GfxError(const char *file_name, int line_number)
         free(pm);
     }
 
-    Global::info_queue->ClearStoredMessages();
+    if (d3d11_info_queue)
+    {
+        for (UINT64 i = 0; i < d3d11_message_count; i++)
+        {
+            SIZE_T n = 0;
+            d3d11_info_queue->GetMessageW(0, nullptr, &n);
+
+            D3D11_MESSAGE *pm = static_cast<D3D11_MESSAGE *>(malloc(n));
+
+            d3d11_info_queue->GetMessageW(0, pm, &n);
+
+            char msg[512] = {};
+            int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
+                                pm->Category, pm->Severity);
+
+            if (i)
+            {
+                message[j++] = '\n';
+            }
+
+            std::memcpy(message + j, msg, len);
+            j += len;
+
+            free(pm);
+        }
+    }
 }
 
 GfxError::~GfxError()
@@ -91,4 +115,49 @@ const char *GfxError::what() const
 {
     return message;
 }
-#endif
+
+// GfxError static
+//
+void GfxError::init_dxgi_debug()
+{
+    HMODULE lib = LoadLibraryA("DXGIDebug.dll");
+
+    auto get_debug_interface =
+        reinterpret_cast<decltype(DXGIGetDebugInterface) *>(GetProcAddress(lib, "DXGIGetDebugInterface"));
+
+    HANDLE_WIN_ERR(get_debug_interface(__uuidof(IDXGIDebug), reinterpret_cast<void **>(&dxgi_debug)));
+
+    HANDLE_WIN_ERR(get_debug_interface(__uuidof(IDXGIInfoQueue), reinterpret_cast<void **>(&dxgi_info_queue)));
+}
+
+void GfxError::init_d3d11_debug(ID3D11Device *device)
+{
+    HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void **>(&d3d11_debug)));
+
+    HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void **>(&d3d11_info_queue)));
+}
+
+UINT64 GfxError::dxgi_message_count = 0;
+UINT64 GfxError::d3d11_message_count = 0;
+
+IDXGIDebug *GfxError::dxgi_debug = 0;
+IDXGIInfoQueue *GfxError::dxgi_info_queue = 0;
+ID3D11Debug *GfxError::d3d11_debug = 0;
+ID3D11InfoQueue *GfxError::d3d11_info_queue = 0;
+
+void GfxError::set_mark()
+{
+    dxgi_message_count = GfxError::dxgi_info_queue->GetNumStoredMessagesAllowedByRetrievalFilters(DXGI_DEBUG_ALL);
+
+    if (d3d11_info_queue)
+    {
+        d3d11_message_count = GfxError::d3d11_info_queue->GetNumStoredMessagesAllowedByRetrievalFilter();
+    }
+}
+
+bool GfxError::found_new_messages()
+{
+    return GfxError::dxgi_info_queue->GetNumStoredMessagesAllowedByRetrievalFilters(DXGI_DEBUG_ALL) >
+               dxgi_message_count ||
+           GfxError::d3d11_info_queue->GetNumStoredMessagesAllowedByRetrievalFilter() > d3d11_message_count;
+}

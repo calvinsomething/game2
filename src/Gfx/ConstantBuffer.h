@@ -9,7 +9,7 @@ typedef void (*BindProc)(ID3D11DeviceContext *, ID3D11Buffer *);
 class ConstantBuffer : public Buffer
 {
   public:
-    ConstantBuffer(Gfx &gfx, BindProc bind_proc, size_t byte_width);
+    ConstantBuffer(Gfx &gfx, BindProc bind_proc, UINT byte_width);
 
     void bind() override;
 

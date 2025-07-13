@@ -4,16 +4,6 @@
 
 #include "../Error.h"
 
-#ifndef NDEBUG
-namespace Global
-{
-IDXGIDebug *infrastructure_debug;
-IDXGIInfoQueue *infrastructure_info;
-ID3D11Debug *debug;
-ID3D11InfoQueue *info_queue;
-}; // namespace Global
-#endif
-
 Gfx::Gfx(HWND hwnd)
 {
     DXGI_SWAP_CHAIN_DESC sd{};
@@ -35,30 +25,22 @@ Gfx::Gfx(HWND hwnd)
         0;
 #else
         D3D11_CREATE_DEVICE_DEBUG;
+
+    GfxError::init_dxgi_debug();
+
 #endif
 
     D3D_FEATURE_LEVEL feature_level_options = D3D_FEATURE_LEVEL_11_0;
     D3D_FEATURE_LEVEL feature_level;
 
-    HANDLE_WIN_ERR(D3D11CreateDeviceAndSwapChain(
+    HANDLE_GFX_ERR(D3D11CreateDeviceAndSwapChain(
         nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, &feature_level_options,
         1, // feature level options and number of options
         D3D11_SDK_VERSION, &sd, swap_chain.GetAddressOf(), device.GetAddressOf(), &feature_level, ctx.GetAddressOf()));
 
 #ifndef NDEBUG
-    HMODULE lib = LoadLibraryA("DXGIDebug.dll");
+    GfxError::init_d3d11_debug(device.Get());
 
-    auto get_debug_interface =
-        reinterpret_cast<decltype(DXGIGetDebugInterface) *>(GetProcAddress(lib, "DXGIGetDebugInterface"));
-
-    HANDLE_WIN_ERR(get_debug_interface(__uuidof(IDXGIDebug), reinterpret_cast<void **>(&Global::infrastructure_debug)));
-
-    HANDLE_WIN_ERR(
-        get_debug_interface(__uuidof(IDXGIInfoQueue), reinterpret_cast<void **>(&Global::infrastructure_info)));
-
-    HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void **>(&Global::debug)));
-
-    HANDLE_WIN_ERR(device->QueryInterface(__uuidof(ID3D11InfoQueue), reinterpret_cast<void **>(&Global::info_queue)));
 #endif
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;
@@ -76,24 +58,18 @@ Gfx::Gfx(HWND hwnd)
     vp.TopLeftX = 0;
     vp.TopLeftY = 0;
 
-    ctx->RSSetViewports(1, &vp);
+    HANDLE_GFX_INFO(ctx->RSSetViewports(1, &vp));
 }
 
 Gfx::~Gfx()
 {
-#ifndef NDEBUG
-    if (Global::info_queue)
-    {
-        Global::info_queue->Release();
-    }
-#endif
 }
 
 void Gfx::clear(float *color)
 {
-    ctx->ClearRenderTargetView(render_target_view.Get(), color);
+    HANDLE_GFX_INFO(ctx->ClearRenderTargetView(render_target_view.Get(), color));
 
-    ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), nullptr);
+    HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), nullptr));
 }
 
 void Gfx::end_frame()

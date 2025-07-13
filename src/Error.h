@@ -1,9 +1,10 @@
 #pragma once
 
-#include <exception>
+#include <d3d11.h>
+#include <dxgidebug.h>
 #include <windows.h>
 
-#ifndef GET_HRESULT_HANDLER
+#include <exception>
 
 #define GET_HRESULT_HANDLER(hr, error_type)                                                                            \
     {                                                                                                                  \
@@ -17,12 +18,23 @@
 #define HANDLE_WIN_ERR(hr) GET_HRESULT_HANDLER(hr, WindowsError)
 
 // Gfx Error Handler
-#ifdef NDEBUG
-#define HANDLE_GFX_ERR(hr) GET_HRESULT_HANDLER(hr, WindowsError)
-#else
 #define HANDLE_GFX_ERR(hr) GET_HRESULT_HANDLER(hr, GfxError)
-#endif
 
+// Gfx Info Handler
+#ifdef NDEBUG
+#define HANDLE_GFX_INFO(call) call
+#else
+#define HANDLE_GFX_INFO(call)                                                                                          \
+    {                                                                                                                  \
+        GfxError::set_mark();                                                                                          \
+                                                                                                                       \
+        call;                                                                                                          \
+                                                                                                                       \
+        if (GfxError::found_new_messages())                                                                            \
+        {                                                                                                              \
+            throw GfxError(__FILE__, __LINE__);                                                                        \
+        }                                                                                                              \
+    }
 #endif
 
 class Error : public std::exception
@@ -31,7 +43,7 @@ class Error : public std::exception
     virtual const char *title() const = 0;
 
   protected:
-    char message[1024] = {};
+    static char message[1024];
 };
 
 // WindowsError
@@ -57,5 +69,20 @@ class GfxError : public Error
 
     const char *title() const override;
     const char *what() const override;
+
+    static void init_dxgi_debug();
+    static void init_d3d11_debug(ID3D11Device *device);
+
+    static void set_mark();
+    static bool found_new_messages();
+
+  private:
+    static IDXGIDebug *dxgi_debug;
+    static IDXGIInfoQueue *dxgi_info_queue;
+    static ID3D11Debug *d3d11_debug;
+    static ID3D11InfoQueue *d3d11_info_queue;
+
+    static UINT64 dxgi_message_count;
+    static UINT64 d3d11_message_count;
 };
 #endif
