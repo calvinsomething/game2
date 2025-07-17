@@ -6,6 +6,10 @@
 #include "Error.h"
 #include "Gfx/Camera.h"
 #include "Gfx/Gfx.h"
+#include "Gfx/IndexBuffer.h"
+#include "Gfx/PixelShader.h"
+#include "Gfx/VertexBuffer.h"
+#include "Gfx/VertexShader.h"
 #include "Window.h"
 #include "models/Cube.h"
 
@@ -13,6 +17,18 @@ namespace Global
 {
 bool running = true;
 };
+
+Vertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(-5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(-5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)},
+                     {DirectX::XMFLOAT4(-5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f)}};
+
+uint32_t indices[] = {0, 1, 2, 2, 3, 0, 0, 4, 5, 5, 1, 0, 4, 7, 6, 6, 5, 4,
+                      4, 0, 3, 3, 7, 4, 3, 2, 6, 6, 7, 3, 1, 5, 6, 6, 2, 1};
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -28,6 +44,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         float color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
+        VertexBuffer vb(gfx, vertices);
+        IndexBuffer ib(gfx, indices);
+        VertexShader vs(gfx);
+        PixelShader ps(gfx);
+
+        vb.bind();
+        ib.bind();
+        vs.bind();
+        ps.bind();
+
         while (Global::running)
         {
             window.handle_messages();
@@ -37,6 +63,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             cube.bind();
 
             cube.update();
+
+            vs.draw_indexed(ARRAYSIZE(indices));
 
             camera.update();
 

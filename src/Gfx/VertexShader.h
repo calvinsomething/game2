@@ -25,7 +25,7 @@ class VertexShader : public Shader
 
     VertexShader(Gfx &gfx);
 
-    ConstantBuffer constant_buffer;
+    // ConstantBuffer constant_buffer;
 
     void bind() override;
 
@@ -35,6 +35,4 @@ class VertexShader : public Shader
 
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
-
-    BufferData buffer_data;
 };

@@ -4,10 +4,11 @@
 
 static void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
 {
-    ctx->VSSetConstantBuffers(1, 1, &buffer);
+    // ctx->VSSetConstantBuffers(1, 1, &buffer);
 }
 
-VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, &bind_proc, sizeof(VertexShader::BufferData))
+VertexShader::VertexShader(Gfx &gfx)
+    : Shader(gfx) //, constant_buffer(gfx, &bind_proc, sizeof(VertexShader::BufferData))
 {
     auto byte_code = load("vs.cso");
 
@@ -24,12 +25,12 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx), constant_buffer(gfx, &bind_p
 
 void VertexShader::set_buffer(VertexShader::BufferData *data)
 {
-    constant_buffer.write(data, sizeof(*data));
+    // constant_buffer.write(data, sizeof(*data));
 }
 
 void VertexShader::bind()
 {
-    constant_buffer.bind();
+    // constant_buffer.bind();
 
     ctx->IASetInputLayout(input_layout.Get());
 
