@@ -15,6 +15,10 @@ class Camera
     void update();
 
   private:
+    DirectX::FXMVECTOR eye_pos;
+    DirectX::FXMVECTOR focus_pos;
+    DirectX::FXMVECTOR up_dir;
+
     ConstantBuffer constant_buffer;
 
     BufferData buffer_data;
