@@ -4,7 +4,7 @@
 
 Buffer::Buffer(Gfx &gfx, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags, UINT pitch,
                UINT slice_pitch)
-    : device(gfx.device.Get()), ctx(gfx.ctx.Get())
+    : GfxAccess(gfx)
 {
     init(nullptr, byte_width, bind_flags, usage, cpu_access_flags, pitch, slice_pitch);
 }

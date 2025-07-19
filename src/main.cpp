@@ -7,6 +7,7 @@
 #include "Gfx/Camera.h"
 #include "Gfx/Gfx.h"
 #include "Gfx/IndexBuffer.h"
+#include "Gfx/InstanceBuffer.h"
 #include "Gfx/PixelShader.h"
 #include "Gfx/VertexBuffer.h"
 #include "Gfx/VertexShader.h"
@@ -44,15 +45,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         float color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
+        InstanceBuffer instance_buffer(gfx, cube.get_transforms(), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
+                                       D3D11_CPU_ACCESS_WRITE);
+
         VertexBuffer vb(gfx, vertices);
         IndexBuffer ib(gfx, indices);
         VertexShader vs(gfx);
         PixelShader ps(gfx);
 
-        vb.bind();
         ib.bind();
         vs.bind();
         ps.bind();
+
+        Buffer *v_buffers[] = {&vb, &instance_buffer};
+        VertexBuffers vbs(gfx, v_buffers);
+
+        vbs.bind();
 
         while (Global::running)
         {
@@ -63,6 +71,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             cube.bind();
 
             cube.update();
+
+            instance_buffer.update(cube.get_transforms(), sizeof(Cube::Transforms));
 
             vs.draw_indexed(ARRAYSIZE(indices));
 

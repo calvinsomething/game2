@@ -7,7 +7,7 @@
 
 constexpr char SHADER_DIR[] = SHADERS_BIN;
 
-Shader::Shader(Gfx &gfx) : device(gfx.device.Get()), ctx(gfx.ctx.Get())
+Shader::Shader(Gfx &gfx) : GfxAccess(gfx)
 {
 }
 

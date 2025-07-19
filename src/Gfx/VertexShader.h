@@ -4,8 +4,6 @@
 
 #include <DirectXMath.h>
 
-#include "ConstantBuffer.h"
-
 struct Vertex
 {
     DirectX::XMFLOAT4 position, color;
@@ -24,8 +22,6 @@ class VertexShader : public Shader
     };
 
     VertexShader(Gfx &gfx);
-
-    // ConstantBuffer constant_buffer;
 
     void bind() override;
 

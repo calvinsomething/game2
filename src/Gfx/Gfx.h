@@ -8,8 +8,7 @@
 
 class Gfx
 {
-    friend class Buffer;
-    friend class Shader;
+    friend class GfxAccess;
 
   public:
     Gfx(HWND hwnd);
@@ -26,4 +25,15 @@ class Gfx
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
 
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target_view;
+};
+
+class GfxAccess
+{
+  protected:
+    GfxAccess(Gfx &gfx) : device(gfx.device.Get()), ctx(gfx.ctx.Get())
+    {
+    }
+
+    ID3D11Device *device;
+    ID3D11DeviceContext *ctx;
 };

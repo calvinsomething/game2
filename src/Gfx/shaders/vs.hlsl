@@ -2,6 +2,8 @@ struct VSIn
 {
     float4 pos : POSITION;
     float4 color : COLOR;
+	matrix model_xform : MODEL_XFORM;
+	matrix world_xform : WORLD_XFORM;
 };
 
 struct VSOut
@@ -19,7 +21,9 @@ VSOut main(VSIn input)
 {
     VSOut output;
 
-	output.pos = mul(input.pos, view_proj);
+	output.pos = mul(input.pos, input.model_xform);
+	output.pos = mul(output.pos, input.world_xform);
+	output.pos = mul(output.pos, view_proj);
 
 	output.color = input.color;
     
