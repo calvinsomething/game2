@@ -28,6 +28,7 @@ class VertexShader : public Shader
     void set_buffer(BufferData *data);
 
     void draw_indexed(UINT count);
+    void draw_indexeded_instanced(UINT index_count, UINT instance_count, UINT start_index);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;

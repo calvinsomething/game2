@@ -2,22 +2,31 @@
 
 Cube::Cube(Gfx &gfx) : gfx(gfx)
 {
-    transforms.model = DirectX::XMMatrixIdentity();
-    transforms.world = DirectX::XMMatrixIdentity();
+    transform = DirectX::XMMatrixIdentity();
 }
 
-Cube::Transforms *Cube::get_transforms()
+DirectX::XMMATRIX Cube::get_transform()
 {
-    return &transforms;
+    return transform * DirectX::XMMatrixTranslation(position.x, position.y, position.z);
 }
 
 void Cube::bind()
 {
 }
 
-void Cube::update()
+void Cube::update(const DirectX::XMMATRIX &xform)
 {
-    transforms.model *= DirectX::XMMatrixRotationRollPitchYaw(0.005f, 0.002f, 0.003f);
+    transform *= xform;
+}
 
-    // vs->set_buffer(&buffer_data);
+void Cube::set_position(float x, float y, float z)
+{
+    position = DirectX::XMFLOAT3(x, y, z);
+}
+
+void Cube::translate(float x, float y, float z)
+{
+    position.x += x;
+    position.y += y;
+    position.z += z;
 }

@@ -5,26 +5,23 @@
 class Cube
 {
   public:
-    struct Transforms
-    {
-        DirectX::XMMATRIX model;
-        DirectX::XMMATRIX world;
-    };
-
     Cube(Gfx &gfx);
 
     void bind();
 
-    void update();
+    void update(const DirectX::XMMATRIX &xform);
 
-    Transforms *get_transforms();
+    void set_position(float x, float y, float z);
+    void translate(float x, float y, float z);
+
+    DirectX::XMMATRIX get_transform();
 
   private:
     Gfx &gfx;
 
-    bool initialized = false;
-
     VertexShader::BufferData buffer_data;
 
-    Transforms transforms;
+    DirectX::XMMATRIX transform;
+
+    DirectX::XMFLOAT3 position;
 };

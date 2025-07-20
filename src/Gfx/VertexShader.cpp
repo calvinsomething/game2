@@ -18,14 +18,6 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
         {"MODEL_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"WORLD_XFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
-         D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"WORLD_XFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
-         D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"WORLD_XFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
-         D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"WORLD_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
-         D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
 
     HANDLE_GFX_ERR(device->CreateInputLayout(layout, ARRAYSIZE(layout), byte_code.data(), byte_code.size(),
@@ -48,4 +40,11 @@ void VertexShader::draw_indexed(UINT count)
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     HANDLE_GFX_INFO(ctx->DrawIndexed(count, 0, 0));
+}
+
+void VertexShader::draw_indexeded_instanced(UINT index_count, UINT instance_count, UINT start_index)
+{
+    ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    HANDLE_GFX_INFO(ctx->DrawIndexedInstanced(index_count, instance_count, start_index, 0, 0));
 }
