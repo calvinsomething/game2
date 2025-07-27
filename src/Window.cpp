@@ -24,26 +24,16 @@ Window::~Window(){};
 namespace Global
 {
 extern bool running;
-};
+}; // namespace Global
 
 LRESULT __stdcall Window::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     switch (msg)
     {
+    // case WM_INPUT: ignored
     case WM_DESTROY:
         Global::running = false;
-
         PostQuitMessage(0);
-
-        return 0;
-
-        // case WM_PAINT: {
-        // PAINTSTRUCT ps;
-        // HDC hdc = BeginPaint(hwnd, &ps);
-
-        // FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-
-        // EndPaint(hwnd, &ps);
         return 0;
     }
     return DefWindowProc(hwnd, msg, wp, lp);
@@ -51,7 +41,10 @@ LRESULT __stdcall Window::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 void Window::handle_messages()
 {
-    while (PeekMessageW(&msg, hwnd, 0, 0, PM_REMOVE))
+    static UINT max = WM_INPUT - 1, min = WM_INPUT + 1;
+
+    while (PeekMessageW(&msg, hwnd, 0, max, PM_REMOVE) ||
+           PeekMessageW(&msg, hwnd, min, static_cast<UINT>(-1), PM_REMOVE))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);

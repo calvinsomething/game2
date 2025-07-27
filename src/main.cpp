@@ -12,12 +12,13 @@
 #include "Gfx/VertexBuffer.h"
 #include "Gfx/VertexShader.h"
 #include "Window.h"
+#include "input/Input.h"
 #include "models/Cube.h"
 
 namespace Global
 {
 bool running = true;
-};
+}; // namespace Global
 
 Vertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
                      {DirectX::XMFLOAT4(5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
@@ -38,6 +39,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     try
     {
+        Input input;
+        input.register_devices();
+
         Gfx gfx(window.get_handle());
 
         Camera camera(gfx);
@@ -71,6 +75,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         while (Global::running)
         {
+            input.handle_input();
+
             window.handle_messages();
 
             gfx.clear(color);
