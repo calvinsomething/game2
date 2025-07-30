@@ -15,8 +15,16 @@ Camera::Camera(Gfx &gfx)
 {
 }
 
+void Camera::move(DirectX::FXMVECTOR diff)
+{
+    eye_pos = XMVectorAdd(eye_pos, diff);
+}
+
 void Camera::update()
 {
+    buffer_data.view_proj_xform = XMMatrixMultiplyTranspose(XMMatrixLookAtLH(eye_pos, focus_pos, up_dir),
+                                                            XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
+
     constant_buffer.write(&buffer_data, sizeof(buffer_data));
 
     constant_buffer.bind();

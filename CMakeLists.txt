@@ -23,15 +23,16 @@ set_src_list(main.cpp
 	Window.cpp
 	Error.cpp
 	models/Cube.cpp
-	Gfx/Gfx.cpp
-	Gfx/Camera.cpp
-	Gfx/Buffer.cpp
-	Gfx/VertexBuffer.cpp
-	Gfx/IndexBuffer.cpp
-	Gfx/ConstantBuffer.cpp
-	Gfx/Shader.cpp
-	Gfx/PixelShader.cpp
-	Gfx/VertexShader.cpp)
+	gfx/Gfx.cpp
+	gfx/Camera.cpp
+	gfx/Buffer.cpp
+	gfx/VertexBuffer.cpp
+	gfx/IndexBuffer.cpp
+	gfx/ConstantBuffer.cpp
+	gfx/Shader.cpp
+	gfx/PixelShader.cpp
+	gfx/VertexShader.cpp
+	input/Input.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)
 

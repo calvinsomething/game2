@@ -73,6 +73,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         vbs.bind();
 
+        input.set_control_handler([&](unsigned char c) {
+            constexpr float step = 1.0f;
+
+            float x = 0, y = 0, z = 0;
+
+            switch (c)
+            {
+            case 'W':
+                z = step;
+                break;
+            case 'A':
+                x = -step;
+                break;
+            case 'S':
+                z = -step;
+                break;
+            case 'D':
+                x = step;
+            }
+
+            camera.move(DirectX::XMVECTOR{x, y, z});
+        });
+
         while (Global::running)
         {
             input.handle_input();
