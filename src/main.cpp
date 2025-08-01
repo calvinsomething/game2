@@ -18,6 +18,7 @@
 namespace Global
 {
 bool running = true;
+DirectX::XMFLOAT3 position{};
 }; // namespace Global
 
 Vertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
@@ -76,24 +77,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         input.set_control_handler([&](unsigned char c) {
             constexpr float step = 1.0f;
 
-            float x = 0, y = 0, z = 0;
-
             switch (c)
             {
             case 'W':
-                z = step;
+                Global::position.z += step;
                 break;
             case 'A':
-                x = -step;
+                Global::position.x -= step;
                 break;
             case 'S':
-                z = -step;
+                Global::position.z -= step;
                 break;
             case 'D':
-                x = step;
+                Global::position.x += step;
             }
-
-            camera.move(DirectX::XMVECTOR{x, y, z});
         });
 
         while (Global::running)
@@ -114,7 +111,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             vs.draw_indexeded_instanced(ARRAYSIZE(indices), 2, 0);
 
-            camera.update();
+            camera.update(Global::position);
 
             gfx.end_frame();
         }
