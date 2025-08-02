@@ -1,8 +1,5 @@
 #include "Camera.h"
 
-#include <stdexcept>
-#include <string>
-
 using namespace DirectX;
 
 void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
@@ -24,10 +21,10 @@ void Camera::increase_elevation(float diff)
 
 void Camera::increase_azimuth(float diff)
 {
-    constexpr float step = 0.2f, up_factor = 1000000.0f, factor_inv = 1.0f / up_factor;
-    constexpr int pi_x_bil = XM_PI * up_factor;
+    constexpr float step = 0.2f, factor = 1000000.0f, factor_inv = 1.0f / factor;
+    constexpr int pi_x_factor = XM_PI * factor;
 
-    azimuth += float(int(diff * step * up_factor) % pi_x_bil) * factor_inv;
+    azimuth += float(int(diff * step * factor) % pi_x_factor) * factor_inv;
 }
 
 void Camera::increase_distance(float diff)
