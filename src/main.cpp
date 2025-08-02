@@ -14,11 +14,14 @@
 #include "Window.h"
 #include "input/Input.h"
 #include "models/Cube.h"
+#include "util.h"
 
 namespace Global
 {
 bool running = true;
 DirectX::XMFLOAT3 position{};
+DirectX::XMFLOAT3 twelve_oclock{0.0f, 0.0f, 1.0f};
+DirectX::XMFLOAT3 nine_oclock{-1.0f, 0.0f, 0.0f};
 }; // namespace Global
 
 Vertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
@@ -80,16 +83,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             switch (c)
             {
             case 'W':
-                Global::position.z += step;
+                Global::position = Global::position + Global::twelve_oclock * step;
                 break;
             case 'A':
-                Global::position.x -= step;
+                Global::position = Global::position + Global::nine_oclock * step;
                 break;
             case 'S':
-                Global::position.z -= step;
+                Global::position = Global::position - Global::twelve_oclock * step;
                 break;
             case 'D':
-                Global::position.x += step;
+                Global::position = Global::position - Global::nine_oclock * step;
+                break;
+            case 'Q':
+                camera.increase_azimuth(0.2f);
+                break;
+            case 'E':
+                camera.increase_azimuth(-0.2f);
+                break;
             }
         });
 

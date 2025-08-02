@@ -32,7 +32,8 @@ set_src_list(main.cpp
 	gfx/Shader.cpp
 	gfx/PixelShader.cpp
 	gfx/VertexShader.cpp
-	input/Input.cpp)
+	input/Input.cpp
+	util.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)
 
