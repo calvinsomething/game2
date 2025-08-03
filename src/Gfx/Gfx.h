@@ -10,6 +10,18 @@ class Gfx
 {
     friend class GfxAccess;
 
+    class DepthBuffer
+    {
+      public:
+        void init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT buffer_width, UINT buffer_height,
+                  ID3D11RenderTargetView *render_target_view);
+
+        ID3D11DepthStencilView *get_view();
+
+      private:
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> view;
+    };
+
   public:
     Gfx(HWND hwnd);
     ~Gfx();
@@ -25,6 +37,8 @@ class Gfx
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
 
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target_view;
+
+    DepthBuffer depth_buffer;
 };
 
 class GfxAccess

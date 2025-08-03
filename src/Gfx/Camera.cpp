@@ -22,7 +22,7 @@ void Camera::increase_elevation(float diff)
 void Camera::increase_azimuth(float diff)
 {
     constexpr float step = 0.2f, factor = 1000000.0f, factor_inv = 1.0f / factor;
-    constexpr int pi_x_factor = XM_PI * factor;
+    constexpr int pi_x_factor = static_cast<int>(XM_PI * factor);
 
     azimuth += float(int(diff * step * factor) % pi_x_factor) * factor_inv;
 }

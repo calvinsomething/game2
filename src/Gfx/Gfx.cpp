@@ -59,6 +59,8 @@ Gfx::Gfx(HWND hwnd)
     vp.TopLeftY = 0;
 
     HANDLE_GFX_INFO(ctx->RSSetViewports(1, &vp));
+
+    depth_buffer.init(device.Get(), ctx.Get(), UINT(vp.Width), UINT(vp.Height), render_target_view.Get());
 }
 
 Gfx::~Gfx()
@@ -69,7 +71,10 @@ void Gfx::clear(float *color)
 {
     HANDLE_GFX_INFO(ctx->ClearRenderTargetView(render_target_view.Get(), color));
 
-    HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), nullptr));
+    HANDLE_GFX_INFO(
+        ctx->ClearDepthStencilView(depth_buffer.get_view(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
+
+    HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), depth_buffer.get_view()));
 }
 
 void Gfx::end_frame()
