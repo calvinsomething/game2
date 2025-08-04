@@ -3,15 +3,13 @@
 #include "Buffer.h"
 #include "Buffers.h"
 
-#include "VertexShader.h"
-
 class VertexBuffer : public Buffer
 {
   public:
-    template <typename T>
-    VertexBuffer(Gfx &gfx, T &vertices) : Buffer(gfx, &vertices, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT)
+    template <typename T, size_t N>
+    VertexBuffer(Gfx &gfx, T (&vertices)[N]) : Buffer(gfx, &vertices, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT)
     {
-        stride = sizeof(Vertex); // assuming no padding/offset
+        stride = sizeof(T); // assuming no padding/offset
     }
 
     void bind() override;

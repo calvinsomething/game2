@@ -33,3 +33,35 @@ class VertexShader : public Shader
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
 };
+
+// TextureVertexShader
+struct TextureVertex
+{
+    DirectX::XMFLOAT4 position;
+    DirectX::XMFLOAT2 texture_coordinate;
+};
+
+class TextureVertexShader : public Shader
+{
+  public:
+    struct BufferData
+    {
+        struct
+        {
+            DirectX::XMMATRIX model;
+            DirectX::XMMATRIX world;
+        } transforms;
+    };
+
+    TextureVertexShader(Gfx &gfx);
+
+    void bind() override;
+
+    void set_buffer(BufferData *data);
+
+    void draw_indexed(UINT count);
+    void draw_indexeded_instanced(UINT index_count, UINT instance_count, UINT start_index);
+
+  private:
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
+};

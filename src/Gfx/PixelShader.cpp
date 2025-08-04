@@ -22,3 +22,22 @@ void PixelShader::bind()
 
     ctx->PSSetShader(shader.Get(), nullptr, 0);
 }
+
+// TexturePixelShader
+TexturePixelShader::TexturePixelShader(Gfx &gfx, Texture &texture) : Shader(gfx), texture(texture)
+{
+    auto byte_code = load("ps_tex.cso");
+
+    HANDLE_GFX_ERR(device->CreatePixelShader(byte_code.data(), byte_code.size(), nullptr, &shader));
+}
+
+void TexturePixelShader::bind()
+{
+    ctx->PSSetShader(shader.Get(), nullptr, 0);
+
+    ID3D11SamplerState *sampler = texture.get_sampler();
+    ID3D11ShaderResourceView *view = texture.get_view();
+
+    ctx->PSSetSamplers(0, 1, &sampler);
+    ctx->PSSetShaderResources(0, 1, &view);
+}

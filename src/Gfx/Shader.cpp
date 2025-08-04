@@ -1,9 +1,6 @@
 #include "Shader.h"
 
-#include <d3dcompiler.h>
-
-#include <fstream>
-#include <stdexcept>
+#include "../util.h"
 
 constexpr char SHADER_DIR[] = SHADERS_BIN;
 
@@ -11,7 +8,7 @@ Shader::Shader(Gfx &gfx) : GfxAccess(gfx)
 {
 }
 
-std::vector<char> Shader::load(const char *file_name)
+std::string Shader::load(const char *file_name)
 {
     std::string path;
     path.reserve(sizeof(SHADER_DIR) + 1 + strlen(file_name));
@@ -19,25 +16,7 @@ std::vector<char> Shader::load(const char *file_name)
     path += '/';
     path += file_name;
 
-    std::ifstream fs(path, std::ios::binary | std::ios::ate);
-
-    if (!fs.good())
-    {
-        std::string s = "failed to open shader file: " + path;
-        throw std::runtime_error(s.c_str());
-    }
-
-    size_t n = fs.tellg();
-    fs.seekg(std::ios::beg);
-
-    std::vector<char> byte_code(n);
-
-    fs.read(byte_code.data(), n);
-
-    if (!fs)
-    {
-        throw std::runtime_error("failed to load shader byte code");
-    }
+    std::string byte_code = load_file(path);
 
     return byte_code;
 }

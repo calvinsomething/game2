@@ -33,6 +33,7 @@ set_src_list(main.cpp
 	gfx/Shader.cpp
 	gfx/PixelShader.cpp
 	gfx/VertexShader.cpp
+	gfx/Texture.cpp
 	input/Input.cpp
 	util.cpp)
 
@@ -68,13 +69,23 @@ file(MAKE_DIRECTORY ${shaders_bin})
 
 set(shader_files
 	vs.hlsl
-	ps.hlsl)
+	vs_tex.hlsl
+	ps.hlsl
+	ps_tex.hlsl)
 
 set_source_files_properties(vs.hlsl PROPERTIES
 	type vs
     version _5_0)
 
+set_source_files_properties(vs_tex.hlsl PROPERTIES
+	type vs
+    version _5_0)
+
 set_source_files_properties(ps.hlsl PROPERTIES
+	type ps
+    version _5_0)
+
+set_source_files_properties(ps_tex.hlsl PROPERTIES
 	type ps
     version _5_0)
 

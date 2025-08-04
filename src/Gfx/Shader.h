@@ -4,7 +4,7 @@
 
 #include <wrl.h>
 
-#include <vector>
+#include <string>
 
 class Shader : protected GfxAccess
 {
@@ -12,7 +12,7 @@ class Shader : protected GfxAccess
     virtual void bind() = 0;
 
   protected:
-    std::vector<char> load(const char *);
+    std::string load(const char *);
 
     Shader(Gfx &gfx);
 
