@@ -43,6 +43,34 @@ const char *WindowsError::what() const
 
 // GfxError
 //
+bool GfxError::write_message(char *msg, int len, size_t &j, bool first_line)
+{
+    const char *ellipses = 0;
+
+    if (j + len > sizeof(message) - 1)
+    {
+        len = sizeof(message) - j - 4;
+        ellipses = "...";
+    }
+
+    if (!first_line)
+    {
+        message[j++] = '\n';
+    }
+
+    std::memcpy(message + j, msg, len);
+
+    j += len;
+
+    if (ellipses)
+    {
+        std::memcpy(message + j, ellipses, 3);
+
+        return false;
+    }
+
+    return true;
+}
 
 GfxError::GfxError(const char *file_name, int line_number)
 {
@@ -53,23 +81,20 @@ GfxError::GfxError(const char *file_name, int line_number)
     for (UINT64 i = 0; i < dxgi_message_count; i++)
     {
         SIZE_T n = 0;
-        dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, 0, nullptr, &n);
+        dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, i, nullptr, &n);
 
         DXGI_INFO_QUEUE_MESSAGE *pm = static_cast<DXGI_INFO_QUEUE_MESSAGE *>(malloc(n));
 
-        dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, 0, pm, &n);
+        dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, i, pm, &n);
 
-        char msg[512] = {};
+        char msg[sizeof(message)] = {};
         int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
                             pm->Category, pm->Severity);
 
-        if (i)
+        if (!write_message(msg, len, j, !i))
         {
-            message[j++] = '\n';
+            return;
         }
-
-        std::memcpy(message + j, msg, len);
-        j += len;
 
         free(pm);
     }
@@ -79,23 +104,20 @@ GfxError::GfxError(const char *file_name, int line_number)
         for (UINT64 i = 0; i < d3d11_message_count; i++)
         {
             SIZE_T n = 0;
-            d3d11_info_queue->GetMessageW(0, nullptr, &n);
+            d3d11_info_queue->GetMessageW(i, nullptr, &n);
 
             D3D11_MESSAGE *pm = static_cast<D3D11_MESSAGE *>(malloc(n));
 
-            d3d11_info_queue->GetMessageW(0, pm, &n);
+            d3d11_info_queue->GetMessageW(i, pm, &n);
 
             char msg[512] = {};
             int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
                                 pm->Category, pm->Severity);
 
-            if (i)
+            if (!write_message(msg, len, j, !i))
             {
-                message[j++] = '\n';
+                return;
             }
-
-            std::memcpy(message + j, msg, len);
-            j += len;
 
             free(pm);
         }

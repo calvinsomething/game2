@@ -46,10 +46,20 @@ target_compile_definitions(${PROJECT_NAME}
 		UNICODE
 		WIN32_LEAN_AND_MEAN)
 
+# Libraries
+#
+add_subdirectory(vendor)
+
 target_link_libraries(${PROJECT_NAME}
 	d3d11
 	dxgi
-	dxguid)
+	dxguid
+
+	DDSTextureLoader)
+
+target_include_directories(${PROJECT_NAME}
+	PRIVATE
+		vendor)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	execute_process(COMMAND
@@ -102,4 +112,16 @@ foreach(file ${shader_files})
 		VERBATIM)
 endforeach()
 
-add_dependencies(${PROJECT_NAME} shaders)
+# Assets
+#
+add_custom_target(assets)
+
+add_custom_command(TARGET assets
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets
+	DEPENDS ${PROJECT_SOURCE_DIR}/assets/*
+	COMMENT "Updating assets..."
+	VERBATIM)
+
+# Dependency Targets
+#
+add_dependencies(${PROJECT_NAME} shaders assets)

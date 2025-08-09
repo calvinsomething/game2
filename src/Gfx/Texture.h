@@ -13,6 +13,8 @@ class Texture : private GfxAccess
     ID3D11SamplerState *get_sampler();
     ID3D11ShaderResourceView *get_view();
 
+    void load();
+
   private:
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
     Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler_state;

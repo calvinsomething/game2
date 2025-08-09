@@ -84,5 +84,7 @@ class GfxError : public Error
 
     static UINT64 dxgi_message_count;
     static UINT64 d3d11_message_count;
+
+    bool write_message(char *msg, int len, size_t &j, bool first_line);
 };
 #endif

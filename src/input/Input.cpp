@@ -67,7 +67,8 @@ void Input::process_data(RAWINPUT *raw)
     case RIM_TYPEKEYBOARD:
         if (raw->data.keyboard.VKey)
         {
-            handle_keyboard_input(!(raw->data.keyboard.Flags & RI_KEY_BREAK), raw->data.keyboard.VKey);
+            handle_keyboard_input(!(raw->data.keyboard.Flags & RI_KEY_BREAK),
+                                  static_cast<unsigned char>(raw->data.keyboard.VKey));
             break;
         }
     }
