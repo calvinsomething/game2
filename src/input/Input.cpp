@@ -55,7 +55,7 @@ void Input::set_control_handler(std::function<void(unsigned char)> &&handler)
 
 void Input::handle_keyboard_input(bool key_is_down, USHORT v_key)
 {
-    control_handler(v_key);
+    control_handler(static_cast<unsigned char>(v_key));
 }
 
 void Input::process_data(RAWINPUT *raw)

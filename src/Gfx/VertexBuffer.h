@@ -3,6 +3,8 @@
 #include "Buffer.h"
 #include "Buffers.h"
 
+#include <vector>
+
 class VertexBuffer : public Buffer
 {
   public:
@@ -10,6 +12,13 @@ class VertexBuffer : public Buffer
     VertexBuffer(Gfx &gfx, T (&vertices)[N]) : Buffer(gfx, &vertices, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT)
     {
         stride = sizeof(T); // assuming no padding/offset
+    }
+
+    template <typename T> VertexBuffer(Gfx &gfx, std::vector<T> &vertices) : Buffer(gfx)
+    {
+        stride = sizeof(T); // assuming no padding/offset
+
+        init(vertices.data(), UINT(vertices.size()) * stride, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT);
     }
 
     void bind() override;

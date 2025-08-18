@@ -42,11 +42,12 @@ void VertexShader::draw_indexed(UINT count)
     HANDLE_GFX_INFO(ctx->DrawIndexed(count, 0, 0));
 }
 
-void VertexShader::draw_indexeded_instanced(UINT index_count, UINT instance_count, UINT start_index)
+void VertexShader::draw_indexed_instanced(UINT start_index, UINT index_count, UINT start_instance, UINT instance_count,
+                                          UINT vertex_offset)
 {
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    HANDLE_GFX_INFO(ctx->DrawIndexedInstanced(index_count, instance_count, start_index, 0, 0));
+    HANDLE_GFX_INFO(ctx->DrawIndexedInstanced(index_count, instance_count, start_index, vertex_offset, start_instance));
 }
 
 // TextureVertexShader
@@ -90,7 +91,7 @@ void TextureVertexShader::draw_indexed(UINT count)
     HANDLE_GFX_INFO(ctx->DrawIndexed(count, 0, 0));
 }
 
-void TextureVertexShader::draw_indexeded_instanced(UINT index_count, UINT instance_count, UINT start_index)
+void TextureVertexShader::draw_indexed_instanced(UINT index_count, UINT instance_count, UINT start_index)
 {
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

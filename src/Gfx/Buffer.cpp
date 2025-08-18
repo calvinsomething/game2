@@ -2,6 +2,10 @@
 
 #include "../Error.h"
 
+Buffer::Buffer(Gfx &gfx) : GfxAccess(gfx)
+{
+}
+
 Buffer::Buffer(Gfx &gfx, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags, UINT pitch,
                UINT slice_pitch)
     : GfxAccess(gfx)
@@ -32,5 +36,5 @@ void Buffer::init(void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usag
     }
 
     HANDLE_GFX_ERR(device->CreateBuffer(
-        &bd, p_srd, buffer.ReleaseAndGetAddressOf())); // release so init can be used to update buffer structure
+        &bd, p_srd, buffer.ReleaseAndGetAddressOf())); // release so init can be used to write over buffer structure
 }

@@ -15,7 +15,7 @@ class InstanceBuffer : public Buffer
                    UINT pitch = 0, UINT slice_pitch = 0)
         : Buffer(gfx, data, bind_flags, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE)
     {
-        stride = sizeof(**data);
+        stride = sizeof(T);
     }
 
     void bind() override
@@ -23,7 +23,7 @@ class InstanceBuffer : public Buffer
         throw std::runtime_error("InstanceBuffer does not implement 'bind'.");
     }
 
-    // TODO change signature? Or move to .cpp. Also factor out impl as it matched ConstantBuffer::write
+    // TODO change signature? Or move to .cpp. Also factor out impl as it matches ConstantBuffer::write
     void update(void *data, size_t size)
     {
         D3D11_MAPPED_SUBRESOURCE mr;

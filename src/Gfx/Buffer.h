@@ -12,6 +12,9 @@ class Buffer : protected GfxAccess
   public:
     virtual void bind() = 0;
 
+  protected:
+    Buffer(Gfx &gfx);
+
     template <typename T>
     Buffer(Gfx &gfx, T *data, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0, UINT pitch = 0,
            UINT slice_pitch = 0)
@@ -23,7 +26,6 @@ class Buffer : protected GfxAccess
     Buffer(Gfx &gfx, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0, UINT pitch = 0,
            UINT slice_pitch = 0);
 
-  protected:
     Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 
     UINT stride = 0;

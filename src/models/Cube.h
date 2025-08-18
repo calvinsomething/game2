@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../Gfx/VertexShader.h"
+#include "Model.h"
 
-class Cube
+class Cube : public Model
 {
   public:
-    Cube(Gfx &gfx);
+    Cube(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 
     void bind();
 
@@ -14,14 +15,6 @@ class Cube
     void set_position(float x, float y, float z);
     void translate(float x, float y, float z);
 
-    DirectX::XMMATRIX get_transform();
-
   private:
-    Gfx &gfx;
-
     VertexShader::BufferData buffer_data;
-
-    DirectX::XMMATRIX transform;
-
-    DirectX::XMFLOAT3 position;
 };

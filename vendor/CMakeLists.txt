@@ -1,1 +1,0 @@
-add_library(DDSTextureLoader STATIC Microsoft/DDSTextureLoader11.cpp)

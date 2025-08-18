@@ -49,7 +49,7 @@ bool GfxError::write_message(char *msg, int len, size_t &j, bool first_line)
 
     if (j + len > sizeof(message) - 1)
     {
-        len = sizeof(message) - j - 4;
+        len = static_cast<int>(sizeof(message) - j - 4);
         ellipses = "...";
     }
 

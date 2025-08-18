@@ -23,6 +23,7 @@ set_src_list(main.cpp
 	Window.cpp
 	Error.cpp
 	models/Cube.cpp
+	models/Model.cpp
 	gfx/Gfx.cpp
 	gfx/DepthBuffer.cpp
 	gfx/Camera.cpp
@@ -48,23 +49,44 @@ target_compile_definitions(${PROJECT_NAME}
 
 # Libraries
 #
-add_subdirectory(vendor)
+add_subdirectory(vendor/include)
+
+target_link_directories(${PROJECT_NAME}
+	PRIVATE
+		C:/Lib)
 
 target_link_libraries(${PROJECT_NAME}
 	d3d11
 	dxgi
 	dxguid
 
+	assimp/unit
+	assimp/assimp-vc143-mtd
+
 	DDSTextureLoader)
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE
-		vendor)
+		C:/Include
+		vendor/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	execute_process(COMMAND
 		${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/compile_commands.json ${PROJECT_SOURCE_DIR}/compile_commands.json)
 endif()
+
+add_custom_target(runtime_deps)
+
+function(copy_runtime_deps)
+	file(GLOB_RECURSE file_names vendor/bin/*)
+
+	add_custom_command(TARGET runtime_deps
+		COMMAND ${CMAKE_COMMAND} -E copy ${file_names} ${CMAKE_BINARY_DIR}
+		COMMENT "Updating dependency binaries..."
+		DEPENDS vendor/bin)
+endfunction()
+
+copy_runtime_deps()
 
 # Shaders
 #
@@ -108,8 +130,7 @@ foreach(file ${shader_files})
 		COMMAND fxc.exe /T ${shader_type}${shader_version} /Fo ${shaders_bin}/${shader_name}.cso /Fd ${shaders_bin}/${shader_name}.pdb /Zi $<$<CONFIG:Debug>:/Od> ${file}
 		MAIN_DEPENDENCY ${file}
 		WORKING_DIRECTORY ${shaders_src}
-		COMMENT "Compiling ${file}..."
-		VERBATIM)
+		COMMENT "Compiling ${file}...")
 endforeach()
 
 # Assets
@@ -119,9 +140,11 @@ add_custom_target(assets)
 add_custom_command(TARGET assets
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets
 	DEPENDS ${PROJECT_SOURCE_DIR}/assets/*
-	COMMENT "Updating assets..."
-	VERBATIM)
+	COMMENT "Updating assets...")
 
 # Dependency Targets
 #
-add_dependencies(${PROJECT_NAME} shaders assets)
+add_dependencies(${PROJECT_NAME}
+	shaders
+	assets
+	runtime_deps)

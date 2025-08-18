@@ -1,4 +1,5 @@
 #include <DirectXMath.h>
+#include <vector>
 #include <windows.h>
 
 #include <exception>
@@ -24,40 +25,15 @@ DirectX::XMFLOAT3 twelve_oclock{0.0f, 0.0f, 1.0f};
 DirectX::XMFLOAT3 nine_oclock{-1.0f, 0.0f, 0.0f};
 }; // namespace Global
 
-// Vertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(-5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(-5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)},
-//                     {DirectX::XMFLOAT4(-5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f)}};
-
-TextureVertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.33f, 0.0f)},
-                            {DirectX::XMFLOAT4(5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.67f, 0.0f)},
-                            {DirectX::XMFLOAT4(-5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.25f)},
-                            {DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT2(0.33f, 0.25f)},
-                            {DirectX::XMFLOAT4(5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT2(0.67f, 0.25f)},
-                            {DirectX::XMFLOAT4(5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.25f)},
-                            {DirectX::XMFLOAT4(-5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.0f, 0.5f)},
-                            {DirectX::XMFLOAT4(-5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT2(0.33f, 0.5f)},
-                            {DirectX::XMFLOAT4(5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT2(0.67f, 0.5f)},
-                            {DirectX::XMFLOAT4(5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(1.0f, 0.5f)},
-                            {DirectX::XMFLOAT4(-5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.33f, 0.75f)},
-                            {DirectX::XMFLOAT4(5.0f, -5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.67f, 0.75f)},
-                            {DirectX::XMFLOAT4(-5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.33f, 1.0f)},
-                            {DirectX::XMFLOAT4(5.0f, 5.0f, 5.0f, 1.0f), DirectX::XMFLOAT2(0.67f, 1.0f)}};
-
-// uint32_t indices[] = {
-//     0, 1, 2, 2, 3, 0, 0, 4, 5, 5, 1, 0, 4, 7, 6, 6, 5, 4, 4, 0, 3, 3, 7, 4, 3, 2, 6, 6, 7, 3, 1, 5, 6, 6, 2, 1,
-// };
-
-uint32_t indices[] = {0, 1, 4, 4, 3, 0, 2, 3, 7,  7,  6,  2, 3,  4,  8,  8,  7,  3,
-                      4, 5, 9, 9, 8, 4, 7, 8, 11, 11, 10, 7, 10, 11, 13, 13, 12, 10};
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     Window window;
+
+    std::vector<Vertex> vertices;
+    vertices.reserve(4096);
+
+    std::vector<uint32_t> indices;
+    indices.reserve(4096);
 
     try
     {
@@ -68,24 +44,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Camera camera(gfx);
 
-        Cube c1(gfx), c2(gfx);
+        Cube cube(vertices, indices);
 
-        c1.set_position(-5.0, 0, 0);
-        c2.set_position(5.0, 0, 0);
+        Model cat("assets/models/cat/cat.obj", vertices, indices);
+
+        cube.set_position(-5.0f, 0.0f, 0.0f);
+        cat.set_position(5.0f, 0.0f, 0.0f);
+        cat.update(DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f));
 
         DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixRotationRollPitchYaw(0.005f, 0.002f, 0.003f),
                                       DirectX::XMMatrixRotationRollPitchYaw(-0.005f, -0.002f, -0.003f)};
 
-        float color[] = {0.5f, 0.2f, 0.2f, 1.0f};
+        float bg_color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
         InstanceBuffer instance_buffer(gfx, &xforms, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
                                        D3D11_CPU_ACCESS_WRITE);
 
         VertexBuffer vb(gfx, vertices);
         IndexBuffer ib(gfx, indices);
-        Texture texture(gfx);
-        TextureVertexShader vs(gfx);
-        TexturePixelShader ps(gfx, texture);
+        // Texture texture(gfx);
+        // TextureVertexShader vs(gfx);
+        // TexturePixelShader ps(gfx, texture);
+        VertexShader vs(gfx);
+        PixelShader ps(gfx);
 
         ib.bind();
         vs.bind();
@@ -128,17 +109,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             window.handle_messages();
 
-            gfx.clear(color);
+            gfx.clear(bg_color);
 
-            c1.update(xforms[0]);
-            c2.update(xforms[1]);
+            cube.update(xforms[0]);
+            cat.update(xforms[1]);
 
-            DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(c1.get_transform()),
-                                      DirectX::XMMatrixTranspose(c2.get_transform())};
+            DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(cube.get_transform()),
+                                      DirectX::XMMatrixTranspose(cat.get_transform())};
 
             instance_buffer.update(xf, sizeof(xf));
 
-            vs.draw_indexeded_instanced(ARRAYSIZE(indices), 2, 0);
+            vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
+            vs.draw_indexed_instanced(cube.get_index_count(), cat.get_index_count(), 1, 1, cube.get_vertex_count());
 
             camera.update(Global::position);
 
