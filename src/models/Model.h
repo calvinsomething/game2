@@ -13,7 +13,7 @@ class Model
   public:
     Model();
 
-    Model(const char *file_name, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
+    Model(const char *file_name, std::vector<TextureVertex> &vertices, std::vector<uint32_t> &indices)
     {
         Assimp::Importer importer;
 
@@ -45,12 +45,18 @@ class Model
 
         start_vertex = vertices.size();
 
+        size_t texture_index = 0;
+        if (!mesh.HasTextureCoords((unsigned int)texture_index))
+        {
+            throw std::runtime_error("Need a way to determine which texture indices to use.");
+        }
+
         for (size_t i = 0; i < mesh.mNumVertices; ++i)
         {
             aiVector3D &v = mesh.mVertices[i];
+            aiVector3D &tc = mesh.mTextureCoords[0][i];
 
-            vertices.push_back(
-                {DirectX::XMFLOAT4(v.x, v.y, v.z - 18.0f, 1.0f), DirectX::XMFLOAT4(0.1f, 0.7f, 0.3f, 1.0f)});
+            vertices.push_back({DirectX::XMFLOAT4(v.x, v.y, v.z - 18.0f, 1.0f), DirectX::XMFLOAT2(tc.x, tc.y)});
         }
 
         vertex_count = vertices.size() - start_vertex;
@@ -91,8 +97,9 @@ class Model
     DirectX::XMMATRIX get_transform();
 
   protected:
-    UINT start_vertex, vertex_count, start_index, index_count;
+    size_t start_vertex, vertex_count, start_index, index_count;
 
+    // TODO should be stored in an array of transforms
     DirectX::XMMATRIX transform;
 
     DirectX::XMFLOAT3 position;

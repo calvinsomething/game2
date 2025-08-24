@@ -29,7 +29,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 {
     Window window;
 
-    std::vector<Vertex> vertices;
+    std::vector<TextureVertex> vertices;
     vertices.reserve(4096);
 
     std::vector<uint32_t> indices;
@@ -62,15 +62,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         VertexBuffer vb(gfx, vertices);
         IndexBuffer ib(gfx, indices);
-        // Texture texture(gfx);
-        // TextureVertexShader vs(gfx);
-        // TexturePixelShader ps(gfx, texture);
-        VertexShader vs(gfx);
-        PixelShader ps(gfx);
+        Texture cube_tex(gfx, L"assets/textures/minecraft_cube.dds"), cat_tex(gfx, L"assets/textures/cat_diffuse.dds");
+        TextureVertexShader vs(gfx);
+        TexturePixelShader ps(gfx);
+        // VertexShader vs(gfx);
+        // PixelShader ps(gfx);
 
         ib.bind();
         vs.bind();
-        ps.bind();
 
         Buffer *v_buffers[] = {&vb, &instance_buffer};
         VertexBuffers vbs(gfx, v_buffers);
@@ -119,7 +118,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             instance_buffer.update(xf, sizeof(xf));
 
+            ps.bind(&cube_tex);
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
+
+            ps.bind(&cat_tex);
             vs.draw_indexed_instanced(cube.get_index_count(), cat.get_index_count(), 1, 1, cube.get_vertex_count());
 
             camera.update(Global::position);

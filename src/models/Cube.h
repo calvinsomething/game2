@@ -6,7 +6,7 @@
 class Cube : public Model
 {
   public:
-    Cube(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
+    Cube(std::vector<TextureVertex> &vertices, std::vector<uint32_t> &indices);
 
     void bind();
 

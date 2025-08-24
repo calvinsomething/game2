@@ -18,12 +18,15 @@ class PixelShader : public Shader
 class TexturePixelShader : public Shader
 {
   public:
-    TexturePixelShader(Gfx &gfx, Texture &texture);
+    TexturePixelShader(Gfx &gfx);
+
+    void set_texture(Texture *t);
 
     void bind() override;
+    void bind(Texture *texture);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> shader;
 
-    Texture &texture;
+    Texture *texture = 0;
 };

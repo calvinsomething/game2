@@ -4,14 +4,13 @@
 
 #include "../Error.h"
 
-void Texture::load()
+void Texture::load(const wchar_t *file_name)
 {
-    HANDLE_GFX_ERR(DirectX::CreateDDSTextureFromFile(device, ctx, L"assets/textures/minecraft_cube.dds",
-                                                     reinterpret_cast<ID3D11Resource **>(texture.GetAddressOf()),
-                                                     view.GetAddressOf()));
+    HANDLE_GFX_ERR(DirectX::CreateDDSTextureFromFile(
+        device, ctx, file_name, reinterpret_cast<ID3D11Resource **>(texture.GetAddressOf()), view.GetAddressOf()));
 }
 
-Texture::Texture(Gfx &gfx) : GfxAccess(gfx)
+Texture::Texture(Gfx &gfx, const wchar_t *file_name) : GfxAccess(gfx)
 {
     D3D11_SAMPLER_DESC sampler_desc = {};
     sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -24,7 +23,7 @@ Texture::Texture(Gfx &gfx) : GfxAccess(gfx)
 
     HANDLE_GFX_ERR(device->CreateSamplerState(&sampler_desc, sampler_state.GetAddressOf()));
 
-    load();
+    load(file_name);
 }
 
 ID3D11SamplerState *Texture::get_sampler()

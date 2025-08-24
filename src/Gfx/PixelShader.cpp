@@ -24,7 +24,7 @@ void PixelShader::bind()
 }
 
 // TexturePixelShader
-TexturePixelShader::TexturePixelShader(Gfx &gfx, Texture &texture) : Shader(gfx), texture(texture)
+TexturePixelShader::TexturePixelShader(Gfx &gfx) : Shader(gfx)
 {
     auto byte_code = load("ps_tex.cso");
 
@@ -33,10 +33,15 @@ TexturePixelShader::TexturePixelShader(Gfx &gfx, Texture &texture) : Shader(gfx)
 
 void TexturePixelShader::bind()
 {
+    static_assert("TexturePixelShader::bind requires a texture argument.");
+}
+
+void TexturePixelShader::bind(Texture *texture)
+{
     ctx->PSSetShader(shader.Get(), nullptr, 0);
 
-    ID3D11SamplerState *sampler = texture.get_sampler();
-    ID3D11ShaderResourceView *view = texture.get_view();
+    ID3D11SamplerState *sampler = texture->get_sampler();
+    ID3D11ShaderResourceView *view = texture->get_view();
 
     ctx->PSSetSamplers(0, 1, &sampler);
     ctx->PSSetShaderResources(0, 1, &view);

@@ -61,7 +61,8 @@ class TextureVertexShader : public Shader
     void set_buffer(BufferData *data);
 
     void draw_indexed(UINT count);
-    void draw_indexed_instanced(UINT index_count, UINT instance_count, UINT start_index);
+    void draw_indexed_instanced(UINT start_index, UINT index_count, UINT start_instance, UINT instance_count,
+                                UINT vertex_offset = 0);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;

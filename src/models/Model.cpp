@@ -20,12 +20,12 @@ void Model::update(const DirectX::XMMATRIX &xform)
 
 UINT Model::get_index_count()
 {
-    return index_count;
+    return UINT(index_count);
 }
 
 UINT Model::get_vertex_count()
 {
-    return vertex_count;
+    return UINT(vertex_count);
 }
 
 void Model::set_position(float x, float y, float z)

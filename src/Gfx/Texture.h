@@ -8,12 +8,12 @@
 class Texture : private GfxAccess
 {
   public:
-    Texture(Gfx &gfx);
+    Texture(Gfx &gfx, const wchar_t *file_name);
 
     ID3D11SamplerState *get_sampler();
     ID3D11ShaderResourceView *get_view();
 
-    void load();
+    void load(const wchar_t *file_name);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
