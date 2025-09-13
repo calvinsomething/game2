@@ -48,3 +48,27 @@ std::string load_file(const std::string &file_name)
 
     return byte_code;
 }
+
+std::wstring to_wc(const std::string &s)
+{
+    std::wstring ws(s.size(), 0);
+
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        mbtowc(ws.data() + i, &s[i], sizeof(char));
+    }
+
+    return ws;
+}
+
+std::string to_mb(const std::wstring &ws)
+{
+    std::string s(ws.size(), 0);
+
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        wctomb_s(nullptr, &s[i], sizeof(wchar_t), ws[i]);
+    }
+
+    return s;
+}

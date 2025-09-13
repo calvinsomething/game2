@@ -30,6 +30,11 @@ template <typename T> UINT load_vector(std::vector<T> &dest, T *src, size_t n)
     return UINT(i);
 }
 
+// Strings
+std::wstring to_wc(const std::string &s);
+
+std::string to_mb(const std::wstring &ws);
+
 // Debug
 #ifndef NDEBUG
 

@@ -1,24 +1,51 @@
 #pragma once
 
-#include <assimp/Importer.hpp>
+#include <assimp/material.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include <assimp/Importer.hpp>
+#include <cstring>
 #include <stdexcept>
 
+#include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
+#include "../util.h"
+#include "Mesh.h"
 
-class Model
+inline void traverse_nodes(aiNode *node)
+{
+    for (size_t i = 0; i < node->mNumChildren; ++i)
+    {
+        aiNode *c = node->mChildren[i];
+
+        if (c->mNumMeshes && strcmp(c->mName.C_Str(), "Box"))
+        {
+            MESSAGE("num meshes " << c->mNumMeshes << " for " << c->mName.C_Str()
+                                  << " with parent = " << node->mName.C_Str());
+        }
+        else
+        {
+            traverse_nodes(c);
+        }
+    }
+}
+
+template <typename T> class Model
 {
   public:
-    Model();
+    Model() : transform(DirectX::XMMatrixIdentity())
+    {
+    }
 
-    Model(const char *file_name, std::vector<TextureVertex> &vertices, std::vector<uint32_t> &indices)
+    Model(Gfx &gfx, std::string file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices)
+        : transform(DirectX::XMMatrixIdentity())
     {
         Assimp::Importer importer;
 
-        scene = importer.ReadFile(file_name, aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-                                                 aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+        scene = importer.ReadFile(file_name, aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+                                                 aiProcess_FlipWindingOrder | aiProcess_JoinIdenticalVertices |
+                                                 aiProcess_SortByPType);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -30,82 +57,170 @@ class Model
             throw std::runtime_error("Model loaded with no meshes.");
         }
 
-        // Get first node with a mesh
-        aiNode *node = scene->mRootNode;
-        for (size_t i = 0; i < scene->mRootNode->mNumChildren; ++i)
+        meshes.reserve(scene->mNumMeshes);
+
+        for (size_t i = 0; i < scene->mNumMeshes; ++i)
         {
-            if (!node->mNumMeshes)
+            aiMesh &mesh = *scene->mMeshes[i];
+
+            aiMaterial &material = *scene->mMaterials[mesh.mMaterialIndex];
+
+            if (material.GetTextureCount(aiTextureType_DIFFUSE))
             {
-                node = node->mChildren[i];
-                break;
+                int diffuse_tc_index;
+
+                material.Get(AI_MATKEY_UVWSRC(aiTextureType_DIFFUSE, 0), diffuse_tc_index);
+
+                if (!mesh.HasTextureCoords(diffuse_tc_index))
+                {
+                    MESSAGE("Missing texture coords for " << file_name << " at index " << diffuse_tc_index);
+                }
+
+                aiString texture_file_name = {};
+                if (material.Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), texture_file_name) == AI_SUCCESS)
+                {
+                    ai_texture = scene->GetEmbeddedTexture(texture_file_name.C_Str());
+                    if (ai_texture)
+                    {
+                        // load embedded
+                    }
+                    else
+                    {
+                        size_t dir_end = file_name.find_last_of("/\\");
+
+                        if (dir_end == std::string::npos)
+                        {
+                            MESSAGE("invalid file path: " << file_name);
+                        }
+
+                        std::string clean_texture_file_name = texture_file_name.C_Str();
+                        {
+                            size_t i = clean_texture_file_name.find_last_of(".");
+                            if (i != std::string::npos)
+                            {
+                                clean_texture_file_name = clean_texture_file_name.substr(0, i);
+                            }
+                        }
+
+                        std::string texture_path(file_name.substr(0, dir_end + 1) + clean_texture_file_name.c_str() +
+                                                 ".dds");
+                        for (char &c : texture_path)
+                        {
+                            if (c == '\\')
+                            {
+                                c = '/';
+                            }
+                        }
+
+                        std::wstring w_path = to_wc(texture_path);
+
+                        textures.reserve(textures.size() + 1);
+
+                        textures.emplace_back(gfx, w_path.c_str());
+
+                        meshes.emplace_back(mesh, vertices, indices, diffuse_tc_index, &textures, textures.size() - 1);
+                    }
+                }
+                else
+                {
+                    // throw std::runtime_error("Failed to get diffuse texture file name.");
+                    meshes.emplace_back(mesh, vertices, indices);
+                }
+            }
+            else
+            {
+                meshes.emplace_back(mesh, vertices, indices);
             }
         }
-
-        aiMesh &mesh = *scene->mMeshes[node->mMeshes[0]];
-
-        start_vertex = vertices.size();
-
-        size_t texture_index = 0;
-        if (!mesh.HasTextureCoords((unsigned int)texture_index))
-        {
-            throw std::runtime_error("Need a way to determine which texture indices to use.");
-        }
-
-        for (size_t i = 0; i < mesh.mNumVertices; ++i)
-        {
-            aiVector3D &v = mesh.mVertices[i];
-            aiVector3D &tc = mesh.mTextureCoords[0][i];
-
-            vertices.push_back({DirectX::XMFLOAT4(v.x, v.y, v.z - 18.0f, 1.0f), DirectX::XMFLOAT2(tc.x, tc.y)});
-        }
-
-        vertex_count = vertices.size() - start_vertex;
-
-        start_index = indices.size();
-
-        for (size_t i = 0; i < mesh.mNumFaces; ++i)
-        {
-            aiFace &f = mesh.mFaces[i];
-
-#ifndef NDEBUG
-            if (f.mNumIndices != 3)
-            {
-                throw std::runtime_error("Model faces must have 3 indices.");
-            }
-#endif
-
-            indices.push_back(f.mIndices[0]);
-            indices.push_back(f.mIndices[1]);
-            indices.push_back(f.mIndices[2]);
-        }
-
-        index_count = indices.size() - start_index;
-
-        transform = DirectX::XMMatrixIdentity();
     }
 
-    void bind();
+    void bind()
+    {
+    }
 
-    void update(const DirectX::XMMATRIX &xform);
+    void update(const DirectX::XMMATRIX &xform)
+    {
+        transform *= xform;
+    }
 
-    UINT get_index_count();
-    UINT get_vertex_count();
+    UINT get_index_count()
+    {
+        if (meshes.size())
+        {
+            UINT count = 0;
 
-    void set_position(float x, float y, float z);
-    void translate(float x, float y, float z);
+            for (auto &m : meshes)
+            {
+                count += m.get_index_count();
+            }
 
-    DirectX::XMMATRIX get_transform();
+            return count;
+        }
+
+        return UINT(index_count);
+    }
+
+    UINT get_vertex_count()
+    {
+        return UINT(vertex_count);
+    }
+
+    void set_position(float x, float y, float z)
+    {
+        position = DirectX::XMFLOAT3(x, y, z);
+    }
+
+    void translate(float x, float y, float z)
+    {
+        position.x += x;
+        position.y += y;
+        position.z += z;
+    }
+
+    DirectX::XMMATRIX get_transform()
+    {
+        return transform * DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+    }
+
+    const aiTexture *get_ai_texture()
+    {
+        return ai_texture;
+    }
+
+    std::vector<Texture> &get_textures()
+    {
+        return textures;
+    }
+
+    size_t load_texture(Gfx &gfx, const wchar_t *file_name)
+    {
+        textures.reserve(textures.size() + 1);
+
+        textures.emplace_back(gfx, file_name);
+
+        return textures.size() - 1;
+    }
+
+    std::vector<Mesh<T>> &get_meshes()
+    {
+        return meshes;
+    }
 
   protected:
     size_t start_vertex, vertex_count, start_index, index_count;
 
-    // TODO should be stored in an array of transforms
+    // TODO rework this... maybe quaternion?
     DirectX::XMMATRIX transform;
 
     DirectX::XMFLOAT3 position;
 
+    VertexShader::BufferData buffer_data;
+
+    std::vector<Texture> textures;
+
   private:
     const aiScene *scene = 0;
+    const aiTexture *ai_texture = 0;
 
-    VertexShader::BufferData buffer_data;
+    std::vector<Mesh<T>> meshes;
 };

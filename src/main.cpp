@@ -45,12 +45,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         Camera camera(gfx);
 
         Cube cube(vertices, indices);
+        cube.load_texture(gfx, L"assets/textures/minecraft_cube.dds");
 
-        Model cat("assets/models/cat/cat.obj", vertices, indices);
+        Model cat(gfx, "assets/models/spider/spider_clean.fbx", vertices, indices);
 
         cube.set_position(-5.0f, 0.0f, 0.0f);
         cat.set_position(5.0f, 0.0f, 0.0f);
-        cat.update(DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f));
+        // cat.update(DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
 
         DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixRotationRollPitchYaw(0.005f, 0.002f, 0.003f),
                                       DirectX::XMMatrixRotationRollPitchYaw(-0.005f, -0.002f, -0.003f)};
@@ -62,7 +63,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         VertexBuffer vb(gfx, vertices);
         IndexBuffer ib(gfx, indices);
-        Texture cube_tex(gfx, L"assets/textures/minecraft_cube.dds"), cat_tex(gfx, L"assets/textures/cat_diffuse.dds");
+        // Texture cube_tex(gfx, L"assets/textures/minecraft_cube.dds"), cat_tex(gfx, cat.get_ai_texture());
         TextureVertexShader vs(gfx);
         TexturePixelShader ps(gfx);
         // VertexShader vs(gfx);
@@ -118,11 +119,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             instance_buffer.update(xf, sizeof(xf));
 
-            ps.bind(&cube_tex);
+            ps.bind(&cube.get_textures()[0]);
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
-            ps.bind(&cat_tex);
-            vs.draw_indexed_instanced(cube.get_index_count(), cat.get_index_count(), 1, 1, cube.get_vertex_count());
+            size_t prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
+
+            for (Mesh<TextureVertex> &m : cat.get_meshes())
+            {
+
+                auto t = m.get_texture();
+
+                if (t)
+                {
+                    ps.bind(t);
+                }
+
+                size_t n = m.get_index_count();
+
+                vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
+
+                prev_index += n;
+                prev_vertex += m.get_vertex_count();
+            }
 
             camera.update(Global::position);
 

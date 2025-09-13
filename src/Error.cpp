@@ -78,7 +78,10 @@ GfxError::GfxError(const char *file_name, int line_number)
 
     size_t j = 0;
 
-    for (UINT64 i = 0; i < dxgi_message_count; i++)
+    int encountered_ids[10] = {};
+    size_t encountered_index = 0;
+
+    for (UINT64 i = 0; i < dxgi_message_count; ++i)
     {
         SIZE_T n = 0;
         dxgi_info_queue->GetMessageW(DXGI_DEBUG_ALL, i, nullptr, &n);
@@ -90,6 +93,17 @@ GfxError::GfxError(const char *file_name, int line_number)
         char msg[sizeof(message)] = {};
         int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
                             pm->Category, pm->Severity);
+
+        for (size_t i = 0; i < encountered_index; ++i)
+        {
+            if (pm->ID == encountered_ids[i])
+            {
+                free(pm);
+                continue;
+            }
+        }
+
+        encountered_ids[encountered_index++] = pm->ID;
 
         if (!write_message(msg, len, j, !i))
         {
@@ -110,9 +124,26 @@ GfxError::GfxError(const char *file_name, int line_number)
 
             d3d11_info_queue->GetMessageW(i, pm, &n);
 
+            char new_line[2] = {};
+            if (!i && j)
+            {
+                new_line[0] = '\n';
+            }
+
             char msg[512] = {};
-            int len = sprintf_s(msg, "%s:%d: %s (Error #%d %d %d)", file_name, line_number, pm->pDescription, pm->ID,
-                                pm->Category, pm->Severity);
+            int len = sprintf_s(msg, "%s%s:%d: %s (Error #%d %d %d)", new_line, file_name, line_number,
+                                pm->pDescription, pm->ID, pm->Category, pm->Severity);
+
+            for (size_t i = 0; i < encountered_index; ++i)
+            {
+                if (pm->ID == encountered_ids[i])
+                {
+                    free(pm);
+                    continue;
+                }
+            }
+
+            encountered_ids[encountered_index++] = pm->ID;
 
             if (!write_message(msg, len, j, !i))
             {

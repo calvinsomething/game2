@@ -23,7 +23,7 @@ set_src_list(main.cpp
 	Window.cpp
 	Error.cpp
 	models/Cube.cpp
-	models/Model.cpp
+	models/Mesh.cpp
 	gfx/Gfx.cpp
 	gfx/DepthBuffer.cpp
 	gfx/Camera.cpp
