@@ -37,6 +37,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     try
     {
+
+#ifndef NDEBUG
+        if (!AllocConsole())
+        {
+            throw WindowsError(__FILE__, __LINE__);
+        }
+
+        {
+            FILE *f = 0;
+            freopen_s(&f, "CONOUT$", "w", stdout);
+        }
+#endif
         Input input;
         input.register_devices();
 
