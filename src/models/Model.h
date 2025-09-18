@@ -6,8 +6,10 @@
 
 #include <assimp/Importer.hpp>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
+#include "../Error.h"
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
 #include "../util.h"
@@ -21,8 +23,8 @@ inline void traverse_nodes(aiNode *node)
 
         if (c->mNumMeshes && strcmp(c->mName.C_Str(), "Box"))
         {
-            MESSAGE("num meshes " << c->mNumMeshes << " for " << c->mName.C_Str()
-                                  << " with parent = " << node->mName.C_Str());
+            ERROR_MSG("num meshes " << c->mNumMeshes << " for " << c->mName.C_Str()
+                                    << " with parent = " << node->mName.C_Str());
         }
         else
         {
@@ -31,6 +33,11 @@ inline void traverse_nodes(aiNode *node)
     }
 }
 
+inline aiTextureType texture_types[] = {
+    aiTextureType_DIFFUSE,
+    aiTextureType_NORMALS,
+};
+
 template <typename T> class Model
 {
   public:
@@ -38,14 +45,14 @@ template <typename T> class Model
     {
     }
 
-    Model(Gfx &gfx, std::string file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices)
+    Model(Gfx &gfx, const std::string &file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices)
         : transform(DirectX::XMMatrixIdentity())
     {
         Assimp::Importer importer;
 
         scene = importer.ReadFile(file_name, aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_Triangulate |
                                                  aiProcess_FlipWindingOrder | aiProcess_JoinIdenticalVertices |
-                                                 aiProcess_SortByPType);
+                                                 aiProcess_SortByPType | aiProcess_FlipUVs);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -65,24 +72,37 @@ template <typename T> class Model
 
             aiMaterial &material = *scene->mMaterials[mesh.mMaterialIndex];
 
-            if (material.GetTextureCount(aiTextureType_DIFFUSE))
+            if (!load_texture(gfx, file_name, vertices, indices, mesh, material))
             {
-                int diffuse_tc_index;
+                meshes.emplace_back(mesh, vertices, indices);
+            }
+        }
+    }
 
-                material.Get(AI_MATKEY_UVWSRC(aiTextureType_DIFFUSE, 0), diffuse_tc_index);
+    bool load_texture(Gfx &gfx, const std::string &file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices,
+                      aiMesh &mesh, aiMaterial &material)
+    {
+        for (auto texture_type : texture_types)
+        {
+            if (material.GetTextureCount(texture_type))
+            {
+                int tc_index;
 
-                if (!mesh.HasTextureCoords(diffuse_tc_index))
+                material.Get(AI_MATKEY_UVWSRC(texture_type, 0), tc_index);
+
+                if (!mesh.HasTextureCoords(tc_index))
                 {
-                    MESSAGE("Missing texture coords for " << file_name << " at index " << diffuse_tc_index);
+                    ERROR_MSG("Missing texture coords for " << file_name << " at index " << tc_index);
                 }
 
                 aiString texture_file_name = {};
-                if (material.Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), texture_file_name) == AI_SUCCESS)
+                if (material.Get(AI_MATKEY_TEXTURE(texture_type, 0), texture_file_name) == AI_SUCCESS)
                 {
                     ai_texture = scene->GetEmbeddedTexture(texture_file_name.C_Str());
                     if (ai_texture)
                     {
                         // load embedded
+                        std::cout << "embedded texture...\n";
                     }
                     else
                     {
@@ -90,7 +110,7 @@ template <typename T> class Model
 
                         if (dir_end == std::string::npos)
                         {
-                            MESSAGE("invalid file path: " << file_name);
+                            ERROR_MSG("invalid file path: " << file_name);
                         }
 
                         std::string clean_texture_file_name = texture_file_name.C_Str();
@@ -114,24 +134,24 @@ template <typename T> class Model
 
                         std::wstring w_path = to_wc(texture_path);
 
+                        std::wcout << mesh.mName.C_Str() << " " << w_path << L"\n";
+
                         textures.reserve(textures.size() + 1);
 
                         textures.emplace_back(gfx, w_path.c_str());
 
-                        meshes.emplace_back(mesh, vertices, indices, diffuse_tc_index, &textures, textures.size() - 1);
+                        meshes.emplace_back(mesh, vertices, indices, tc_index, &textures, textures.size() - 1);
                     }
                 }
                 else
                 {
-                    // throw std::runtime_error("Failed to get diffuse texture file name.");
-                    meshes.emplace_back(mesh, vertices, indices);
+                    throw std::runtime_error("Failed to get diffuse texture file name.");
                 }
-            }
-            else
-            {
-                meshes.emplace_back(mesh, vertices, indices);
+                return true;
             }
         }
+
+        return false;
     }
 
     void bind()

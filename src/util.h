@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <intsafe.h>
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -35,12 +36,6 @@ std::wstring to_wc(const std::string &s);
 
 std::string to_mb(const std::wstring &ws);
 
-// Debug
-#ifndef NDEBUG
-
-#include <sstream>
-#include <stdexcept>
-
 template <typename First> bool _build_string(std::stringstream &ss, First first)
 {
     ss << first;
@@ -62,16 +57,3 @@ template <typename... Args> std::string build_string(Args... args)
 
     return ss.str();
 }
-
-#define MESSAGE(args)                                                                                                  \
-    {                                                                                                                  \
-        std::stringstream ss;                                                                                          \
-        ss << args;                                                                                                    \
-        throw std::runtime_error(ss.str());                                                                            \
-    }
-
-#else
-
-#define MESSAGE(args)
-
-#endif

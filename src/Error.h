@@ -87,4 +87,19 @@ class GfxError : public Error
 
     bool write_message(char *msg, int len, size_t &j, bool first_line);
 };
+
+#include <sstream>
+#include <stdexcept>
+
+#define ERROR_MSG(args)                                                                                                \
+    {                                                                                                                  \
+        std::stringstream ss;                                                                                          \
+        ss << args;                                                                                                    \
+        throw std::runtime_error(ss.str());                                                                            \
+    }
+
+#else
+
+#define ERROR_MSG(args)
+
 #endif

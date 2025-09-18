@@ -14,7 +14,7 @@ template <> void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::v
 {
     aiVector3D &v = mesh.mVertices[i];
 
-    if (texture_index != 99)
+    if (textures)
     {
         aiVector3D &tc = mesh.mTextureCoords[diffuse_tc_index][i];
 

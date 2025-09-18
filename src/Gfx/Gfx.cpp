@@ -61,6 +61,23 @@ Gfx::Gfx(HWND hwnd)
     HANDLE_GFX_INFO(ctx->RSSetViewports(1, &vp));
 
     depth_buffer.init(device.Get(), ctx.Get(), UINT(vp.Width), UINT(vp.Height), render_target_view.Get());
+
+    D3D11_BLEND_DESC bd = {};
+
+    bd.AlphaToCoverageEnable = FALSE;
+    bd.IndependentBlendEnable = FALSE;
+    bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    bd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    bd.RenderTarget[0].BlendEnable = TRUE;
+    bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    HANDLE_GFX_ERR(device->CreateBlendState(&bd, blend_state.GetAddressOf()));
+
+    HANDLE_GFX_INFO(ctx->OMSetBlendState(blend_state.Get(), nullptr, 0xFFFFFFFF));
 }
 
 Gfx::~Gfx()

@@ -37,6 +37,7 @@ class Gfx
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
 
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target_view;
+    Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
 
     DepthBuffer depth_buffer;
 };

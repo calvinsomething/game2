@@ -60,9 +60,7 @@ template <typename T> class Mesh : public MeshBase
     std::vector<T> &vertices;
     std::vector<uint32_t> &indices;
 
-    size_t vertex_start, index_start, diffuse_tc_index;
-
-    size_t texture_index = 99;
+    size_t vertex_start, index_start, diffuse_tc_index, texture_index;
 
     std::vector<Texture> *textures = 0;
 

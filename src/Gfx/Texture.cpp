@@ -4,12 +4,14 @@
 #include <stdexcept>
 
 #include "../Error.h"
-#include "../util.h"
 
 void Texture::load(const wchar_t *file_name)
 {
-    HANDLE_GFX_ERR(DirectX::CreateDDSTextureFromFile(
-        device, ctx, file_name, reinterpret_cast<ID3D11Resource **>(texture.GetAddressOf()), view.GetAddressOf()));
+    DirectX::DDS_ALPHA_MODE mode = DirectX::DDS_ALPHA_MODE_STRAIGHT;
+
+    HANDLE_GFX_ERR(DirectX::CreateDDSTextureFromFile(device, ctx, file_name,
+                                                     reinterpret_cast<ID3D11Resource **>(texture.GetAddressOf()),
+                                                     view.GetAddressOf(), 0, &mode));
 }
 
 void Texture::load(const aiTexture *ai_texture)
@@ -20,9 +22,6 @@ void Texture::load(const aiTexture *ai_texture)
     {
         throw std::runtime_error("Texture data is compressed.");
 
-        // TODO
-        // load file based on format
-
         const char *formats[] = {"jpg", "png"}, *format = 0;
         for (const char *f : formats)
         {
@@ -31,6 +30,9 @@ void Texture::load(const aiTexture *ai_texture)
                 format = f;
             }
         }
+
+        // TODO
+        // load file based on format
     }
 
     if (strcmp(ai_texture->achFormatHint, "argb8888"))
