@@ -61,17 +61,27 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Model cat(gfx, "assets/models/spider/spider_clean.fbx", vertices, indices);
 
-        cube.set_position(-5.0f, 0.0f, 0.0f);
-        cat.set_position(5.0f, 0.0f, 0.0f);
-        // cat.update(DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f));
+        cube.set_position(-7.0f, 0.0f, 5.0f);
+        cat.set_position(7.0f, 0.0f, 5.0f);
+        cat.update(DirectX::XMMatrixScaling(1.1f, 1.1f, 1.1f));
 
-        DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixRotationRollPitchYaw(0.005f, 0.002f, 0.003f),
-                                      DirectX::XMMatrixRotationRollPitchYaw(-0.005f, -0.002f, -0.003f)};
+        DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity()};
+        // {,
+        //                               };
 
         float bg_color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
         InstanceBuffer instance_buffer(gfx, &xforms, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
                                        D3D11_CPU_ACCESS_WRITE);
+
+        cube.update(DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
+        cat.update(DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, DirectX::XM_PI, 0.0f) *
+                   DirectX::XMMatrixTranslation(0.0f, -4.0f, 0.0f));
+
+        DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(cube.get_transform()),
+                                  DirectX::XMMatrixTranspose(cat.get_transform())};
+
+        instance_buffer.update(xf, sizeof(xf));
 
         VertexBuffer vb(gfx, vertices);
         IndexBuffer ib(gfx, indices);
@@ -123,18 +133,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             gfx.clear(bg_color);
 
-            cube.update(xforms[0]);
-            cat.update(xforms[1]);
-
-            DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(cube.get_transform()),
-                                      DirectX::XMMatrixTranspose(cat.get_transform())};
-
-            instance_buffer.update(xf, sizeof(xf));
-
             ps.bind(&cube.get_textures()[0]);
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
-            size_t prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
+            UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
 
             for (Mesh<TextureVertex> &m : cat.get_meshes())
             {
@@ -146,7 +148,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                     ps.bind(t);
                 }
 
-                size_t n = m.get_index_count();
+                UINT n = m.get_index_count();
 
                 vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
 
