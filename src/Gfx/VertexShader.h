@@ -40,6 +40,9 @@ struct TextureVertex
 {
     DirectX::XMFLOAT4 position;
     DirectX::XMFLOAT2 texture_coordinate;
+    unsigned bone_indices[4] = {};
+    float bone_weights[4] = {};
+    unsigned bone_count = 0;
 };
 
 class TextureVertexShader : public Shader

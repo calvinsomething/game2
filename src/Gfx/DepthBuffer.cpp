@@ -20,7 +20,6 @@ void Gfx::DepthBuffer::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
 
-    // TODO this is crashing
     HANDLE_GFX_ERR(device->CreateTexture2D(&texture_desc, nullptr, texture.GetAddressOf()));
 
     D3D11_DEPTH_STENCIL_DESC stencil_desc = {};

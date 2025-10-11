@@ -13,6 +13,7 @@
 #include "Gfx/VertexBuffer.h"
 #include "Gfx/VertexShader.h"
 #include "Window.h"
+#include "gfx/StructuredBuffer.h"
 #include "input/Input.h"
 #include "models/Cube.h"
 #include "util.h"
@@ -66,8 +67,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         cat.update(DirectX::XMMatrixScaling(1.1f, 1.1f, 1.1f));
 
         DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity()};
-        // {,
-        //                               };
 
         float bg_color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
@@ -91,6 +90,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         // VertexShader vs(gfx);
         // PixelShader ps(gfx);
 
+        StructuredBuffer structured_buffer(gfx, cat.bone_matrices);
+
         ib.bind();
         vs.bind();
 
@@ -98,6 +99,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         VertexBuffers vbs(gfx, v_buffers);
 
         vbs.bind();
+
+        structured_buffer.bind();
 
         input.set_control_handler([&](unsigned char c) {
             constexpr float step = 1.0f;
@@ -140,8 +143,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             for (Mesh<TextureVertex> &m : cat.get_meshes())
             {
-
-                auto t = m.get_texture();
+                Texture *t = m.get_texture();
 
                 if (t)
                 {

@@ -14,14 +14,15 @@ Buffer::Buffer(Gfx &gfx, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UI
 }
 
 void Buffer::init(void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags, UINT pitch,
-                  UINT slice_pitch)
+                  UINT slice_pitch, UINT structured_byte_stride, D3D11_RESOURCE_MISC_FLAG misc_flags)
 {
     D3D11_BUFFER_DESC bd = {};
     bd.BindFlags = bind_flags;
     bd.ByteWidth = byte_width;
     bd.Usage = usage;
     bd.CPUAccessFlags = cpu_access_flags;
-    bd.MiscFlags = 0;
+    bd.StructureByteStride = structured_byte_stride;
+    bd.MiscFlags = misc_flags;
 
     D3D11_SUBRESOURCE_DATA *p_srd = 0;
     D3D11_SUBRESOURCE_DATA srd = {};

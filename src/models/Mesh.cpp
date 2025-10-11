@@ -14,14 +14,12 @@ template <> void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::v
 {
     aiVector3D &v = mesh.mVertices[i];
 
-    if (textures)
-    {
-        aiVector3D &tc = mesh.mTextureCoords[diffuse_tc_index][i];
+    aiVector3D &tc = mesh.mTextureCoords[diffuse_tc_index][i];
 
-        vertices.push_back({DirectX::XMFLOAT4(v.x, 1.0f - v.y, v.z, 1.0f), DirectX::XMFLOAT2(tc.x, tc.y)});
-    }
-    else
-    {
-        vertices.push_back({DirectX::XMFLOAT4(v.x, 1.0f - v.y, v.z, 1.0f), DirectX::XMFLOAT2(0, 0)});
-    }
+    vertices.push_back({DirectX::XMFLOAT4(v.x, 1.0f - v.y, v.z, 1.0f), DirectX::XMFLOAT2(tc.x, tc.y)});
+}
+
+template <> Texture *Mesh<TextureVertex>::get_texture()
+{
+    return &textures->at(texture_index);
 }

@@ -9,6 +9,7 @@
 
 #include "../gfx/Texture.h"
 #include "../gfx/VertexShader.h"
+#include "Bone.h"
 
 class MeshBase
 {
@@ -24,27 +25,32 @@ class MeshBase
     }
 
   protected:
-    MeshBase()
+    MeshBase(size_t model_start_vertex, size_t model_start_index)
+        : model_start_vertex(model_start_vertex), model_start_index(model_start_index)
     {
     }
 
-    size_t start_vertex, vertex_count, start_index, index_count;
+    size_t model_start_vertex, model_start_index, start_vertex, vertex_count, start_index, index_count;
 };
 
 template <typename T> class Mesh : public MeshBase
 {
   public:
-    Mesh(aiMesh &mesh, std::vector<T> &vertices, std::vector<uint32_t> &indices, size_t diffuse_tc_index,
-         std::vector<Texture> *textures, size_t texture_index)
-        : vertices(vertices), indices(indices), diffuse_tc_index(diffuse_tc_index), textures(textures),
-          texture_index(texture_index)
+    Mesh(aiMesh &mesh, std::vector<T> &vertices, size_t model_start_vertex, std::vector<uint32_t> &indices,
+         size_t model_start_index, size_t diffuse_tc_index, std::vector<Texture> *textures, size_t texture_index)
+        : MeshBase(model_start_vertex, model_start_index), vertices(vertices), indices(indices),
+          diffuse_tc_index(diffuse_tc_index), textures(textures), texture_index(texture_index)
     {
+        assert(textures && !textures->empty() && "Mesh<TextureVertex> constructed without textures");
+
         load_vertices(mesh, vertices);
 
         load_indices(mesh, indices);
     }
 
-    Mesh(aiMesh &mesh, std::vector<T> &vertices, std::vector<uint32_t> &indices) : vertices(vertices), indices(indices)
+    Mesh(aiMesh &mesh, std::vector<T> &vertices, size_t model_start_vertex, std::vector<uint32_t> &indices,
+         size_t model_start_index)
+        : MeshBase(model_start_vertex, model_start_index), vertices(vertices), indices(indices)
     {
         load_vertices(mesh, vertices);
 
@@ -53,23 +59,25 @@ template <typename T> class Mesh : public MeshBase
 
     Texture *get_texture()
     {
-        return textures ? &textures->at(texture_index) : 0;
+        throw std::runtime_error("Unimplemented specialization of Mesh::get_texture.");
     }
 
   private:
     std::vector<T> &vertices;
     std::vector<uint32_t> &indices;
 
-    size_t vertex_start, index_start, diffuse_tc_index, texture_index;
+    size_t diffuse_tc_index, texture_index;
+
+    Bone *root_bone = 0;
 
     std::vector<Texture> *textures = 0;
 
     // helpers
     void load_vertices(aiMesh &mesh, std::vector<T> &vertices)
     {
-        start_vertex = vertices.size();
+        size_t start_vertex = vertices.size();
 
-        vertices.reserve(start_vertex + mesh.mNumVertices);
+        vertices.reserve(vertices.size() + mesh.mNumVertices);
 
         for (size_t i = 0; i < mesh.mNumVertices; ++i)
         {
@@ -111,3 +119,5 @@ template <typename T> class Mesh : public MeshBase
 template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices);
 
 template <> void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<TextureVertex> &vertices);
+
+template <> Texture *Mesh<TextureVertex>::get_texture();
