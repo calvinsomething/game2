@@ -74,8 +74,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                                        D3D11_CPU_ACCESS_WRITE);
 
         cube.update(DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
-        cat.update(DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, DirectX::XM_PI, 0.0f) *
-                   DirectX::XMMatrixTranslation(0.0f, -4.0f, 0.0f));
+        cat.update(DirectX::XMMatrixRotationY(DirectX::XM_PI) * DirectX::XMMatrixTranslation(0.0f, -4.0f, 0.0f));
 
         DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(cube.get_transform()),
                                   DirectX::XMMatrixTranspose(cat.get_transform())};
@@ -128,11 +127,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             }
         });
 
+        size_t i = 0;
+
         while (Global::running)
         {
             input.handle_input();
 
             window.handle_messages();
+
+            ++i;
+            if (i > 200)
+            {
+                i = 0;
+                cat.start_animation();
+            }
+
+            cat.update(DirectX::XMMatrixIdentity());
+            structured_buffer.update(cat.bone_matrices.data(), cat.bone_matrices.size() * sizeof(DirectX::XMMATRIX));
 
             gfx.clear(bg_color);
 

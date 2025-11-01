@@ -36,6 +36,7 @@ set_src_list(main.cpp
 	gfx/VertexShader.cpp
 	gfx/Texture.cpp
 	input/Input.cpp
+	debug.cpp
 	util.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)

@@ -5,27 +5,26 @@
 #include <DirectXMath.h>
 #include <assimp/anim.h>
 #include <assimp/scene.h>
+#include <iostream>
 #include <stdexcept>
 
 #include "../Gfx/VertexShader.h"
+#include "../debug.h"
+
+inline DirectX::XMMATRIX get_z_up_matrix(float *m)
+{
+    return DirectX::XMMATRIX{
+        m[0], m[8], m[4], m[12], m[2], m[10], m[6], m[14], m[1], m[9], m[5], m[13], m[3], m[11], m[7], m[15],
+    };
+}
 
 class Bone
 {
   public:
     Bone(aiBone *ai_bone, const aiNode *node, std::vector<TextureVertex> &vertices, size_t start_vertex, size_t index)
-        : index(index), ai_bone(ai_bone), node(node)
+        : index(index), node(node), ai_bone(ai_bone), intermediate_transform(DirectX::XMMatrixIdentity())
     {
         assert(node && "Bone constructed without node.");
-
-        float *m = &ai_bone->mOffsetMatrix.a1;
-        offset = {
-            m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15],
-        };
-
-        m = const_cast<float *>(&node->mTransformation.a1);
-        bind_pose_transform = {
-            m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15],
-        };
 
         for (size_t i = 0; i < ai_bone->mNumWeights; ++i)
         {
@@ -49,15 +48,86 @@ class Bone
 
             ++v.bone_count;
         }
+
+        float *m = &ai_bone->mOffsetMatrix.a1;
+        offset = get_z_up_matrix(m);
+
+        m = const_cast<float *>(&node->mTransformation.a1);
+
+        bind_pose_transform = get_z_up_matrix(m);
     }
 
-    void animate(const DirectX::XMMATRIX &parent_transform, DirectX::XMMATRIX &animated_matrix, unsigned ms)
+    DirectX::XMMATRIX get_animation_scaling(aiNodeAnim *node_animation, double time_in_ticks)
     {
-        // offset moves vertex to bone space
-        // mTransform moves vertex from current bone space to parent's bone space
+        for (size_t i = 0; i < node_animation->mNumScalingKeys; ++i)
+        {
+            if (node_animation->mScalingKeys[i].mTime >= time_in_ticks)
+            {
+                auto &s = node_animation->mScalingKeys[i].mValue;
 
-        // TODO find animated mTransform if exists, otherwise use bind_pose_transform
-        animated_matrix = DirectX::XMMatrixMultiply(bind_pose_transform, parent_transform);
+                return DirectX::XMMatrixScaling(s.x, s.z, s.y);
+            }
+        }
+
+        return DirectX::XMMatrixIdentity();
+    }
+
+    DirectX::XMMATRIX get_animation_rotation(aiNodeAnim *node_animation, double time_in_ticks)
+    {
+        for (size_t i = 0; i < node_animation->mNumRotationKeys; ++i)
+        {
+            if (node_animation->mRotationKeys[i].mTime >= time_in_ticks)
+            {
+                auto r = node_animation->mRotationKeys[i].mValue.GetMatrix();
+
+                return DirectX::XMMATRIX{r.a1, r.c1, r.b1, 0.0f, //
+                                         r.a3, r.c3, r.b3, 0.0f, //
+                                         r.a2, r.c2, r.b2, 0.0f, //
+                                         0.0f, 0.0f, 0.0f, 1.0f};
+            }
+        }
+
+        return DirectX::XMMatrixIdentity();
+    }
+
+    DirectX::XMMATRIX get_animation_translation(aiNodeAnim *node_animation, double time_in_ticks)
+    {
+        for (size_t i = 0; i < node_animation->mNumPositionKeys; ++i)
+        {
+            if (node_animation->mPositionKeys[i].mTime >= time_in_ticks)
+            {
+                auto &t = node_animation->mPositionKeys[i].mValue;
+
+                return DirectX::XMMatrixTranslation(t.x, t.z, t.y);
+            }
+        }
+
+        return DirectX::XMMatrixIdentity();
+    }
+
+    DirectX::XMMATRIX animate(const DirectX::XMMATRIX &parent_transform, aiNodeAnim *node_animation,
+                              double time_in_ticks, DirectX::XMMATRIX &animated_matrix)
+    {
+        DirectX::XMMATRIX global_transform;
+
+        if (node_animation)
+        {
+            DirectX::XMMATRIX scaling = get_animation_scaling(node_animation, time_in_ticks);
+
+            DirectX::XMMATRIX rotation = get_animation_rotation(node_animation, time_in_ticks);
+
+            DirectX::XMMATRIX translation = get_animation_translation(node_animation, time_in_ticks);
+
+            global_transform = scaling * rotation * translation * intermediate_transform * parent_transform;
+        }
+        else
+        {
+            global_transform = bind_pose_transform * parent_transform;
+        }
+
+        animated_matrix = offset * global_transform;
+
+        return global_transform;
     }
 
     Bone *parent = 0;
@@ -66,9 +136,54 @@ class Bone
 
     size_t index;
 
-  private:
-    aiBone *ai_bone = 0;
+    const char *get_node_name()
+    {
+        return node->mName.C_Str();
+    }
+
+    static DirectX::XMMATRIX get_inverted_transform(const aiNode *node)
+    {
+        float *m = const_cast<float *>(&node->mTransformation.a1);
+
+        return DirectX::XMMatrixInverse(nullptr, get_z_up_matrix(m));
+    }
+
+    void set_intermediate_transform(const aiNode *node)
+    {
+        aiVector3D scale, rotation, translation;
+
+        node->mTransformation.Decompose(scale, rotation, translation);
+
+        float tx = translation.x, ty = translation.y, tz = translation.z;
+
+        if (scale.x)
+        {
+            tx /= scale.x;
+        }
+        if (scale.y)
+        {
+            ty /= scale.y;
+        }
+        if (scale.z)
+        {
+            tz /= scale.z;
+        }
+
+        auto rotation_xform = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.z, rotation.y);
+
+        // apply armature rotation, reverse the translation, rotate back
+        DirectX::XMMATRIX matrix = rotation_xform * DirectX::XMMatrixTranslation(-tx, -tz, -ty) *
+                                   DirectX::XMMatrixInverse(nullptr, rotation_xform);
+
+        intermediate_transform *= matrix;
+
+        bind_pose_transform *= matrix;
+    }
+
     const aiNode *node = 0;
 
-    DirectX::XMMATRIX offset, bind_pose_transform;
+  private:
+    aiBone *ai_bone = 0;
+
+    DirectX::XMMATRIX offset, bind_pose_transform, intermediate_transform;
 };

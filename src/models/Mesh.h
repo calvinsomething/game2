@@ -9,7 +9,6 @@
 
 #include "../gfx/Texture.h"
 #include "../gfx/VertexShader.h"
-#include "Bone.h"
 
 class MeshBase
 {
@@ -67,8 +66,6 @@ template <typename T> class Mesh : public MeshBase
     std::vector<uint32_t> &indices;
 
     size_t diffuse_tc_index, texture_index;
-
-    Bone *root_bone = 0;
 
     std::vector<Texture> *textures = 0;
 
