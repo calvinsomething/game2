@@ -5,11 +5,9 @@
 #include <DirectXMath.h>
 #include <assimp/anim.h>
 #include <assimp/scene.h>
-#include <iostream>
 #include <stdexcept>
 
 #include "../Gfx/VertexShader.h"
-#include "../debug.h"
 
 inline DirectX::XMMATRIX get_z_up_matrix(float *m)
 {
@@ -22,7 +20,7 @@ class Bone
 {
   public:
     Bone(aiBone *ai_bone, const aiNode *node, std::vector<TextureVertex> &vertices, size_t start_vertex, size_t index)
-        : index(index), node(node), ai_bone(ai_bone), intermediate_transform(DirectX::XMMatrixIdentity())
+        : index(index), node(node), intermediate_transform(DirectX::XMMatrixIdentity())
     {
         assert(node && "Bone constructed without node.");
 
@@ -57,7 +55,7 @@ class Bone
         bind_pose_transform = get_z_up_matrix(m);
     }
 
-    DirectX::XMMATRIX get_animation_scaling(aiNodeAnim *node_animation, double time_in_ticks)
+    DirectX::XMMATRIX get_animation_scaling(const aiNodeAnim *node_animation, double time_in_ticks)
     {
         for (size_t i = 0; i < node_animation->mNumScalingKeys; ++i)
         {
@@ -72,7 +70,7 @@ class Bone
         return DirectX::XMMatrixIdentity();
     }
 
-    DirectX::XMMATRIX get_animation_rotation(aiNodeAnim *node_animation, double time_in_ticks)
+    DirectX::XMMATRIX get_animation_rotation(const aiNodeAnim *node_animation, double time_in_ticks)
     {
         for (size_t i = 0; i < node_animation->mNumRotationKeys; ++i)
         {
@@ -90,7 +88,7 @@ class Bone
         return DirectX::XMMatrixIdentity();
     }
 
-    DirectX::XMMATRIX get_animation_translation(aiNodeAnim *node_animation, double time_in_ticks)
+    DirectX::XMMATRIX get_animation_translation(const aiNodeAnim *node_animation, double time_in_ticks)
     {
         for (size_t i = 0; i < node_animation->mNumPositionKeys; ++i)
         {
@@ -105,7 +103,7 @@ class Bone
         return DirectX::XMMatrixIdentity();
     }
 
-    DirectX::XMMATRIX animate(const DirectX::XMMATRIX &parent_transform, aiNodeAnim *node_animation,
+    DirectX::XMMATRIX animate(const DirectX::XMMATRIX &parent_transform, const aiNodeAnim *node_animation,
                               double time_in_ticks, DirectX::XMMATRIX &animated_matrix)
     {
         DirectX::XMMATRIX global_transform;
@@ -139,13 +137,6 @@ class Bone
     const char *get_node_name()
     {
         return node->mName.C_Str();
-    }
-
-    static DirectX::XMMATRIX get_inverted_transform(const aiNode *node)
-    {
-        float *m = const_cast<float *>(&node->mTransformation.a1);
-
-        return DirectX::XMMatrixInverse(nullptr, get_z_up_matrix(m));
     }
 
     void set_intermediate_transform(const aiNode *node)
@@ -183,7 +174,5 @@ class Bone
     const aiNode *node = 0;
 
   private:
-    aiBone *ai_bone = 0;
-
     DirectX::XMMATRIX offset, bind_pose_transform, intermediate_transform;
 };

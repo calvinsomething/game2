@@ -89,7 +89,21 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         // VertexShader vs(gfx);
         // PixelShader ps(gfx);
 
-        StructuredBuffer structured_buffer(gfx, cat.bone_matrices);
+        size_t bone_matrices_count = 0;
+        for (auto &m : cat.get_meshes())
+        {
+            bone_matrices_count += m.bone_matrices.size();
+        }
+
+        StructuredBuffer structured_buffer(gfx, bone_matrices_count, sizeof(DirectX::XMMATRIX));
+
+        size_t offset = 0;
+        for (auto &m : cat.get_meshes())
+        {
+            size_t size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+            structured_buffer.update(m.bone_matrices.data(), size, offset);
+            offset += size;
+        }
 
         ib.bind();
         vs.bind();
@@ -143,7 +157,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             }
 
             cat.update(DirectX::XMMatrixIdentity());
-            structured_buffer.update(cat.bone_matrices.data(), cat.bone_matrices.size() * sizeof(DirectX::XMMATRIX));
 
             gfx.clear(bg_color);
 
@@ -152,8 +165,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
 
+            size_t animation_data_offset = 0;
             for (Mesh<TextureVertex> &m : cat.get_meshes())
             {
+                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+                structured_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                animation_data_offset += animation_data_size;
+
                 Texture *t = m.get_texture();
 
                 if (t)

@@ -15,7 +15,6 @@
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
 #include "../util.h"
-#include "Bone.h"
 #include "Mesh.h"
 
 inline void traverse_nodes(aiNode *node)
@@ -53,7 +52,8 @@ template <typename T> class Model
     {
         scene = importer.ReadFile(file_name, aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_Triangulate |
                                                  aiProcess_FlipWindingOrder | aiProcess_JoinIdenticalVertices |
-                                                 aiProcess_SortByPType | aiProcess_FlipUVs);
+                                                 aiProcess_SortByPType | aiProcess_FlipUVs |
+                                                 aiProcess_PopulateArmatureData);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -72,19 +72,18 @@ template <typename T> class Model
         {
             animation = scene->mAnimations[0];
 
-            for (size_t i = 0; i < scene->mAnimations[0]->mNumChannels; ++i)
+            for (size_t i = 0; i < animation->mNumChannels; ++i)
             {
-                node_animations.insert(
-                    {scene->mAnimations[0]->mChannels[i]->mNodeName.C_Str(), scene->mAnimations[0]->mChannels[i]});
+                aiNode *node = scene->mRootNode->FindNode(animation->mChannels[i]->mNodeName);
+                if (node)
+                {
+                    node_animations.insert({node, animation->mChannels[i]});
+                }
             }
         }
 
         start_vertex = vertices.size();
         start_index = indices.size();
-
-        std::unordered_map<const aiNode *, size_t> bone_index_by_node;
-        std::unordered_map<size_t, size_t> bone_parent_index_by_child_index;
-        std::unordered_map<const aiNode *, std::vector<size_t>> bone_child_index_by_node;
 
         for (size_t i = 0; i < scene->mNumMeshes; ++i)
         {
@@ -101,101 +100,8 @@ template <typename T> class Model
 
             if (animation)
             {
-                for (size_t i = 0; i < mesh.mNumBones; ++i)
-                {
-                    const aiNode *node = scene->mRootNode->findBoneNode(mesh.mBones[i]);
-
-                    if (bone_index_by_node.find(node) == bone_index_by_node.end())
-                    {
-                        size_t bone_index = bones.size();
-                        bones.push_back(Bone(mesh.mBones[i], node, vertices, start_vertex, bone_index));
-
-                        bone_matrices.push_back(DirectX::XMMatrixIdentity());
-
-                        bone_index_by_node.insert({node, bone_index});
-
-                        auto p = bone_index_by_node.find(node->mParent);
-                        if (p == bone_index_by_node.end())
-                        {
-                            auto c = bone_child_index_by_node.find(node->mParent);
-
-                            if (c == bone_child_index_by_node.end())
-                            {
-                                if (node->mParent)
-                                {
-                                    bone_child_index_by_node.insert({node->mParent, {bone_index}});
-                                }
-                            }
-                            else
-                            {
-                                c->second.push_back(bone_index);
-                            }
-                        }
-                        else
-                        {
-                            bone_parent_index_by_child_index.insert({bone_index, p->second});
-                        }
-
-                        // find this node's previously loaded children
-                        auto c = bone_child_index_by_node.find(node);
-                        if (c != bone_child_index_by_node.end())
-                        {
-                            for (size_t i : c->second)
-                            {
-                                bone_parent_index_by_child_index.insert({i, bone_index});
-                            }
-                        }
-                    }
-                }
+                m.load_bones(mesh, vertices);
             }
-        }
-
-        if (!bones.empty())
-        {
-            for (Bone &b : bones)
-            {
-                for (Bone *c : b.children)
-                {
-                    if (c->index > 260)
-                    {
-                        throw std::runtime_error("CHILD");
-                    }
-                }
-
-                auto parent_index = bone_parent_index_by_child_index.find(b.index);
-
-                if (parent_index != bone_parent_index_by_child_index.end())
-                {
-                    b.parent = &bones[parent_index->second];
-                    b.parent->children.push_back(&b);
-                }
-                else
-                {
-                    const aiNode *node = b.node->mParent;
-
-                    while (node)
-                    {
-                        std::cout << node->mName.C_Str() << "\n";
-                        if (bone_index_by_node.find(node) == bone_index_by_node.end())
-                        {
-                            b.set_intermediate_transform(node);
-
-                            node = node->mParent;
-                        }
-                    }
-                }
-            }
-
-            root_bone = &bones[0];
-
-            auto next = root_bone;
-            while (next)
-            {
-                root_bone = next;
-                next = next->parent;
-            }
-
-            inverse_global_transform = Bone::get_inverted_transform(scene->mRootNode);
         }
     }
 
@@ -281,8 +187,7 @@ template <typename T> class Model
                         }
                     }
 
-                    meshes.emplace_back(mesh, vertices, start_vertex, indices, start_index, tc_index, &textures,
-                                        texture_index);
+                    meshes.emplace_back(mesh, vertices, indices, tc_index, &textures, texture_index);
                 }
                 else
                 {
@@ -308,47 +213,23 @@ template <typename T> class Model
     {
         transform *= xform;
 
-        if (root_bone)
+        if (animation_start_time.time_since_epoch().count())
         {
             double animation_time_sec = ((clock.now() - animation_start_time).count()) * 0.000000001;
 
             double time_in_ticks = scene->mAnimations[0]->mTicksPerSecond * animation_time_sec;
 
-            update_bone(root_bone, inverse_global_transform, time_in_ticks);
-        }
-    }
-
-    void update_bone(Bone *bone, const DirectX::XMMATRIX &parent_transform, double time_in_ticks)
-    {
-        if (!bone)
-        {
-            return;
-        }
-
-        aiNodeAnim *na = 0;
-
-        if (time_in_ticks >= 0 && time_in_ticks <= scene->mAnimations[0]->mDuration)
-        {
-            auto node_animation = node_animations.find(bone->get_node_name());
-            if (node_animation != node_animations.end())
+            if (time_in_ticks >= 0 && time_in_ticks <= scene->mAnimations[0]->mDuration)
             {
-                na = node_animation->second;
+                for (auto &m : meshes)
+                {
+                    m.animate(node_animations, time_in_ticks);
+                }
             }
-        }
-        else
-        {
-            animation_start_time = {};
-        }
-
-        auto &animated_matrix = bone_matrices[bone->index];
-
-        auto global_transform = bone->animate(parent_transform, na, time_in_ticks, animated_matrix);
-
-        animated_matrix = DirectX::XMMatrixTranspose(animated_matrix);
-
-        for (Bone *c : bone->children)
-        {
-            update_bone(c, global_transform, time_in_ticks);
+            else
+            {
+                animation_start_time = {};
+            }
         }
     }
 
@@ -415,8 +296,6 @@ template <typename T> class Model
         return meshes;
     }
 
-    std::vector<DirectX::XMMATRIX> bone_matrices;
-
   protected:
     size_t start_vertex, vertex_count, start_index, index_count;
 
@@ -437,11 +316,6 @@ template <typename T> class Model
 
     std::vector<Mesh<T>> meshes;
 
-    Bone *root_bone = 0;
-    std::vector<Bone> bones;
-
-    DirectX::XMMATRIX inverse_global_transform;
-
     std::unordered_map<std::string, size_t> texture_indices_by_file_name;
 
     std::chrono::high_resolution_clock clock;
@@ -449,5 +323,5 @@ template <typename T> class Model
 
     std::unordered_map<std::string, aiAnimation *> animations;
 
-    std::unordered_map<std::string, aiNodeAnim *> node_animations;
+    std::unordered_map<const aiNode *, const aiNodeAnim *> node_animations;
 };
