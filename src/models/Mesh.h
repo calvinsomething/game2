@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 #include <assimp/mesh.h>
+#include <iostream>
 #include <unordered_map>
 #include <wrl.h>
 
@@ -46,6 +47,9 @@ template <typename T> class Mesh : public MeshBase
         load_vertices(mesh, vertices);
 
         load_indices(mesh, indices);
+
+        name = mesh.mName.C_Str();
+        std::cout << name << "\n";
     }
 
     Mesh(aiMesh &mesh, std::vector<T> &vertices, size_t model_start_vertex, std::vector<uint32_t> &indices,
@@ -158,6 +162,7 @@ template <typename T> class Mesh : public MeshBase
 
     Bone *root_bone = 0;
     std::vector<Bone> bones;
+    std::string name;
 };
 
 template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices);

@@ -163,15 +163,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             ps.bind(&cube.get_textures()[0]);
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
-            UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
-
             size_t animation_data_offset = 0;
             for (Mesh<TextureVertex> &m : cat.get_meshes())
             {
                 size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
                 structured_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
                 animation_data_offset += animation_data_size;
+            }
 
+            UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
+
+            for (Mesh<TextureVertex> &m : cat.get_meshes())
+            {
                 Texture *t = m.get_texture();
 
                 if (t)
