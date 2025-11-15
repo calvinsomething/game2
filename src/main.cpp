@@ -5,15 +5,16 @@
 #include <exception>
 
 #include "Error.h"
-#include "Gfx/Camera.h"
-#include "Gfx/Gfx.h"
-#include "Gfx/IndexBuffer.h"
-#include "Gfx/InstanceBuffer.h"
-#include "Gfx/PixelShader.h"
-#include "Gfx/VertexBuffer.h"
-#include "Gfx/VertexShader.h"
 #include "Window.h"
+#include "game/Clock.h"
+#include "gfx/Camera.h"
+#include "gfx/Gfx.h"
+#include "gfx/IndexBuffer.h"
+#include "gfx/InstanceBuffer.h"
+#include "gfx/PixelShader.h"
 #include "gfx/StructuredBuffer.h"
+#include "gfx/VertexBuffer.h"
+#include "gfx/VertexShader.h"
 #include "input/Input.h"
 #include "models/Cube.h"
 #include "util.h"
@@ -24,6 +25,8 @@ bool running = true;
 DirectX::XMFLOAT3 position{};
 DirectX::XMFLOAT3 twelve_oclock{0.0f, 0.0f, 1.0f};
 DirectX::XMFLOAT3 nine_oclock{-1.0f, 0.0f, 0.0f};
+
+Clock clock;
 }; // namespace Global
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
@@ -141,10 +144,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             }
         });
 
+        Global::clock.set_max_fps(60);
+        Global::clock.start();
+
         size_t i = 0;
 
         while (Global::running)
         {
+            Global::clock.start_frame();
+
             input.handle_input();
 
             window.handle_messages();

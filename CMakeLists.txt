@@ -22,8 +22,7 @@ endfunction()
 set_src_list(main.cpp
 	Window.cpp
 	Error.cpp
-	models/Cube.cpp
-	models/Mesh.cpp
+	game/Clock.cpp
 	gfx/Gfx.cpp
 	gfx/DepthBuffer.cpp
 	gfx/Camera.cpp
@@ -35,6 +34,8 @@ set_src_list(main.cpp
 	gfx/PixelShader.cpp
 	gfx/VertexShader.cpp
 	gfx/Texture.cpp
+	models/Cube.cpp
+	models/Mesh.cpp
 	input/Input.cpp
 	debug.cpp
 	util.cpp)
