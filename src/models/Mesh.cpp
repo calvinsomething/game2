@@ -3,14 +3,35 @@
 template class Mesh<Vertex>;
 template class Mesh<TextureVertex>;
 
-template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices)
+template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices, aiMaterial *mat)
 {
     aiVector3D &v = mesh.mVertices[i];
 
-    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)});
+    float r, g, b, a;
+
+    aiColor3D color(0.f, 0.f, 0.f);
+    if (mat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS)
+    {
+        float m = fmax(color.r, fmax(color.g, color.b)) * 1.3f;
+
+        r = fmin(color.r + m, 1.0f);
+        g = fmin(color.g + m, 1.0f);
+        b = fmin(color.b + m, 1.0f);
+        a = 1.0f;
+    }
+    else
+    {
+        r = 1.0f;
+        g = 1.0f;
+        b = 1.0f;
+        a = 1.0f;
+    }
+
+    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), DirectX::XMFLOAT4(r, g, b, a)});
 }
 
-template <> void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<TextureVertex> &vertices)
+template <>
+void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<TextureVertex> &vertices, aiMaterial *mat)
 {
     aiVector3D &v = mesh.mVertices[i];
 

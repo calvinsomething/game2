@@ -12,6 +12,7 @@
 #include "../gfx/Texture.h"
 #include "../gfx/VertexShader.h"
 #include "Bone.h"
+#include "assimp/material.h"
 
 class MeshBase
 {
@@ -53,10 +54,10 @@ template <typename T> class Mesh : public MeshBase
     }
 
     Mesh(aiMesh &mesh, std::vector<T> &vertices, size_t model_start_vertex, std::vector<uint32_t> &indices,
-         size_t model_start_index)
+         size_t model_start_index, aiMaterial *mat)
         : vertices(vertices), indices(indices)
     {
-        load_vertices(mesh, vertices);
+        load_vertices(mesh, vertices, mat);
 
         load_indices(mesh, indices);
     }
@@ -176,7 +177,7 @@ template <typename T> class Mesh : public MeshBase
     std::vector<Texture> *textures = 0;
 
     // helpers
-    void load_vertices(aiMesh &mesh, std::vector<T> &vertices)
+    void load_vertices(aiMesh &mesh, std::vector<T> &vertices, aiMaterial *mat = 0)
     {
         start_vertex = vertices.size();
 
@@ -184,7 +185,7 @@ template <typename T> class Mesh : public MeshBase
 
         for (size_t i = 0; i < mesh.mNumVertices; ++i)
         {
-            load_vertex(mesh, i, vertices);
+            load_vertex(mesh, i, vertices, mat);
         }
 
         vertex_count = vertices.size() - start_vertex;
@@ -241,7 +242,7 @@ template <typename T> class Mesh : public MeshBase
         index_count = indices.size() - start_index;
     }
 
-    void load_vertex(aiMesh &mesh, size_t i, std::vector<T> &vertices)
+    void load_vertex(aiMesh &mesh, size_t i, std::vector<T> &vertices, aiMaterial *mat = 0)
     {
         throw std::runtime_error("Unimplemented specialization of Mesh::load_vertex.");
     }
@@ -251,9 +252,10 @@ template <typename T> class Mesh : public MeshBase
     std::string name;
 };
 
-template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices);
+template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices, aiMaterial *mat);
 
-template <> void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<TextureVertex> &vertices);
+template <>
+void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<TextureVertex> &vertices, aiMaterial *mat);
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, std::vector<TextureVertex> &vertices);
 

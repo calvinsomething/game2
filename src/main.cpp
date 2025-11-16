@@ -87,8 +87,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         cube.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) *
                     DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
         spider.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixRotationY(DirectX::XM_PI) *
-                      DirectX::XMMatrixTranslation(0.0f, -3.8f, 0.0f));
-        ninja.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixTranslation(0.0f, -3.0f, 0.0f));
+                      DirectX::XMMatrixTranslation(0.0f, -3.0f, 0.0f));
+        ninja.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixTranslation(0.0f, -1.5f, 0.0f));
 
         DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(cube.get_transform()),
                                   DirectX::XMMatrixTranspose(spider.get_transform()),
@@ -137,8 +137,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         v_buffers[0] = &vb2;
         VertexBuffers vbs2(gfx, v_buffers);
-
-        structured_buffer.bind();
 
         input.set_control_handler([&](unsigned char c) {
             float step = Global::clock.speed_to_distance(50.0f);
@@ -200,6 +198,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             size_t animation_data_offset = 0;
+
+            structured_buffer.bind();
 
             // spider
             for (Mesh<TextureVertex> &m : spider.get_meshes())

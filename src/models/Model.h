@@ -93,7 +93,14 @@ template <typename T> class Model
 
             if (!load_texture(gfx, file_name, vertices, indices, mesh, material))
             {
-                meshes.emplace_back(mesh, vertices, start_vertex, indices, start_index);
+                aiMaterial *mat = 0;
+
+                if (mesh.mMaterialIndex < scene->mNumMaterials)
+                {
+                    mat = scene->mMaterials[mesh.mMaterialIndex];
+                }
+
+                meshes.emplace_back(mesh, vertices, start_vertex, indices, start_index, mat);
             }
 
             Mesh<T> &m = meshes.back();
