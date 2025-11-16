@@ -7,6 +7,9 @@
 struct Vertex
 {
     DirectX::XMFLOAT4 position, color;
+    unsigned bone_indices[4] = {};
+    float bone_weights[4] = {};
+    unsigned bone_count = 0;
 };
 
 class VertexShader : public Shader

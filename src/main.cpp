@@ -36,7 +36,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     std::vector<TextureVertex> vertices;
     vertices.reserve(4096);
 
+    std::vector<Vertex> vertices2;
+    vertices.reserve(4096);
+
     std::vector<uint32_t> indices;
+    indices.reserve(4096);
+
+    std::vector<uint32_t> indices2;
     indices.reserve(4096);
 
     try
@@ -63,37 +69,49 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         Cube cube(vertices, indices);
         cube.load_texture(gfx, L"assets/textures/minecraft_cube.dds");
 
-        Model cat(gfx, "assets/models/spider/spider_clean.fbx", vertices, indices);
+        Model spider(gfx, "assets/models/spider/spider_clean.fbx", vertices, indices);
+        Model ninja(gfx, "assets/models/ninja.fbx", vertices2, indices2);
 
         cube.set_position(-7.0f, 0.0f, 5.0f);
-        cat.set_position(7.0f, 0.0f, 5.0f);
-        cat.update(DirectX::XMMatrixScaling(1.1f, 1.1f, 1.1f));
+        spider.set_position(7.0f, 0.0f, 5.0f);
+        ninja.set_position(11.0f, 0.0f, 0.0f);
 
-        DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity()};
+        DirectX::XMMATRIX xforms[] = {DirectX::XMMatrixIdentity(), DirectX::XMMatrixIdentity(),
+                                      DirectX::XMMatrixIdentity()};
 
         float bg_color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
         InstanceBuffer instance_buffer(gfx, &xforms, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
                                        D3D11_CPU_ACCESS_WRITE);
 
-        cube.update(DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
-        cat.update(DirectX::XMMatrixRotationY(DirectX::XM_PI) * DirectX::XMMatrixTranslation(0.0f, -4.0f, 0.0f));
+        cube.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) *
+                    DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
+        spider.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixRotationY(DirectX::XM_PI) *
+                      DirectX::XMMatrixTranslation(0.0f, -3.8f, 0.0f));
+        ninja.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixTranslation(0.0f, -3.0f, 0.0f));
 
         DirectX::XMMATRIX xf[] = {DirectX::XMMatrixTranspose(cube.get_transform()),
-                                  DirectX::XMMatrixTranspose(cat.get_transform())};
+                                  DirectX::XMMatrixTranspose(spider.get_transform()),
+                                  DirectX::XMMatrixTranspose(ninja.get_transform())};
 
         instance_buffer.update(xf, sizeof(xf));
 
         VertexBuffer vb(gfx, vertices);
         IndexBuffer ib(gfx, indices);
+        VertexBuffer vb2(gfx, vertices2);
+        IndexBuffer ib2(gfx, indices2);
         // Texture cube_tex(gfx, L"assets/textures/minecraft_cube.dds"), cat_tex(gfx, cat.get_ai_texture());
         TextureVertexShader vs(gfx);
         TexturePixelShader ps(gfx);
-        // VertexShader vs(gfx);
-        // PixelShader ps(gfx);
+        VertexShader vs2(gfx);
+        PixelShader ps2(gfx);
 
         size_t bone_matrices_count = 0;
-        for (auto &m : cat.get_meshes())
+        for (auto &m : spider.get_meshes())
+        {
+            bone_matrices_count += m.bone_matrices.size();
+        }
+        for (auto &m : ninja.get_meshes())
         {
             bone_matrices_count += m.bone_matrices.size();
         }
@@ -101,25 +119,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         StructuredBuffer structured_buffer(gfx, bone_matrices_count, sizeof(DirectX::XMMATRIX));
 
         size_t offset = 0;
-        for (auto &m : cat.get_meshes())
+        for (auto &m : spider.get_meshes())
+        {
+            size_t size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+            structured_buffer.update(m.bone_matrices.data(), size, offset);
+            offset += size;
+        }
+        for (auto &m : ninja.get_meshes())
         {
             size_t size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
             structured_buffer.update(m.bone_matrices.data(), size, offset);
             offset += size;
         }
 
-        ib.bind();
-        vs.bind();
-
         Buffer *v_buffers[] = {&vb, &instance_buffer};
         VertexBuffers vbs(gfx, v_buffers);
 
-        vbs.bind();
+        v_buffers[0] = &vb2;
+        VertexBuffers vbs2(gfx, v_buffers);
 
         structured_buffer.bind();
 
         input.set_control_handler([&](unsigned char c) {
-            constexpr float step = 1.0f;
+            float step = Global::clock.speed_to_distance(50.0f);
 
             switch (c)
             {
@@ -161,18 +183,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             if (i > 200)
             {
                 i = 0;
-                cat.start_animation();
+                spider.start_animation();
+                ninja.start_animation();
             }
 
-            cat.update(DirectX::XMMatrixIdentity());
+            spider.update(DirectX::XMMatrixIdentity());
+            ninja.update(DirectX::XMMatrixIdentity());
 
             gfx.clear(bg_color);
+
+            ib.bind();
+            vbs.bind();
+            vs.bind();
 
             ps.bind(&cube.get_textures()[0]);
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             size_t animation_data_offset = 0;
-            for (Mesh<TextureVertex> &m : cat.get_meshes())
+
+            // spider
+            for (Mesh<TextureVertex> &m : spider.get_meshes())
             {
                 size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
                 structured_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
@@ -181,7 +211,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
 
-            for (Mesh<TextureVertex> &m : cat.get_meshes())
+            for (Mesh<TextureVertex> &m : spider.get_meshes())
             {
                 Texture *t = m.get_texture();
 
@@ -193,6 +223,31 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 UINT n = m.get_index_count();
 
                 vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
+
+                prev_index += n;
+                prev_vertex += m.get_vertex_count();
+            }
+
+            // ninja
+            ib2.bind();
+            vbs2.bind();
+            ps2.bind();
+            vs2.bind();
+
+            for (Mesh<Vertex> &m : ninja.get_meshes())
+            {
+                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+                structured_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                animation_data_offset += animation_data_size;
+            }
+
+            prev_index = 0;
+            prev_vertex = 0;
+            for (Mesh<Vertex> &m : ninja.get_meshes())
+            {
+                UINT n = m.get_index_count();
+
+                vs2.draw_indexed_instanced(prev_index, n, 2, 1, prev_vertex);
 
                 prev_index += n;
                 prev_vertex += m.get_vertex_count();

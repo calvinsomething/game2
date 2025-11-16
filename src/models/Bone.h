@@ -19,7 +19,8 @@ inline DirectX::XMMATRIX get_z_up_matrix(float *m)
 class Bone
 {
   public:
-    Bone(aiBone *ai_bone, const aiNode *node, std::vector<TextureVertex> &vertices, size_t start_vertex, size_t index)
+    template <typename T>
+    Bone(aiBone *ai_bone, const aiNode *node, std::vector<T> &vertices, size_t start_vertex, size_t index)
         : index(index), node(node), intermediate_transform(DirectX::XMMatrixIdentity())
     {
         assert(node && "Bone constructed without node.");
@@ -33,7 +34,7 @@ class Bone
                 throw std::runtime_error("calculated vertex index exceeds size of vertices array");
             }
 
-            TextureVertex &v = vertices[j];
+            T &v = vertices[j];
 
             if (v.bone_count == 4)
             {

@@ -76,7 +76,93 @@ template <typename T> class Mesh : public MeshBase
 
     void load_bones(aiMesh &mesh, std::vector<T> &vertices)
     {
-        throw std::runtime_error("unimplemented load_bones");
+        std::unordered_map<const aiNode *, size_t> bone_index_by_node;
+        std::unordered_map<size_t, size_t> bone_parent_index_by_child_index;
+        std::unordered_map<const aiNode *, std::vector<size_t>> bone_child_index_by_node;
+
+        for (size_t i = 0; i < mesh.mNumBones; ++i)
+        {
+            aiNode *node = mesh.mBones[i]->mNode;
+
+            if (bone_index_by_node.find(node) == bone_index_by_node.end())
+            {
+                size_t bone_index = bones.size();
+                bones.push_back(Bone(mesh.mBones[i], node, vertices, start_vertex, bone_index));
+
+                bone_matrices.push_back(DirectX::XMMatrixIdentity());
+
+                bone_index_by_node.insert({node, bone_index});
+
+                auto p = bone_index_by_node.find(node->mParent);
+                if (p == bone_index_by_node.end())
+                {
+                    auto c = bone_child_index_by_node.find(node->mParent);
+
+                    if (c == bone_child_index_by_node.end())
+                    {
+                        if (node->mParent)
+                        {
+                            bone_child_index_by_node.insert({node->mParent, {bone_index}});
+                        }
+                    }
+                    else
+                    {
+                        c->second.push_back(bone_index);
+                    }
+                }
+                else
+                {
+                    bone_parent_index_by_child_index.insert({bone_index, p->second});
+                }
+
+                // find this node's previously loaded children
+                auto c = bone_child_index_by_node.find(node);
+                if (c != bone_child_index_by_node.end())
+                {
+                    for (size_t i : c->second)
+                    {
+                        bone_parent_index_by_child_index.insert({i, bone_index});
+                    }
+                }
+            }
+        }
+
+        if (!bones.empty())
+        {
+            for (Bone &b : bones)
+            {
+                auto parent_index = bone_parent_index_by_child_index.find(b.index);
+
+                if (parent_index != bone_parent_index_by_child_index.end())
+                {
+                    b.parent = &bones[parent_index->second];
+                    b.parent->children.push_back(&b);
+                }
+                else
+                {
+                    const aiNode *node = b.node->mParent;
+
+                    while (node)
+                    {
+                        if (bone_index_by_node.find(node) == bone_index_by_node.end())
+                        {
+                            b.set_intermediate_transform(node);
+
+                            node = node->mParent;
+                        }
+                    }
+                }
+            }
+
+            root_bone = &bones[0];
+
+            auto next = root_bone;
+            while (next)
+            {
+                root_bone = next;
+                next = next->parent;
+            }
+        }
     }
 
     std::vector<DirectX::XMMATRIX> bone_matrices;

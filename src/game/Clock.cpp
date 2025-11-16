@@ -2,7 +2,7 @@
 #include <chrono>
 #include <thread>
 
-const int yards_per_mile = 1760;
+constexpr double yards_per_mile = 1760, nanoseconds_in_hour = 1000000000.0 * 60 * 60;
 
 Clock::Clock()
 {
@@ -38,7 +38,7 @@ void Clock::start_frame()
 
     previous_frame_duration = (next_frame_time - frame_time).count();
 
-    miles_per_hour_to_yards_per_frame_factor = double(yards_per_mile) / previous_frame_duration;
+    miles_per_hour_to_yards_per_frame_factor = yards_per_mile * previous_frame_duration / nanoseconds_in_hour;
 
     frame_time = next_frame_time;
 }

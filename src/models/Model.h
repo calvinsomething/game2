@@ -108,7 +108,6 @@ template <typename T> class Model
     bool load_texture(Gfx &gfx, const std::string &file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices,
                       aiMesh &mesh, aiMaterial &material)
     {
-
         for (auto texture_type : texture_types)
         {
             if (material.GetTextureCount(texture_type))
