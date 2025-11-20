@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include <algorithm>
 
 template class Mesh<Vertex>;
 template class Mesh<TextureVertex>;
@@ -58,7 +59,12 @@ template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, std::vector<Textu
         if (bone_index_by_node.find(node) == bone_index_by_node.end())
         {
             size_t bone_index = bones.size();
-            bones.push_back(Bone(mesh.mBones[i], node, vertices, start_vertex, bone_index));
+            bones.push_back(Bone(mesh.mBones[i], node, vertices, start_vertex, bone_index, bone_data_by_vertex_index));
+
+            for (auto &p : bone_data_by_vertex_index)
+            {
+                sort_bones_by_weight(vertices[p.first], p.second);
+            }
 
             bone_matrices.push_back(DirectX::XMMatrixIdentity());
 

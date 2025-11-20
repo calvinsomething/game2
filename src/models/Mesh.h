@@ -50,7 +50,6 @@ template <typename T> class Mesh : public MeshBase
         load_indices(mesh, indices);
 
         name = mesh.mName.C_Str();
-        std::cout << name << "\n";
     }
 
     Mesh(aiMesh &mesh, std::vector<T> &vertices, size_t model_start_vertex, std::vector<uint32_t> &indices,
@@ -60,6 +59,19 @@ template <typename T> class Mesh : public MeshBase
         load_vertices(mesh, vertices, mat);
 
         load_indices(mesh, indices);
+
+        name = mesh.mName.C_Str();
+    }
+
+    void missing_bones(std::vector<T> &vertices)
+    {
+        for (size_t i = 0; i < vertices.size(); ++i)
+        {
+            if (!vertices[i].bone_count)
+            {
+                std::cout << i << " has no bones for " << name << "\n";
+            }
+        }
     }
 
     Texture *get_texture()
@@ -88,7 +100,13 @@ template <typename T> class Mesh : public MeshBase
             if (bone_index_by_node.find(node) == bone_index_by_node.end())
             {
                 size_t bone_index = bones.size();
-                bones.push_back(Bone(mesh.mBones[i], node, vertices, start_vertex, bone_index));
+                bones.push_back(
+                    Bone(mesh.mBones[i], node, vertices, start_vertex, bone_index, bone_data_by_vertex_index));
+
+                for (auto &p : bone_data_by_vertex_index)
+                {
+                    sort_bones_by_weight(vertices[p.first], p.second);
+                }
 
                 bone_matrices.push_back(DirectX::XMMatrixIdentity());
 
@@ -250,6 +268,8 @@ template <typename T> class Mesh : public MeshBase
     Bone *root_bone = 0;
     std::vector<Bone> bones;
     std::string name;
+
+    std::unordered_map<unsigned, std::vector<BoneData>> bone_data_by_vertex_index;
 };
 
 template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices, aiMaterial *mat);
@@ -260,3 +280,19 @@ void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Textur
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, std::vector<TextureVertex> &vertices);
 
 template <> Texture *Mesh<TextureVertex>::get_texture();
+
+template <typename T> void sort_bones_by_weight(T &vertex, std::vector<BoneData> &bone_data)
+{
+    for (unsigned i = 0; i < vertex.bone_count; ++i)
+    {
+        bone_data.push_back(BoneData{vertex.bone_indices[i], vertex.bone_weights[i]});
+    }
+
+    std::sort(bone_data.begin(), bone_data.end(), [](BoneData a, BoneData b) { return a.weight > b.weight; });
+
+    for (unsigned i = 0; i < vertex.bone_count; ++i)
+    {
+        vertex.bone_indices[i] = bone_data[i].index;
+        vertex.bone_weights[i] = bone_data[i].weight;
+    }
+}

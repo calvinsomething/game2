@@ -6,6 +6,7 @@
 #include <assimp/anim.h>
 #include <assimp/scene.h>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "../Gfx/VertexShader.h"
 
@@ -16,11 +17,18 @@ inline DirectX::XMMATRIX get_z_up_matrix(float *m)
     };
 }
 
+struct BoneData
+{
+    unsigned index;
+    float weight;
+};
+
 class Bone
 {
   public:
     template <typename T>
-    Bone(aiBone *ai_bone, const aiNode *node, std::vector<T> &vertices, size_t start_vertex, size_t index)
+    Bone(aiBone *ai_bone, const aiNode *node, std::vector<T> &vertices, size_t start_vertex, size_t index,
+         std::unordered_map<unsigned, std::vector<BoneData>> &bone_data_by_vertex_index)
         : index(index), node(node), intermediate_transform(DirectX::XMMatrixIdentity())
     {
         assert(node && "Bone constructed without node.");
@@ -36,16 +44,28 @@ class Bone
 
             T &v = vertices[j];
 
-            if (v.bone_count == 4)
+            if (v.bone_count < 4)
             {
-                break;
-                // throw std::runtime_error("vertex has more than 4 bones");
+                v.bone_indices[v.bone_count] = index;
+                v.bone_weights[v.bone_count] = ai_bone->mWeights[i].mWeight;
+
+                ++v.bone_count;
             }
+            else
+            {
+                auto existing = bone_data_by_vertex_index.find(j);
 
-            v.bone_indices[v.bone_count] = index;
-            v.bone_weights[v.bone_count] = ai_bone->mWeights[i].mWeight;
+                BoneData bd = BoneData{static_cast<unsigned>(index), ai_bone->mWeights[i].mWeight};
 
-            ++v.bone_count;
+                if (existing == bone_data_by_vertex_index.end())
+                {
+                    bone_data_by_vertex_index.insert({j, std::vector<BoneData>{bd}});
+                }
+                else
+                {
+                    existing->second.push_back(bd);
+                }
+            }
         }
 
         float *m = &ai_bone->mOffsetMatrix.a1;
