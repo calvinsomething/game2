@@ -23,6 +23,7 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
         {"MODEL_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"BONE_START", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
 
     HANDLE_GFX_ERR(device->CreateInputLayout(layout, ARRAYSIZE(layout), byte_code.data(), byte_code.size(),
@@ -77,6 +78,7 @@ TextureVertexShader::TextureVertexShader(Gfx &gfx) : Shader(gfx)
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
         {"MODEL_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"BONE_START", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
 
     HANDLE_GFX_ERR(device->CreateInputLayout(layout, ARRAYSIZE(layout), byte_code.data(), byte_code.size(),

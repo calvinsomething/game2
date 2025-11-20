@@ -39,3 +39,33 @@ void Buffer::init(void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usag
     HANDLE_GFX_ERR(device->CreateBuffer(
         &bd, p_srd, buffer.ReleaseAndGetAddressOf())); // release so init can be used to write over buffer structure
 }
+
+void Buffer::start_batch_update()
+{
+    HANDLE_GFX_ERR(ctx->Map(buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr));
+
+    resource_is_mapped = true;
+}
+
+void Buffer::end_batch_update()
+{
+    ctx->Unmap(buffer.Get(), 0);
+
+    resource_is_mapped = false;
+}
+
+void Buffer::update(void *data, size_t size, size_t offset)
+{
+    if (resource_is_mapped)
+    {
+        std::memcpy(static_cast<char *>(mr.pData) + offset, data, size);
+    }
+    else
+    {
+        HANDLE_GFX_ERR(ctx->Map(buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr));
+
+        std::memcpy(static_cast<char *>(mr.pData) + offset, data, size);
+
+        ctx->Unmap(buffer.Get(), 0);
+    }
+}

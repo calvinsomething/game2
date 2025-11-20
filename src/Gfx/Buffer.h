@@ -12,6 +12,11 @@ class Buffer : protected GfxAccess
   public:
     virtual void bind() = 0;
 
+    void start_batch_update();
+    void end_batch_update();
+
+    void update(void *data, size_t size, size_t offset = 0);
+
   protected:
     Buffer(Gfx &gfx);
 
@@ -34,4 +39,7 @@ class Buffer : protected GfxAccess
     void init(void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags = 0,
               UINT pitch = 0, UINT slice_pitch = 0, UINT structured_byte_stride = 0,
               D3D11_RESOURCE_MISC_FLAG misc_flags = D3D11_RESOURCE_MISC_FLAG(0));
+
+    D3D11_MAPPED_SUBRESOURCE mr;
+    bool resource_is_mapped = false;
 };

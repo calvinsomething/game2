@@ -1,3 +1,9 @@
+struct InstanceData
+{
+	matrix model_xform : MODEL_XFORM;
+	uint bone_start : BONE_START;
+};
+
 struct VSIn
 {
     float4 pos : POSITION;
@@ -5,7 +11,7 @@ struct VSIn
 	uint4 bone_indices : BONE_INDICES;
 	float4 bone_weights : BONE_WEIGHTS;
 	uint bone_count : BONE_COUNT;
-	matrix model_xform : MODEL_XFORM;
+	InstanceData instance;
 };
 
 StructuredBuffer<matrix> bones : register(t0);
@@ -29,7 +35,7 @@ float4 animated_pos(VSIn input)
 
 	for (uint i = 0; i < input.bone_count; ++i)
 	{
-		float4 animated_vertex = mul(input.pos, bones[input.bone_indices[i]]);
+		float4 animated_vertex = mul(input.pos, bones[input.bone_indices[i] + input.instance.bone_start]);
 		pos[0] += animated_vertex[0] * input.bone_weights[i];
 		pos[1] += animated_vertex[1] * input.bone_weights[i];
 		pos[2] += animated_vertex[2] * input.bone_weights[i];
@@ -60,7 +66,7 @@ VSOut main(VSIn input)
 		pos = input.pos;
 	}
 
-	output.pos = mul(pos, input.model_xform);
+	output.pos = mul(pos, input.instance.model_xform);
 	output.pos = mul(output.pos, view_proj);
 
 	output.color = input.color;
