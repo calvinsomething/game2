@@ -65,7 +65,8 @@ target_link_libraries(${PROJECT_NAME}
 	assimp/unit
 	assimp/assimp-vc143-mtd
 
-	DDSTextureLoader)
+	DDSTextureLoader
+	memory_allocator)
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE

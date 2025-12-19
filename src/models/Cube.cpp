@@ -1,7 +1,5 @@
 #include "Cube.h"
 
-#include "../util.h"
-
 // Vertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)},
 //                      {DirectX::XMFLOAT4(5.0f, 5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)},
 //                      {DirectX::XMFLOAT4(5.0f, -5.0f, -5.0f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f)},
@@ -33,7 +31,7 @@ TextureVertex vertices[] = {{DirectX::XMFLOAT4(-5.0f, 5.0f, 5.0f, 1.0f), DirectX
 uint32_t indices[] = {0, 1, 4, 4, 3, 0, 2, 3, 7,  7,  6,  2, 3,  4,  8,  8,  7,  3,
                       4, 5, 9, 9, 8, 4, 7, 8, 11, 11, 10, 7, 10, 11, 13, 13, 12, 10};
 
-Cube::Cube(std::vector<TextureVertex> &vertices, std::vector<uint32_t> &indices)
+Cube::Cube(StdVector<TextureVertex> &vertices, StdVector<uint32_t> &indices)
 {
     transform = DirectX::XMMatrixIdentity();
 

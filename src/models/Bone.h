@@ -6,9 +6,8 @@
 #include <assimp/anim.h>
 #include <assimp/scene.h>
 #include <stdexcept>
-#include <unordered_map>
 
-#include "../Gfx/VertexShader.h"
+#include "../util.h"
 
 inline DirectX::XMMATRIX get_z_up_matrix(float *m)
 {
@@ -27,8 +26,8 @@ class Bone
 {
   public:
     template <typename T>
-    Bone(aiBone *ai_bone, const aiNode *node, std::vector<T> &vertices, size_t start_vertex, size_t index,
-         std::unordered_map<unsigned, std::vector<BoneData>> &bone_data_by_vertex_index)
+    Bone(aiBone *ai_bone, const aiNode *node, StdVector<T> &vertices, size_t start_vertex, size_t index,
+         StdUnorderedMap<unsigned, StdVector<BoneData>> &bone_data_by_vertex_index)
         : index(index), node(node), intermediate_transform(DirectX::XMMatrixIdentity())
     {
         assert(node && "Bone constructed without node.");
@@ -59,7 +58,7 @@ class Bone
 
                 if (existing == bone_data_by_vertex_index.end())
                 {
-                    bone_data_by_vertex_index.insert({j, std::vector<BoneData>{bd}});
+                    bone_data_by_vertex_index.insert({j, StdVector<BoneData>{bd}});
                 }
                 else
                 {
@@ -151,7 +150,7 @@ class Bone
 
     Bone *parent = 0;
 
-    std::vector<Bone *> children;
+    StdVector<Bone *> children;
 
     size_t index;
 

@@ -1,12 +1,13 @@
 #pragma once
 
-#include "../Gfx/VertexShader.h"
 #include "Model.h"
+
+#include "../util.h"
 
 class Cube : public Model<TextureVertex>
 {
   public:
-    Cube(std::vector<TextureVertex> &vertices, std::vector<uint32_t> &indices);
+    Cube(StdVector<TextureVertex> &vertices, StdVector<uint32_t> &indices);
 
     void bind();
 

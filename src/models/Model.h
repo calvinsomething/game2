@@ -9,12 +9,10 @@
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
-#include <unordered_map>
 
 #include "../Error.h"
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
-#include "../util.h"
 #include "Mesh.h"
 
 inline void traverse_nodes(aiNode *node)
@@ -47,7 +45,7 @@ template <typename T> class Model
     {
     }
 
-    Model(Gfx &gfx, const std::string &file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices)
+    Model(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices)
         : transform(DirectX::XMMatrixIdentity())
     {
         scene = importer.ReadFile(file_name, aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_Triangulate |
@@ -112,7 +110,7 @@ template <typename T> class Model
         }
     }
 
-    bool load_texture(Gfx &gfx, const std::string &file_name, std::vector<T> &vertices, std::vector<uint32_t> &indices,
+    bool load_texture(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices,
                       aiMesh &mesh, aiMaterial &material)
     {
         for (auto texture_type : texture_types)
@@ -283,7 +281,7 @@ template <typename T> class Model
         return ai_texture;
     }
 
-    std::vector<Texture> &get_textures()
+    StdVector<Texture> &get_textures()
     {
         return textures;
     }
@@ -297,7 +295,7 @@ template <typename T> class Model
         return textures.size() - 1;
     }
 
-    std::vector<Mesh<T>> &get_meshes()
+    StdVector<Mesh<T>> &get_meshes()
     {
         return meshes;
     }
@@ -312,7 +310,7 @@ template <typename T> class Model
 
     VertexShader::BufferData buffer_data;
 
-    std::vector<Texture> textures;
+    StdVector<Texture> textures;
 
   private:
     Assimp::Importer importer;
@@ -320,14 +318,14 @@ template <typename T> class Model
     const aiScene *scene = 0;
     const aiTexture *ai_texture = 0;
 
-    std::vector<Mesh<T>> meshes;
+    StdVector<Mesh<T>> meshes;
 
-    std::unordered_map<std::string, size_t> texture_indices_by_file_name;
+    StdUnorderedMap<std::string, size_t> texture_indices_by_file_name;
 
     std::chrono::high_resolution_clock clock;
     std::chrono::time_point<decltype(clock)> animation_start_time = {};
 
-    std::unordered_map<std::string, aiAnimation *> animations;
+    StdUnorderedMap<std::string, aiAnimation *> animations;
 
-    std::unordered_map<const aiNode *, const aiNodeAnim *> node_animations;
+    StdUnorderedMap<const aiNode *, const aiNodeAnim *> node_animations;
 };

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Buffer.h"
-#include <vector>
+
+#include "../util.h"
 
 class IndexBuffer : public Buffer
 {
@@ -11,7 +12,7 @@ class IndexBuffer : public Buffer
     {
     }
 
-    template <typename T> IndexBuffer(Gfx &gfx, std::vector<T> &indices) : Buffer(gfx)
+    template <typename T> IndexBuffer(Gfx &gfx, StdVector<T> &indices) : Buffer(gfx)
     {
         stride = sizeof(T); // assuming no padding/offset
 

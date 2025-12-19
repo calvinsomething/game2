@@ -3,13 +3,13 @@
 #include "Buffer.h"
 
 #include "../Error.h"
+#include "../util.h"
 #include "Gfx.h"
-#include <vector>
 
 class StructuredBuffer : public Buffer
 {
   public:
-    template <typename T> StructuredBuffer(Gfx &gfx, std::vector<T> &elements) : Buffer(gfx)
+    template <typename T> StructuredBuffer(Gfx &gfx, StdVector<T> &elements) : Buffer(gfx)
     {
         stride = sizeof(T);
 

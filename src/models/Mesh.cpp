@@ -1,10 +1,9 @@
 #include "Mesh.h"
-#include <algorithm>
 
 template class Mesh<Vertex>;
 template class Mesh<TextureVertex>;
 
-template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<Vertex> &vertices, aiMaterial *mat)
+template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices, aiMaterial *mat)
 {
     aiVector3D &v = mesh.mVertices[i];
 
@@ -32,7 +31,7 @@ template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<V
 }
 
 template <>
-void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, std::vector<TextureVertex> &vertices, aiMaterial *mat)
+void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureVertex> &vertices, aiMaterial *mat)
 {
     aiVector3D &v = mesh.mVertices[i];
 
@@ -46,11 +45,11 @@ template <> Texture *Mesh<TextureVertex>::get_texture()
     return &textures->at(texture_index);
 }
 
-template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, std::vector<TextureVertex> &vertices)
+template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)
 {
-    std::unordered_map<const aiNode *, size_t> bone_index_by_node;
-    std::unordered_map<size_t, size_t> bone_parent_index_by_child_index;
-    std::unordered_map<const aiNode *, std::vector<size_t>> bone_child_index_by_node;
+    StdUnorderedMap<const aiNode *, size_t> bone_index_by_node;
+    StdUnorderedMap<size_t, size_t> bone_parent_index_by_child_index;
+    StdUnorderedMap<const aiNode *, StdVector<size_t>> bone_child_index_by_node;
 
     for (size_t i = 0; i < mesh.mNumBones; ++i)
     {

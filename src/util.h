@@ -5,7 +5,11 @@
 
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
+#include "memory_allocator/Adapter.h"
+#include "memory_allocator/BlockAllocator.h"
 
 // DirectX Math
 DirectX::XMFLOAT3 operator+(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b);
@@ -20,7 +24,17 @@ DirectX::XMFLOAT3 operator*(DirectX::XMFLOAT3 v, float f);
 std::string load_file(const std::string &file_name);
 
 // Memory
-template <typename T> UINT load_vector(std::vector<T> &dest, T *src, size_t n)
+//
+template <typename T> using Allocator = Adapter<T, BlockAllocator>;
+
+// Vector
+template <typename T> using StdVector = std::vector<T, Allocator<T>>;
+
+// Map
+template <typename K, typename V>
+using StdUnorderedMap = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, Allocator<std::pair<K const, V>>>;
+
+template <typename T, typename A> UINT load_vector(std::vector<T, A> &dest, T *src, size_t n)
 {
     size_t i = dest.size(), new_size = i + n;
 

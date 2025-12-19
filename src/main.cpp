@@ -1,5 +1,4 @@
 #include <DirectXMath.h>
-#include <vector>
 #include <windows.h>
 
 #include <exception>
@@ -39,23 +38,12 @@ float bg_color[] = {0.5f, 0.2f, 0.2f, 1.0f};
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
+    Allocator<int>::allocator.init(50'000'000, 2000);
+
     Window window;
-
-    std::vector<TextureVertex> vertices;
-    vertices.reserve(4096);
-
-    std::vector<Vertex> vertices2;
-    vertices.reserve(4096);
-
-    std::vector<uint32_t> indices;
-    indices.reserve(4096);
-
-    std::vector<uint32_t> indices2;
-    indices.reserve(4096);
 
     try
     {
-
 #ifndef NDEBUG
         if (!AllocConsole())
         {
@@ -67,6 +55,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             freopen_s(&f, "CONOUT$", "w", stdout);
         }
 #endif
+
+        StdVector<TextureVertex> vertices;
+        vertices.reserve(4096);
+
+        StdVector<Vertex> vertices2;
+        vertices.reserve(4096);
+
+        StdVector<uint32_t> indices;
+        indices.reserve(4096);
+
+        StdVector<uint32_t> indices2;
+        indices.reserve(4096);
+
         Input input;
         input.register_devices();
 

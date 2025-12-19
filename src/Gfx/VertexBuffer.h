@@ -3,7 +3,7 @@
 #include "Buffer.h"
 #include "Buffers.h"
 
-#include <vector>
+#include "../util.h"
 
 class VertexBuffer : public Buffer
 {
@@ -14,7 +14,7 @@ class VertexBuffer : public Buffer
         stride = sizeof(T); // assuming no padding/offset
     }
 
-    template <typename T> VertexBuffer(Gfx &gfx, std::vector<T> &vertices) : Buffer(gfx)
+    template <typename T> VertexBuffer(Gfx &gfx, StdVector<T> &vertices) : Buffer(gfx)
     {
         stride = sizeof(T); // assuming no padding/offset
 
