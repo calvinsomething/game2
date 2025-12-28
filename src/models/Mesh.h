@@ -2,15 +2,13 @@
 
 #include <DirectXMath.h>
 #include <assimp/mesh.h>
-#include <iostream>
 #include <wrl.h>
 
 #include <stdexcept>
 
-#include "../gfx/Texture.h"
 #include "../gfx/VertexShader.h"
 #include "Bone.h"
-#include "assimp/material.h"
+#include "Material.h"
 
 class MeshBase
 {
@@ -36,45 +34,15 @@ class MeshBase
 template <typename T> class Mesh : public MeshBase
 {
   public:
-    Mesh(aiMesh &mesh, StdVector<T> &vertices, StdVector<uint32_t> &indices, size_t diffuse_tc_index,
-         StdVector<Texture> *textures, size_t texture_index)
-        : vertices(vertices), indices(indices), diffuse_tc_index(diffuse_tc_index), textures(textures),
-          texture_index(texture_index)
+    Mesh(aiMesh &mesh, StdVector<T> &vertices, StdVector<uint32_t> &indices, Material material,
+         TextureCoordinateIndices coordinate_indices)
+        : vertices(vertices), indices(indices), material(material)
     {
-        assert(textures && !textures->empty() && "Mesh<TextureVertex> constructed without textures");
-
-        load_vertices(mesh, vertices);
+        load_vertices(mesh, vertices, coordinate_indices);
 
         load_indices(mesh, indices);
 
         name = mesh.mName.C_Str();
-    }
-
-    Mesh(aiMesh &mesh, StdVector<T> &vertices, size_t model_start_vertex, StdVector<uint32_t> &indices,
-         size_t model_start_index, aiMaterial *mat)
-        : vertices(vertices), indices(indices)
-    {
-        load_vertices(mesh, vertices, mat);
-
-        load_indices(mesh, indices);
-
-        name = mesh.mName.C_Str();
-    }
-
-    void missing_bones(StdVector<T> &vertices)
-    {
-        for (size_t i = 0; i < vertices.size(); ++i)
-        {
-            if (!vertices[i].bone_count)
-            {
-                std::cout << i << " has no bones for " << name << "\n";
-            }
-        }
-    }
-
-    Texture *get_texture()
-    {
-        throw std::runtime_error("Unimplemented specialization of Mesh::get_texture.");
     }
 
     void animate(const StdUnorderedMap<const aiNode *, const aiNodeAnim *> &node_animations, double time_in_ticks)
@@ -184,16 +152,19 @@ template <typename T> class Mesh : public MeshBase
 
     StdVector<DirectX::XMMATRIX> bone_matrices;
 
+    Material get_material()
+    {
+        return material;
+    }
+
   private:
     StdVector<T> &vertices;
     StdVector<uint32_t> &indices;
 
-    size_t diffuse_tc_index, texture_index;
-
-    StdVector<Texture> *textures = 0;
+    Material material;
 
     // helpers
-    void load_vertices(aiMesh &mesh, StdVector<T> &vertices, aiMaterial *mat = 0)
+    void load_vertices(aiMesh &mesh, StdVector<T> &vertices, TextureCoordinateIndices coordinate_indices)
     {
         start_vertex = vertices.size();
 
@@ -201,7 +172,7 @@ template <typename T> class Mesh : public MeshBase
 
         for (size_t i = 0; i < mesh.mNumVertices; ++i)
         {
-            load_vertex(mesh, i, vertices, mat);
+            load_vertex(mesh, i, vertices, coordinate_indices);
         }
 
         vertex_count = vertices.size() - start_vertex;
@@ -258,9 +229,9 @@ template <typename T> class Mesh : public MeshBase
         index_count = indices.size() - start_index;
     }
 
-    void load_vertex(aiMesh &mesh, size_t i, StdVector<T> &vertices, aiMaterial *mat = 0)
+    void load_vertex(aiMesh &mesh, size_t i, StdVector<T> &vertices, TextureCoordinateIndices coordinate_indices)
     {
-        throw std::runtime_error("Unimplemented specialization of Mesh::load_vertex.");
+        static_assert(0, "Unimplemented specialization of Mesh::load_vertex.");
     }
 
     Bone *root_bone = 0;
@@ -270,27 +241,27 @@ template <typename T> class Mesh : public MeshBase
     StdUnorderedMap<unsigned, StdVector<BoneData>> bone_data_by_vertex_index;
 };
 
-template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices, aiMaterial *mat);
-
 template <>
-void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureVertex> &vertices, aiMaterial *mat);
+void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices,
+                               TextureCoordinateIndices coordinate_indices);
+template <>
+void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureVertex> &vertices,
+                                      TextureCoordinateIndices coordinate_indices);
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices);
 
-template <> Texture *Mesh<TextureVertex>::get_texture();
-
 template <typename T> void sort_bones_by_weight(T &vertex, StdVector<BoneData> &bone_data)
 {
-    for (unsigned i = 0; i < vertex.bone_count; ++i)
+    for (unsigned i = 0; i < vertex.bone.count; ++i)
     {
-        bone_data.push_back(BoneData{vertex.bone_indices[i], vertex.bone_weights[i]});
+        bone_data.push_back(BoneData{vertex.bone.indices[i], vertex.bone.weights[i]});
     }
 
     std::sort(bone_data.begin(), bone_data.end(), [](BoneData a, BoneData b) { return a.weight > b.weight; });
 
-    for (unsigned i = 0; i < vertex.bone_count; ++i)
+    for (unsigned i = 0; i < vertex.bone.count; ++i)
     {
-        vertex.bone_indices[i] = bone_data[i].index;
-        vertex.bone_weights[i] = bone_data[i].weight;
+        vertex.bone.indices[i] = bone_data[i].index;
+        vertex.bone.weights[i] = bone_data[i].weight;
     }
 }

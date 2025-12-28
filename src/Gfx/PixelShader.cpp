@@ -7,42 +7,46 @@ PixelShader::PixelShader(Gfx &gfx) : Shader(gfx)
     auto byte_code = load("ps.cso");
 
     HANDLE_GFX_ERR(device->CreatePixelShader(byte_code.data(), byte_code.size(), nullptr, &shader));
-
-    // D3D11_INPUT_ELEMENT_DESC layout[] = {
-    //     {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    //     {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, sizeof(Vec4), D3D11_INPUT_PER_VERTEX_DATA, 0},
-    // };
-
-    // HANDLE_GFX_ERR(device->CreateInputLayout(nullptr, 0, byte_code.data(), byte_code.size(), 0));
 }
 
 void PixelShader::bind()
 {
-    // ctx->IASetInputLayout(input_layout.Get());
-
     ctx->PSSetShader(shader.Get(), nullptr, 0);
 }
 
+void PixelShader::set_material(const Material &material)
+{
+    // TODO set color
+    // ctx->PSSetShaderResources(0, n, &views[0]);
+}
+
 // TexturePixelShader
-TexturePixelShader::TexturePixelShader(Gfx &gfx) : Shader(gfx)
+TexturePixelShader::TexturePixelShader(Gfx &gfx) : PixelShader(gfx)
 {
     auto byte_code = load("ps_tex.cso");
 
     HANDLE_GFX_ERR(device->CreatePixelShader(byte_code.data(), byte_code.size(), nullptr, &shader));
 }
 
-void TexturePixelShader::bind()
+void TexturePixelShader::set_material(const Material &material)
 {
-    static_assert("TexturePixelShader::bind requires a texture argument.");
-}
+    ID3D11SamplerState *samplers[4] = {};
+    ID3D11ShaderResourceView *views[4] = {};
 
-void TexturePixelShader::bind(Texture *texture)
-{
-    ctx->PSSetShader(shader.Get(), nullptr, 0);
+    size_t n = 0;
 
-    ID3D11SamplerState *sampler = texture->get_sampler();
-    ID3D11ShaderResourceView *view = texture->get_view();
+    Texture *textures[] = {material.diffuse_texture, material.normal_texture};
 
-    ctx->PSSetSamplers(0, 1, &sampler);
-    ctx->PSSetShaderResources(0, 1, &view);
+    for (Texture *t : textures)
+    {
+        if (t)
+        {
+            samplers[n] = t->get_sampler_state();
+            views[n] = t->get_view();
+            ++n;
+        }
+    }
+
+    ctx->PSSetSamplers(0, n, &samplers[0]);
+    ctx->PSSetShaderResources(0, n, &views[0]);
 }

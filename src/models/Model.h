@@ -7,31 +7,13 @@
 #include <assimp/Importer.hpp>
 #include <chrono>
 #include <cstring>
-#include <iostream>
 #include <stdexcept>
 
 #include "../Error.h"
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
+#include "Material.h"
 #include "Mesh.h"
-
-inline void traverse_nodes(aiNode *node)
-{
-    for (size_t i = 0; i < node->mNumChildren; ++i)
-    {
-        aiNode *c = node->mChildren[i];
-
-        if (c->mNumMeshes && strcmp(c->mName.C_Str(), "Box"))
-        {
-            ERROR_MSG("num meshes " << c->mNumMeshes << " for " << c->mName.C_Str()
-                                    << " with parent = " << node->mName.C_Str());
-        }
-        else
-        {
-            traverse_nodes(c);
-        }
-    }
-}
 
 inline aiTextureType texture_types[] = {
     aiTextureType_DIFFUSE,
@@ -63,8 +45,6 @@ template <typename T> class Model
             throw std::runtime_error("Model loaded with no meshes.");
         }
 
-        meshes.reserve(scene->mNumMeshes);
-
         aiAnimation *animation = 0;
         if (scene->HasAnimations())
         {
@@ -83,23 +63,28 @@ template <typename T> class Model
         start_vertex = vertices.size();
         start_index = indices.size();
 
+        std::string directory = directory_from_file_name(file_name);
+        StdUnorderedMap<std::string, size_t> texture_index_by_file_name;
+        textures.reserve(20);
+
+        StdVector<Material> materials;
+        materials.reserve(scene->mNumMaterials);
+
+        StdVector<TextureCoordinateIndices> coordinate_indices(scene->mNumMaterials, TextureCoordinateIndices{});
+
+        for (size_t i = 0; i < scene->mNumMaterials; ++i)
+        {
+            materials.push_back(load_material(gfx, *scene, *scene->mMaterials[i], coordinate_indices[i], textures,
+                                              texture_index_by_file_name, directory));
+        }
+
+        meshes.reserve(scene->mNumMeshes);
         for (size_t i = 0; i < scene->mNumMeshes; ++i)
         {
             aiMesh &mesh = *scene->mMeshes[i];
 
-            aiMaterial &material = *scene->mMaterials[mesh.mMaterialIndex];
-
-            if (!load_texture(gfx, file_name, vertices, indices, mesh, material))
-            {
-                aiMaterial *mat = 0;
-
-                if (mesh.mMaterialIndex < scene->mNumMaterials)
-                {
-                    mat = scene->mMaterials[mesh.mMaterialIndex];
-                }
-
-                meshes.emplace_back(mesh, vertices, start_vertex, indices, start_index, mat);
-            }
+            meshes.emplace_back(mesh, vertices, indices, materials[mesh.mMaterialIndex],
+                                coordinate_indices[mesh.mMaterialIndex]);
 
             Mesh<T> &m = meshes.back();
 
@@ -108,104 +93,6 @@ template <typename T> class Model
                 m.load_bones(mesh, vertices);
             }
         }
-    }
-
-    bool load_texture(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices,
-                      aiMesh &mesh, aiMaterial &material)
-    {
-        for (auto texture_type : texture_types)
-        {
-            if (material.GetTextureCount(texture_type))
-            {
-                int tc_index;
-
-                material.Get(AI_MATKEY_UVWSRC(texture_type, 0), tc_index);
-
-                if (!mesh.HasTextureCoords(tc_index))
-                {
-                    ERROR_MSG("Missing texture coords for " << file_name << " at index " << tc_index);
-                }
-
-                aiString texture_file_name = {};
-                if (material.Get(AI_MATKEY_TEXTURE(texture_type, 0), texture_file_name) == AI_SUCCESS)
-                {
-                    size_t texture_index;
-
-                    const char *texture_file_name_string = texture_file_name.C_Str();
-
-                    auto p_index = texture_indices_by_file_name.find(texture_file_name_string);
-                    if (p_index != texture_indices_by_file_name.end())
-                    {
-                        texture_index = p_index->second;
-                        std::cout << "texture loaded " << texture_index << texture_file_name_string << "\n";
-                    }
-                    else
-                    {
-                        ai_texture = scene->GetEmbeddedTexture(texture_file_name_string);
-                        if (ai_texture)
-                        {
-                            // load embedded
-                            std::cout << "embedded texture...\n";
-
-                            texture_index = 0;
-                        }
-                        else
-                        {
-                            size_t dir_end = file_name.find_last_of("/\\");
-
-                            if (dir_end == std::string::npos)
-                            {
-                                ERROR_MSG("invalid file path: " << file_name);
-                            }
-
-                            std::string clean_texture_file_name = texture_file_name_string;
-                            {
-                                size_t i = clean_texture_file_name.find_last_of(".");
-                                if (i != std::string::npos)
-                                {
-                                    clean_texture_file_name = clean_texture_file_name.substr(0, i);
-                                }
-                            }
-
-                            std::string texture_path(file_name.substr(0, dir_end + 1) +
-                                                     clean_texture_file_name.c_str() + ".dds");
-                            for (char &c : texture_path)
-                            {
-                                if (c == '\\')
-                                {
-                                    c = '/';
-                                }
-                            }
-
-                            std::wstring w_path = to_wc(texture_path);
-
-                            std::wcout << mesh.mName.C_Str() << " " << w_path << L"\n";
-
-                            textures.reserve(textures.size() + 1);
-
-                            texture_index = textures.size();
-
-                            textures.emplace_back(gfx, w_path.c_str());
-
-                            texture_indices_by_file_name.insert({texture_file_name_string, texture_index});
-                        }
-                    }
-
-                    meshes.emplace_back(mesh, vertices, indices, tc_index, &textures, texture_index);
-                }
-                else
-                {
-                    throw std::runtime_error("Failed to get diffuse texture file name.");
-                }
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    void bind()
-    {
     }
 
     void start_animation()
@@ -281,20 +168,6 @@ template <typename T> class Model
         return ai_texture;
     }
 
-    StdVector<Texture> &get_textures()
-    {
-        return textures;
-    }
-
-    size_t load_texture(Gfx &gfx, const wchar_t *file_name)
-    {
-        textures.reserve(textures.size() + 1);
-
-        textures.emplace_back(gfx, file_name);
-
-        return textures.size() - 1;
-    }
-
     StdVector<Mesh<T>> &get_meshes()
     {
         return meshes;
@@ -320,12 +193,20 @@ template <typename T> class Model
 
     StdVector<Mesh<T>> meshes;
 
-    StdUnorderedMap<std::string, size_t> texture_indices_by_file_name;
-
     std::chrono::high_resolution_clock clock;
     std::chrono::time_point<decltype(clock)> animation_start_time = {};
 
-    StdUnorderedMap<std::string, aiAnimation *> animations;
-
     StdUnorderedMap<const aiNode *, const aiNodeAnim *> node_animations;
+
+    std::string directory_from_file_name(const std::string &file_name)
+    {
+        size_t dir_end = file_name.find_last_of("/\\");
+
+        if (dir_end == std::string::npos)
+        {
+            ERROR_MSG("invalid file path: " << file_name);
+        }
+
+        return file_name.substr(0, dir_end + 1);
+    }
 };

@@ -16,6 +16,7 @@
 #include "gfx/VertexShader.h"
 #include "input/Input.h"
 #include "models/Cube.h"
+#include "models/Material.h"
 #include "util.h"
 
 namespace Global
@@ -75,13 +76,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Camera camera(gfx);
 
-        Cube cube(vertices, indices);
-        cube.load_texture(gfx, L"assets/textures/minecraft_cube.dds");
+        // Cube cube(gfx, L"assets/textures/minecraft_cube.dds", vertices, indices);
 
         Model spider(gfx, "assets/models/spider/spider_clean.fbx", vertices, indices);
         Model ninja(gfx, "assets/models/ninja.fbx", vertices2, indices2);
 
-        cube.set_position(-7.0f, 0.0f, 5.0f);
+        // cube.set_position(-7.0f, 0.0f, 5.0f);
         spider.set_position(7.0f, 0.0f, 5.0f);
         ninja.set_position(11.0f, 0.0f, 0.0f);
 
@@ -91,18 +91,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             bone_matrices_count += m.bone_matrices.size();
         }
 
-        cube.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) *
-                    DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
+        // cube.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) *
+        //             DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
         spider.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixRotationY(DirectX::XM_PI) *
                       DirectX::XMMatrixTranslation(0.0f, -3.0f, 0.0f));
         ninja.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixTranslation(0.0f, -1.5f, 0.0f));
 
-        InstanceData instance_data[] = {{DirectX::XMMatrixTranspose(cube.get_transform()), 0},
+        InstanceData instance_data[] = {// {DirectX::XMMatrixTranspose(cube.get_transform()), 0},
                                         {DirectX::XMMatrixTranspose(spider.get_transform()), 0},
                                         {DirectX::XMMatrixTranspose(ninja.get_transform()), bone_matrices_count}};
 
-        InstanceBuffer instance_buffer(gfx, &instance_data, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
-                                       D3D11_CPU_ACCESS_WRITE);
+        InstanceBuffer instance_buffer(gfx, &instance_data);
 
         for (auto &m : ninja.get_meshes())
         {
@@ -182,8 +181,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             vbs.bind();
             vs.bind();
 
-            ps.bind(&cube.get_textures()[0]);
-            vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
+            // ps.bind(&cube.get_textures()[0]);
+            // vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             structured_buffer.bind();
 
@@ -202,20 +201,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             }
 
             // spider
-            UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
+            ps.bind();
+
+            // UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
+            UINT prev_index = 0, prev_vertex = 0;
 
             for (Mesh<TextureVertex> &m : spider.get_meshes())
             {
-                Texture *t = m.get_texture();
-
-                if (t)
-                {
-                    ps.bind(t);
-                }
+                ps.set_material(m.get_material());
 
                 UINT n = m.get_index_count();
 
-                vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
+                vs.draw_indexed_instanced(prev_index, n, 0, 1, prev_vertex);
 
                 prev_index += n;
                 prev_vertex += m.get_vertex_count();
@@ -233,7 +230,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             {
                 UINT n = m.get_index_count();
 
-                vs2.draw_indexed_instanced(prev_index, n, 2, 1, prev_vertex);
+                vs2.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
 
                 prev_index += n;
                 prev_vertex += m.get_vertex_count();

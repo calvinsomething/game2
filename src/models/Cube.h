@@ -7,7 +7,7 @@
 class Cube : public Model<TextureVertex>
 {
   public:
-    Cube(StdVector<TextureVertex> &vertices, StdVector<uint32_t> &indices);
+    Cube(Gfx &gfx, const std::string &file_name, StdVector<TextureVertex> &vertices, StdVector<uint32_t> &indices);
 
     void bind();
 

@@ -3,46 +3,53 @@
 template class Mesh<Vertex>;
 template class Mesh<TextureVertex>;
 
-template <> void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices, aiMaterial *mat)
+template <>
+void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices,
+                               TextureCoordinateIndices coordinate_indices)
 {
     aiVector3D &v = mesh.mVertices[i];
+    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f)});
 
-    float r, g, b, a;
+    // DirectX::XMFLOAT4 color;
 
-    aiColor3D color(0.f, 0.f, 0.f);
-    if (mat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS)
-    {
-        float m = fmax(color.r, fmax(color.g, color.b)) * 1.3f;
+    // aiColor4D *c = mesh.mColors[0];
+    // if (c)
+    // {
+    //     color = {c[i].r, c[i].g, c[i].b, c[i].a};
+    // }
+    // else
+    // {
+    //     color = {1.0f, 1.0f, 1.0f, 1.0f};
+    // }
 
-        r = fmin(color.r + m, 1.0f);
-        g = fmin(color.g + m, 1.0f);
-        b = fmin(color.b + m, 1.0f);
-        a = 1.0f;
-    }
-    else
-    {
-        r = 1.0f;
-        g = 1.0f;
-        b = 1.0f;
-        a = 1.0f;
-    }
+    // TODO use normals if they exist?
+    // mesh.mNormals[i]
 
-    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), DirectX::XMFLOAT4(r, g, b, a)});
+    // vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), color});
 }
 
 template <>
-void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureVertex> &vertices, aiMaterial *mat)
+void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureVertex> &vertices,
+                                      TextureCoordinateIndices coordinate_indices)
 {
     aiVector3D &v = mesh.mVertices[i];
 
-    aiVector3D &tc = mesh.mTextureCoords[diffuse_tc_index][i];
+    TextureCoordinates tc = {};
 
-    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), DirectX::XMFLOAT2(tc.x, tc.y)});
-}
+    if (material.diffuse_texture)
+    {
+        aiVector3D &dtc = mesh.mTextureCoords[coordinate_indices.diffuse_coordinates_index][i];
+        tc.diffuse.x = dtc.x;
+        tc.diffuse.y = dtc.y;
+    }
+    if (material.normal_texture)
+    {
+        aiVector3D &ntc = mesh.mTextureCoords[coordinate_indices.normal_coordinates_index][i];
+        tc.normal.x = ntc.x;
+        tc.normal.y = ntc.y;
+    }
 
-template <> Texture *Mesh<TextureVertex>::get_texture()
-{
-    return &textures->at(texture_index);
+    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), tc});
 }
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)

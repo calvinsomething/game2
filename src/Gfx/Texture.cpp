@@ -55,12 +55,21 @@ void Texture::load(const aiTexture *ai_texture)
     desc.CPUAccessFlags = 0;
     desc.MiscFlags = 0;
 
-    D3D11_SUBRESOURCE_DATA initData;
-    initData.pSysMem = ai_texture->pcData;
-    initData.SysMemPitch = ai_texture->mWidth;
-    initData.SysMemSlicePitch = 0;
+    D3D11_SUBRESOURCE_DATA init_data;
+    init_data.pSysMem = ai_texture->pcData;
+    init_data.SysMemPitch = ai_texture->mWidth;
+    init_data.SysMemSlicePitch = 0;
 
-    HANDLE_GFX_ERR(device->CreateTexture2D(&desc, &initData, texture.GetAddressOf()));
+    HANDLE_GFX_ERR(device->CreateTexture2D(&desc, &init_data, texture.GetAddressOf()));
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
+    view_desc.Format = DXGI_FORMAT_UNKNOWN;
+    view_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+
+    view_desc.Texture2D.MipLevels = 0;
+    view_desc.Texture2D.MostDetailedMip = -1;
+
+    HANDLE_GFX_ERR(device->CreateShaderResourceView(texture.Get(), &view_desc, view.GetAddressOf()));
 }
 
 Texture::Texture(Gfx &gfx, const wchar_t *file_name) : GfxAccess(gfx)
@@ -93,7 +102,7 @@ Texture::Texture(Gfx &gfx, const aiTexture *ai_texture) : GfxAccess(gfx)
     HANDLE_GFX_ERR(device->CreateSamplerState(&sampler_desc, sampler_state.GetAddressOf()));
 }
 
-ID3D11SamplerState *Texture::get_sampler()
+ID3D11SamplerState *Texture::get_sampler_state()
 {
     return sampler_state.Get();
 }

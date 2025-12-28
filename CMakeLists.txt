@@ -35,6 +35,7 @@ set_src_list(main.cpp
 	gfx/VertexShader.cpp
 	gfx/Texture.cpp
 	models/Cube.cpp
+	models/Material.cpp
 	models/Mesh.cpp
 	input/Input.cpp
 	debug.cpp

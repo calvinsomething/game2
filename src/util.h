@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <intsafe.h>
 
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -33,6 +34,9 @@ template <typename T> using StdVector = std::vector<T, Allocator<T>>;
 // Map
 template <typename K, typename V>
 using StdUnorderedMap = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, Allocator<std::pair<K const, V>>>;
+
+// Set
+template <typename T> using StdSet = std::set<T, Allocator<T>>;
 
 template <typename T, typename A> UINT load_vector(std::vector<T, A> &dest, T *src, size_t n)
 {

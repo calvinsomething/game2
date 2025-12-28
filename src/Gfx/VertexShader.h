@@ -4,12 +4,23 @@
 
 #include <DirectXMath.h>
 
+struct ShaderBoneData
+{
+    unsigned indices[4] = {};
+    float weights[4] = {};
+    unsigned count = 0;
+};
+
+struct TextureCoordinates
+{
+    DirectX::XMFLOAT2 diffuse;
+    DirectX::XMFLOAT2 normal;
+};
+
 struct Vertex
 {
-    DirectX::XMFLOAT4 position, color;
-    unsigned bone_indices[4] = {};
-    float bone_weights[4] = {};
-    unsigned bone_count = 0;
+    DirectX::XMFLOAT4 position;
+    ShaderBoneData bone;
 };
 
 class VertexShader : public Shader
@@ -42,10 +53,8 @@ class VertexShader : public Shader
 struct TextureVertex
 {
     DirectX::XMFLOAT4 position;
-    DirectX::XMFLOAT2 texture_coordinate;
-    unsigned bone_indices[4] = {};
-    float bone_weights[4] = {};
-    unsigned bone_count = 0;
+    TextureCoordinates texture_coordinates;
+    ShaderBoneData bone;
 };
 
 class TextureVertexShader : public Shader

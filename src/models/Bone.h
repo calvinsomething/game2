@@ -43,12 +43,12 @@ class Bone
 
             T &v = vertices[j];
 
-            if (v.bone_count < 4)
+            if (v.bone.count < 4)
             {
-                v.bone_indices[v.bone_count] = index;
-                v.bone_weights[v.bone_count] = ai_bone->mWeights[i].mWeight;
+                v.bone.indices[v.bone.count] = index;
+                v.bone.weights[v.bone.count] = ai_bone->mWeights[i].mWeight;
 
-                ++v.bone_count;
+                ++v.bone.count;
             }
             else
             {

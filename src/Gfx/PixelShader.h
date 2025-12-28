@@ -2,7 +2,7 @@
 
 #include "Shader.h"
 
-#include "Texture.h"
+#include "../models/Material.h"
 
 class PixelShader : public Shader
 {
@@ -11,22 +11,16 @@ class PixelShader : public Shader
 
     void bind() override;
 
-  private:
+    virtual void set_material(const Material &material);
+
+  protected:
     Microsoft::WRL::ComPtr<ID3D11PixelShader> shader;
 };
 
-class TexturePixelShader : public Shader
+class TexturePixelShader : public PixelShader
 {
   public:
     TexturePixelShader(Gfx &gfx);
 
-    void set_texture(Texture *t);
-
-    void bind() override;
-    void bind(Texture *texture);
-
-  private:
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> shader;
-
-    Texture *texture = 0;
+    void set_material(const Material &material) override;
 };

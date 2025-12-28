@@ -7,7 +7,6 @@ struct InstanceData
 struct VSIn
 {
     float4 pos : POSITION;
-    float4 color : COLOR;
 	uint4 bone_indices : BONE_INDICES;
 	float4 bone_weights : BONE_WEIGHTS;
 	uint bone_count : BONE_COUNT;
@@ -69,7 +68,7 @@ VSOut main(VSIn input)
 	output.pos = mul(pos, input.instance.model_xform);
 	output.pos = mul(output.pos, view_proj);
 
-	output.color = input.color;
+	output.color = float4(0.0f, 0.0f, 0.0f, 1.0f);
     
     return output;
 }
