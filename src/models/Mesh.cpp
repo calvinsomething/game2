@@ -25,7 +25,7 @@ void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertic
 {
     aiVector3D &v = mesh.mVertices[i];
 
-    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y)/*, get_normal(mesh, i)*/});
+    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y), get_normal(mesh, i)});
 
     // DirectX::XMFLOAT4 color;
 
@@ -62,7 +62,7 @@ void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureV
         tc.normal.y = ntc.y;
     }
 
-    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y)/*, get_normal(mesh, i)*/, tc});
+    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y), get_normal(mesh, i), tc});
 }
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)

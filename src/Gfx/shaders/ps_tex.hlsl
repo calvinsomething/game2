@@ -1,7 +1,7 @@
 struct PSIn
 {
     float4 pos : SV_Position;
-    // float3 normal : NORMAL;
+    float3 normal : NORMAL;
     float2 diffuse_map_coordinates : TEXCOORD;
     float2 normal_map_coordinates : TEXCOORD;
 };
@@ -47,22 +47,22 @@ float4 main(PSIn input) : SV_Target
 			break;
 	}
 
-	// float3 normal;
-	// switch (materials[material_index].normal_map_index)
-	// {
-	// 	case 0:
-	// 		normal = tex_0.Sample(samp, input.normal_map_coordinates);
-	// 		break;
-	// 	case 1:
-	// 		normal = tex_1.Sample(samp, input.normal_map_coordinates);
-	// 		break;
-	// 	case 2:
-	// 		normal = tex_2.Sample(samp, input.normal_map_coordinates);
-	// 		break;
-	// 	default:
-	// 		normal = materials[material_index].color;
-	// 		break;
-	// }
+	float3 normal;
+	switch (materials[material_index].normal_map_index)
+	{
+		case 0:
+			normal = tex_0.Sample(samp, input.normal_map_coordinates);
+			break;
+		case 1:
+			normal = tex_1.Sample(samp, input.normal_map_coordinates);
+			break;
+		case 2:
+			normal = tex_2.Sample(samp, input.normal_map_coordinates);
+			break;
+		default:
+			normal = materials[material_index].color;
+			break;
+	}
 
 	return color;
 }

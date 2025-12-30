@@ -7,7 +7,7 @@ struct InstanceData
 struct VSIn
 {
     float3 pos : POSITION;
-    // float3 normal : NORMAL;
+    float3 normal : NORMAL;
     float2 diffuse_map_coordinates : TEXCOORD;
     float2 normal_map_coordinates : TEXCOORD;
 	uint4 bone_indices : BONE_INDICES;
@@ -21,7 +21,7 @@ StructuredBuffer<matrix> bones : register(t0);
 struct VSOut
 {
     float4 pos : SV_Position;
-	// float3 normal : NORMAL;
+	float3 normal : NORMAL;
     float2 diffuse_map_coordinates : TEXCOORD;
     float2 normal_map_coordinates : TEXCOORD;
 };
@@ -73,7 +73,7 @@ VSOut main(VSIn input)
 	output.pos = mul(pos, input.instance.model_xform);
 	output.pos = mul(output.pos, view_proj);
 
-	// output.normal = input.normal;
+	output.normal = input.normal;
 
 	output.diffuse_map_coordinates = input.diffuse_map_coordinates;
 	output.normal_map_coordinates = input.normal_map_coordinates;

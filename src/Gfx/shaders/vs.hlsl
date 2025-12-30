@@ -7,7 +7,7 @@ struct InstanceData
 struct VSIn
 {
     float3 pos : POSITION;
-    // float3 normal : NORMAL;
+    float3 normal : NORMAL;
     float4 color : COLOR;
 	uint4 bone_indices : BONE_INDICES;
 	float4 bone_weights : BONE_WEIGHTS;
@@ -20,7 +20,7 @@ StructuredBuffer<matrix> bones : register(t0);
 struct VSOut
 {
     float4 pos : SV_Position;
-    // float3 normal : NORMAL;
+    float3 normal : NORMAL;
     float4 color : COLOR;
 };
 
@@ -71,7 +71,7 @@ VSOut main(VSIn input)
 	output.pos = mul(pos, input.instance.model_xform);
 	output.pos = mul(output.pos, view_proj);
 
-	// output.normal = input.normal;
+	output.normal = input.normal;
 	
 	output.color = input.color;
     

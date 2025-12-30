@@ -14,7 +14,7 @@ struct ShaderBoneData
 struct Vertex
 {
     DirectX::XMFLOAT3 position;
-    // DirectX::XMFLOAT3 normal;
+    DirectX::XMFLOAT3 normal;
     DirectX::XMFLOAT4 color;
     ShaderBoneData bone;
 };
@@ -55,7 +55,7 @@ struct TextureCoordinates
 struct TextureVertex
 {
     DirectX::XMFLOAT3 position;
-    // DirectX::XMFLOAT3 normal;
+    DirectX::XMFLOAT3 normal;
     TextureCoordinates texture_coordinates;
     ShaderBoneData bone;
 };

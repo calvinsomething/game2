@@ -1,7 +1,7 @@
 struct PSIn
 {
     float4 pos : SV_Position;
-    // float3 normal : NORMAL;
+    float3 normal : NORMAL;
     float4 color : COLOR;
 };
 
