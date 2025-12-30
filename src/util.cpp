@@ -24,6 +24,14 @@ DirectX::XMFLOAT3 operator*(DirectX::XMFLOAT3 v, float f)
     return DirectX::XMFLOAT3{v.x * f, v.y * f, v.z * f};
 }
 
+DirectX::XMFLOAT3 normalize(DirectX::XMFLOAT3 f3)
+{
+    DirectX::XMVECTOR vec = DirectX::XMLoadFloat3(&f3);
+    vec = DirectX::XMVector3Normalize(vec);
+    DirectX::XMStoreFloat3(&f3, vec);
+    return f3;
+}
+
 std::string load_file(const std::string &file_name)
 {
     std::ifstream fs(file_name, std::ios::binary | std::ios::ate);
@@ -71,4 +79,16 @@ std::string to_mb(const std::wstring &ws)
     }
 
     return s;
+}
+
+std::string directory_from_file_name(const std::string &file_name)
+{
+    size_t dir_end = file_name.find_last_of("/\\");
+
+    if (dir_end == std::string::npos)
+    {
+        ERROR_MSG("invalid file path: " << file_name);
+    }
+
+    return file_name.substr(0, dir_end + 1);
 }

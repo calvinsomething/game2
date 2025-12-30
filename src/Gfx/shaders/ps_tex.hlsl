@@ -24,6 +24,7 @@ StructuredBuffer<Material> materials : register(t0);
 Texture2D tex_0 : register (t1);
 Texture2D tex_1 : register (t2);
 Texture2D tex_2 : register (t3);
+Texture2D tex_3 : register (t4);
 
 SamplerState samp : register (s0);
 
@@ -42,6 +43,9 @@ float4 main(PSIn input) : SV_Target
 		case 2:
 			color = tex_2.Sample(samp, input.diffuse_map_coordinates);
 			break;
+		case 3:
+			color = tex_3.Sample(samp, input.diffuse_map_coordinates);
+			break;
 		default:
 			color = materials[material_index].color;
 			break;
@@ -58,6 +62,9 @@ float4 main(PSIn input) : SV_Target
 			break;
 		case 2:
 			normal = tex_2.Sample(samp, input.normal_map_coordinates);
+			break;
+		case 3:
+			normal = tex_3.Sample(samp, input.normal_map_coordinates);
 			break;
 		default:
 			normal = materials[material_index].color;

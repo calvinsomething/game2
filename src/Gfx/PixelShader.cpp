@@ -1,7 +1,6 @@
 #include "PixelShader.h"
 
 #include "../Error.h"
-#include <iostream>
 
 PixelShader::PixelShader(Gfx &gfx) : Shader(gfx)
 {

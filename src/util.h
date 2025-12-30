@@ -9,8 +9,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "memory_allocator/Adapter.h"
-#include "memory_allocator/BlockAllocator.h"
+#include <memory_allocator/Adapter.h>
+#include <memory_allocator/BlockAllocator.h>
+
+#include "Error.h"
 
 // DirectX Math
 DirectX::XMFLOAT3 operator+(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b);
@@ -20,6 +22,8 @@ DirectX::XMFLOAT3 operator-(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b);
 DirectX::XMFLOAT3 operator-(DirectX::XMFLOAT3 a);
 
 DirectX::XMFLOAT3 operator*(DirectX::XMFLOAT3 v, float f);
+
+DirectX::XMFLOAT3 normalize(DirectX::XMFLOAT3 f3);
 
 // Files
 std::string load_file(const std::string &file_name);
@@ -75,3 +79,5 @@ template <typename... Args> std::string build_string(Args... args)
 
     return ss.str();
 }
+
+std::string directory_from_file_name(const std::string &file_name);

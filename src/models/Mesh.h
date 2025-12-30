@@ -2,7 +2,6 @@
 
 #include <DirectXMath.h>
 #include <assimp/mesh.h>
-#include <iostream>
 #include <wrl.h>
 
 #include <stdexcept>
@@ -48,14 +47,26 @@ template <typename T> class Mesh : public MeshBase
   public:
     Mesh(Gfx &gfx, aiMesh &mesh, StdVector<T> &vertices, StdVector<uint32_t> &indices, size_t material_index,
          TextureCoordinateIndices coordinate_indices)
-        : vertices(vertices), indices(indices), buffer_data{(uint32_t)material_index},
-          constant_buffer(gfx, 0, mesh_bind_cb, sizeof(MeshBufferData))
+        : buffer_data{(uint32_t)material_index}, constant_buffer(gfx, 0, mesh_bind_cb, sizeof(MeshBufferData))
     {
         load_vertices(mesh, vertices, coordinate_indices);
 
         load_indices(mesh, indices);
 
         name = mesh.mName.C_Str();
+
+        constant_buffer.write(&buffer_data, sizeof(buffer_data));
+    }
+
+    Mesh(Gfx &gfx, size_t start_vertex, size_t vertex_count, size_t start_index, size_t index_count,
+         size_t material_index)
+        : buffer_data{(uint32_t)material_index}, constant_buffer(gfx, 0, mesh_bind_cb, sizeof(MeshBufferData))
+    {
+        Mesh::start_vertex = start_vertex;
+        Mesh::vertex_count = vertex_count;
+
+        Mesh::start_index = start_index;
+        Mesh::index_count = index_count;
 
         constant_buffer.write(&buffer_data, sizeof(buffer_data));
     }
@@ -165,18 +176,10 @@ template <typename T> class Mesh : public MeshBase
         }
     }
 
-    void log()
-    {
-        std::cout << name << " " << buffer_data.material_index << "\n";
-    }
-
     StdVector<DirectX::XMMATRIX> bone_matrices;
     ConstantBuffer constant_buffer;
 
   private:
-    StdVector<T> &vertices;
-    StdVector<uint32_t> &indices;
-
     MeshBufferData buffer_data = {};
 
     // helpers

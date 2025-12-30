@@ -9,7 +9,6 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "../Error.h"
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
 #include "Material.h"
@@ -60,9 +59,6 @@ template <typename T> class Model
                 }
             }
         }
-
-        start_vertex = vertices.size();
-        start_index = indices.size();
 
         std::string directory = directory_from_file_name(file_name);
         StdUnorderedMap<std::string, size_t> texture_index_by_file_name;
@@ -125,24 +121,14 @@ template <typename T> class Model
 
     UINT get_index_count()
     {
-        if (!meshes.empty())
+        UINT count = 0;
+
+        for (auto &m : meshes)
         {
-            UINT count = 0;
-
-            for (auto &m : meshes)
-            {
-                count += m.get_index_count();
-            }
-
-            return count;
+            count += m.get_index_count();
         }
 
-        return UINT(index_count);
-    }
-
-    UINT get_vertex_count()
-    {
-        return UINT(vertex_count);
+        return count;
     }
 
     void set_position(float x, float y, float z)
@@ -173,8 +159,6 @@ template <typename T> class Model
     }
 
   protected:
-    size_t start_vertex, vertex_count, start_index, index_count;
-
     // TODO rework this... maybe quaternion?
     DirectX::XMMATRIX transform;
 
@@ -182,28 +166,16 @@ template <typename T> class Model
 
     VertexShader::BufferData buffer_data;
 
+    StdVector<Mesh<T>> meshes;
+
   private:
     Assimp::Importer importer;
 
     const aiScene *scene = 0;
     const aiTexture *ai_texture = 0;
 
-    StdVector<Mesh<T>> meshes;
-
     std::chrono::high_resolution_clock clock;
     std::chrono::time_point<decltype(clock)> animation_start_time = {};
 
     StdUnorderedMap<const aiNode *, const aiNodeAnim *> node_animations;
-
-    std::string directory_from_file_name(const std::string &file_name)
-    {
-        size_t dir_end = file_name.find_last_of("/\\");
-
-        if (dir_end == std::string::npos)
-        {
-            ERROR_MSG("invalid file path: " << file_name);
-        }
-
-        return file_name.substr(0, dir_end + 1);
-    }
 };
