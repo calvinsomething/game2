@@ -27,7 +27,8 @@ template <typename T> class Model
     {
     }
 
-    Model(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices)
+    Model(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices,
+          StdVector<Material> &materials, StdVector<Texture> &textures)
         : transform(DirectX::XMMatrixIdentity())
     {
         scene = importer.ReadFile(file_name, aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_Triangulate |
@@ -65,12 +66,10 @@ template <typename T> class Model
 
         std::string directory = directory_from_file_name(file_name);
         StdUnorderedMap<std::string, size_t> texture_index_by_file_name;
-        textures.reserve(20);
-
-        StdVector<Material> materials;
-        materials.reserve(scene->mNumMaterials);
 
         StdVector<TextureCoordinateIndices> coordinate_indices(scene->mNumMaterials, TextureCoordinateIndices{});
+
+        size_t material_index_start = materials.size();
 
         for (size_t i = 0; i < scene->mNumMaterials; ++i)
         {
@@ -83,7 +82,7 @@ template <typename T> class Model
         {
             aiMesh &mesh = *scene->mMeshes[i];
 
-            meshes.emplace_back(mesh, vertices, indices, materials[mesh.mMaterialIndex],
+            meshes.emplace_back(gfx, mesh, vertices, indices, material_index_start + mesh.mMaterialIndex,
                                 coordinate_indices[mesh.mMaterialIndex]);
 
             Mesh<T> &m = meshes.back();
@@ -182,8 +181,6 @@ template <typename T> class Model
     DirectX::XMFLOAT3 position;
 
     VertexShader::BufferData buffer_data;
-
-    StdVector<Texture> textures;
 
   private:
     Assimp::Importer importer;

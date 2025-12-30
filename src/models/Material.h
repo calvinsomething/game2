@@ -9,15 +9,15 @@
 struct Material
 {
     DirectX::XMFLOAT4 color;
-
-    Texture *diffuse_texture;
-    Texture *normal_texture;
+    int32_t diffuse_texture_index = -1;
+    int32_t normal_texture_index = -1;
+    float roughness = 1.0f;
 };
 
 struct TextureCoordinateIndices
 {
-    size_t diffuse_coordinates_index;
-    size_t normal_coordinates_index;
+    int diffuse_coordinates_index = -1;
+    int normal_coordinates_index = -1;
 };
 
 Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,

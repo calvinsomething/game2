@@ -5,11 +5,13 @@
 #include "../Error.h"
 #include "../util.h"
 #include "Gfx.h"
+#include <iostream>
 
 class StructuredBuffer : public Buffer
 {
   public:
-    template <typename T> StructuredBuffer(Gfx &gfx, StdVector<T> &elements) : Buffer(gfx)
+    template <typename T>
+    StructuredBuffer(Gfx &gfx, size_t slot_index, StdVector<T> &elements) : Buffer(gfx), slot_index(slot_index)
     {
         stride = sizeof(T);
 
@@ -26,7 +28,8 @@ class StructuredBuffer : public Buffer
         HANDLE_GFX_ERR(device->CreateShaderResourceView(buffer.Get(), &desc, srv.GetAddressOf()));
     }
 
-    StructuredBuffer(Gfx &gfx, size_t element_count, size_t element_size) : Buffer(gfx)
+    StructuredBuffer(Gfx &gfx, size_t slot_index, size_t element_count, size_t element_size)
+        : Buffer(gfx), slot_index(slot_index)
     {
         stride = element_size;
 
@@ -40,16 +43,23 @@ class StructuredBuffer : public Buffer
         desc.Buffer.FirstElement = 0;
         desc.Buffer.NumElements = element_count;
 
+        std::cout << element_count << " x " << element_size << "\n";
+
         HANDLE_GFX_ERR(device->CreateShaderResourceView(buffer.Get(), &desc, srv.GetAddressOf()));
     }
 
     void bind() override
     {
-        HANDLE_GFX_INFO(ctx->VSSetShaderResources(0, 1, srv.GetAddressOf()));
+        HANDLE_GFX_INFO(ctx->VSSetShaderResources(slot_index, 1, srv.GetAddressOf()));
+    }
+
+    void bind_ps()
+    {
+        HANDLE_GFX_INFO(ctx->PSSetShaderResources(slot_index, 1, srv.GetAddressOf()));
     }
 
   private:
-    size_t stride;
+    size_t stride = 0, slot_index = 0;
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
 };

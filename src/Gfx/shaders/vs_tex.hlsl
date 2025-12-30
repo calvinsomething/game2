@@ -6,9 +6,10 @@ struct InstanceData
 
 struct VSIn
 {
-    float4 pos : POSITION;
-    float2 diffuse_map_coord : TEXCOORD;
-    float2 normal_map_coord : TEXCOORD;
+    float3 pos : POSITION;
+    // float3 normal : NORMAL;
+    float2 diffuse_map_coordinates : TEXCOORD;
+    float2 normal_map_coordinates : TEXCOORD;
 	uint4 bone_indices : BONE_INDICES;
 	float4 bone_weights : BONE_WEIGHTS;
 	uint bone_count : BONE_COUNT;
@@ -20,8 +21,9 @@ StructuredBuffer<matrix> bones : register(t0);
 struct VSOut
 {
     float4 pos : SV_Position;
-    float2 diffuse_map_coord : TEXCOORD;
-    float2 normal_map_coord : TEXCOORD;
+	// float3 normal : NORMAL;
+    float2 diffuse_map_coordinates : TEXCOORD;
+    float2 normal_map_coordinates : TEXCOORD;
 };
 
 cbuffer GlobalBuffer : register(b0)
@@ -37,7 +39,7 @@ float4 animated_pos(VSIn input)
 
 	for (uint i = 0; i < input.bone_count; ++i)
 	{
-		float4 animated_vertex = mul(input.pos, bones[input.bone_indices[i] + input.instance.bone_start]);
+		float4 animated_vertex = mul(float4(input.pos, 1.0f), bones[input.bone_indices[i] + input.instance.bone_start]);
 		pos[0] += animated_vertex[0] * input.bone_weights[i];
 		pos[1] += animated_vertex[1] * input.bone_weights[i];
 		pos[2] += animated_vertex[2] * input.bone_weights[i];
@@ -57,7 +59,7 @@ VSOut main(VSIn input)
 {
     VSOut output;
 
-	float4 pos = input.pos;
+	float4 pos;
 
 	if (input.bone_count)
 	{
@@ -65,14 +67,16 @@ VSOut main(VSIn input)
 	}
 	else
 	{
-		pos = input.pos;
+		pos = float4(input.pos, 1.0f);
 	}
 
 	output.pos = mul(pos, input.instance.model_xform);
 	output.pos = mul(output.pos, view_proj);
 
-	output.diffuse_map_coord = input.diffuse_map_coord;
-	output.normal_map_coord = input.normal_map_coord;
+	// output.normal = input.normal;
+
+	output.diffuse_map_coordinates = input.diffuse_map_coordinates;
+	output.normal_map_coordinates = input.normal_map_coordinates;
     
     return output;
 }

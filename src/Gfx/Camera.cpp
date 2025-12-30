@@ -2,14 +2,14 @@
 
 using namespace DirectX;
 
-void bind_proc(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer)
+void bind_cb(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
 {
-    ctx->VSSetConstantBuffers(0, 1, &buffer);
+    ctx->VSSetConstantBuffers(slot_index, 1, &buffer);
 }
 
 Camera::Camera(Gfx &gfx)
     : azimuth(), distance(20.0f), eye_pos{0, 0, -distance}, focus_pos{0.0f, 0.0f, 0.0f}, up_dir{0.0f, 1.0f, 0.0f},
-      constant_buffer(gfx, &bind_proc, sizeof(Camera::BufferData)),
+      constant_buffer(gfx, ConstantBuffer::Slot::GLOBAL_BUFFER, &bind_cb, sizeof(Camera::BufferData)),
       buffer_data{XMMatrixMultiplyTranspose(XMMatrixLookAtLH(eye_pos, focus_pos, up_dir),
                                             XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f))}
 {

@@ -11,15 +11,11 @@ struct ShaderBoneData
     unsigned count = 0;
 };
 
-struct TextureCoordinates
-{
-    DirectX::XMFLOAT2 diffuse;
-    DirectX::XMFLOAT2 normal;
-};
-
 struct Vertex
 {
-    DirectX::XMFLOAT4 position;
+    DirectX::XMFLOAT3 position;
+    // DirectX::XMFLOAT3 normal;
+    DirectX::XMFLOAT4 color;
     ShaderBoneData bone;
 };
 
@@ -50,9 +46,16 @@ class VertexShader : public Shader
 };
 
 // TextureVertexShader
+struct TextureCoordinates
+{
+    DirectX::XMFLOAT2 diffuse;
+    DirectX::XMFLOAT2 normal;
+};
+
 struct TextureVertex
 {
-    DirectX::XMFLOAT4 position;
+    DirectX::XMFLOAT3 position;
+    // DirectX::XMFLOAT3 normal;
     TextureCoordinates texture_coordinates;
     ShaderBoneData bone;
 };

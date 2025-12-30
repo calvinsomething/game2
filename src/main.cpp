@@ -16,7 +16,6 @@
 #include "gfx/VertexShader.h"
 #include "input/Input.h"
 #include "models/Cube.h"
-#include "models/Material.h"
 #include "util.h"
 
 namespace Global
@@ -35,7 +34,7 @@ struct InstanceData
     uint32_t bone_start;
 };
 
-float bg_color[] = {0.5f, 0.2f, 0.2f, 1.0f};
+float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -57,17 +56,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         }
 #endif
 
-        StdVector<TextureVertex> vertices;
-        vertices.reserve(4096);
+        StdVector<TextureVertex> *vertices = new StdVector<TextureVertex>;
+        vertices->reserve(4096);
 
-        StdVector<Vertex> vertices2;
-        vertices.reserve(4096);
+        StdVector<Vertex> *vertices2 = new StdVector<Vertex>;
+        vertices2->reserve(4096);
 
-        StdVector<uint32_t> indices;
-        indices.reserve(4096);
+        StdVector<uint32_t> *indices = new StdVector<uint32_t>;
+        indices->reserve(4096);
 
-        StdVector<uint32_t> indices2;
-        indices.reserve(4096);
+        StdVector<uint32_t> *indices2 = new StdVector<uint32_t>;
+        indices2->reserve(4096);
+
+        StdVector<Material> *materials = new StdVector<Material>;
+        materials->reserve(64);
+
+        StdVector<Texture> textures;
+        textures.reserve(64);
 
         Input input;
         input.register_devices();
@@ -78,8 +83,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         // Cube cube(gfx, L"assets/textures/minecraft_cube.dds", vertices, indices);
 
-        Model spider(gfx, "assets/models/spider/spider_clean.fbx", vertices, indices);
-        Model ninja(gfx, "assets/models/ninja.fbx", vertices2, indices2);
+        Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures);
+        Model ninja(gfx, "assets/models/ninja.fbx", *vertices2, *indices2, *materials, textures);
 
         // cube.set_position(-7.0f, 0.0f, 5.0f);
         spider.set_position(7.0f, 0.0f, 5.0f);
@@ -108,16 +113,37 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             bone_matrices_count += m.bone_matrices.size();
         }
 
-        StructuredBuffer structured_buffer(gfx, bone_matrices_count, sizeof(DirectX::XMMATRIX));
+        StructuredBuffer material_buffer(gfx, 0, materials->size(), sizeof(Material));
+        material_buffer.bind_ps();
+        material_buffer.update(materials->data(), materials->size() * sizeof(Material), 0);
 
-        VertexBuffer vb(gfx, vertices);
-        IndexBuffer ib(gfx, indices);
-        VertexBuffer vb2(gfx, vertices2);
-        IndexBuffer ib2(gfx, indices2);
+        StructuredBuffer bone_data_buffer(gfx, 0, bone_matrices_count, sizeof(DirectX::XMMATRIX));
+
+        VertexBuffer vb(gfx, *vertices);
+        IndexBuffer ib(gfx, *indices);
+        VertexBuffer vb2(gfx, *vertices2);
+        IndexBuffer ib2(gfx, *indices2);
         TextureVertexShader vs(gfx);
         TexturePixelShader ps(gfx);
         VertexShader vs2(gfx);
         PixelShader ps2(gfx);
+
+        // deallocate
+        delete vertices;
+        vertices = 0;
+
+        delete vertices2;
+        vertices2 = 0;
+
+        delete indices;
+        indices = 0;
+
+        delete indices2;
+        indices2 = 0;
+
+        delete materials;
+        materials = 0;
+        //
 
         Buffer *v_buffers[] = {&vb, &instance_buffer};
         VertexBuffers vbs(gfx, v_buffers);
@@ -184,23 +210,24 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             // ps.bind(&cube.get_textures()[0]);
             // vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
-            structured_buffer.bind();
+            bone_data_buffer.bind();
 
             size_t animation_data_offset = 0;
             for (Mesh<TextureVertex> &m : spider.get_meshes())
             {
                 size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                structured_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
                 animation_data_offset += animation_data_size;
             }
             for (Mesh<Vertex> &m : ninja.get_meshes())
             {
                 size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                structured_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
                 animation_data_offset += animation_data_size;
             }
 
             // spider
+            ps.set_textures(textures);
             ps.bind();
 
             // UINT prev_index = cube.get_index_count(), prev_vertex = cube.get_vertex_count();
@@ -208,9 +235,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             for (Mesh<TextureVertex> &m : spider.get_meshes())
             {
-                ps.set_material(m.get_material());
-
                 UINT n = m.get_index_count();
+
+                m.constant_buffer.bind();
 
                 vs.draw_indexed_instanced(prev_index, n, 0, 1, prev_vertex);
 
@@ -229,6 +256,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             for (Mesh<Vertex> &m : ninja.get_meshes())
             {
                 UINT n = m.get_index_count();
+
+                m.constant_buffer.bind();
 
                 vs2.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
 

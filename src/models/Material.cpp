@@ -56,6 +56,7 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
             if (p_index != texture_index_by_file_name.end())
             {
                 texture_index = p_index->second;
+                std::cout << "already " << texture_file_name_string << "\n";
             }
             else
             {
@@ -77,9 +78,9 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
                             clean_texture_file_name = clean_texture_file_name.substr(0, i);
                         }
                     }
-                    std::cout << clean_texture_file_name << "\n";
 
                     std::string texture_path(directory + clean_texture_file_name.c_str() + ".dds");
+                    std::cout << texture_path << "\n";
                     for (char &c : texture_path)
                     {
                         if (c == '\\')
@@ -101,12 +102,12 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
             switch (texture_type)
             {
             case aiTextureType_DIFFUSE:
-                coordinate_indices.diffuse_coordinates_index = (size_t)tc_index;
-                material.diffuse_texture = &textures[texture_index];
+                coordinate_indices.diffuse_coordinates_index = tc_index;
+                material.diffuse_texture_index = texture_index;
                 break;
             case aiTextureType_NORMALS:
-                coordinate_indices.normal_coordinates_index = (size_t)tc_index;
-                material.normal_texture = &textures[texture_index];
+                coordinate_indices.normal_coordinates_index = tc_index;
+                material.normal_texture_index = texture_index;
                 break;
             default:
                 break;
@@ -135,6 +136,8 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
     }
 
     material.color = colors[0];
+
+    ai_material.Get(AI_MATKEY_ROUGHNESS_FACTOR, material.roughness);
 
     return material;
 }

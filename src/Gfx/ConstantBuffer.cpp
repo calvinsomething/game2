@@ -2,9 +2,9 @@
 
 #include "../Error.h"
 
-ConstantBuffer::ConstantBuffer(Gfx &gfx, BindProc bind_proc, UINT byte_width)
+ConstantBuffer::ConstantBuffer(Gfx &gfx, size_t slot_index, ConstantBufferBindProc bind_proc, UINT byte_width)
     : Buffer(gfx, byte_width, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE),
-      bind_proc(bind_proc)
+      slot_index(slot_index), bind_proc(bind_proc)
 {
 }
 
@@ -12,7 +12,7 @@ void ConstantBuffer::bind()
 {
     if (bind_proc)
     {
-        bind_proc(ctx, buffer.Get());
+        bind_proc(ctx, buffer.Get(), slot_index);
     }
 }
 

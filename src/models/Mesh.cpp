@@ -1,5 +1,21 @@
 #include "Mesh.h"
 
+// helpers
+DirectX::XMFLOAT3 get_normal(aiMesh &mesh, size_t i)
+{
+    DirectX::XMFLOAT3 normal;
+
+    if (mesh.mNormals)
+    {
+        aiVector3D n = mesh.mNormals[i];
+        normal.x = n.x;
+        normal.y = n.y;
+        normal.z = n.z;
+    }
+
+    return normal;
+}
+
 template class Mesh<Vertex>;
 template class Mesh<TextureVertex>;
 
@@ -8,7 +24,8 @@ void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertic
                                TextureCoordinateIndices coordinate_indices)
 {
     aiVector3D &v = mesh.mVertices[i];
-    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f)});
+
+    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y)/*, get_normal(mesh, i)*/});
 
     // DirectX::XMFLOAT4 color;
 
@@ -21,11 +38,6 @@ void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertic
     // {
     //     color = {1.0f, 1.0f, 1.0f, 1.0f};
     // }
-
-    // TODO use normals if they exist?
-    // mesh.mNormals[i]
-
-    // vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), color});
 }
 
 template <>
@@ -36,20 +48,21 @@ void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureV
 
     TextureCoordinates tc = {};
 
-    if (material.diffuse_texture)
+    if (coordinate_indices.diffuse_coordinates_index != -1)
     {
         aiVector3D &dtc = mesh.mTextureCoords[coordinate_indices.diffuse_coordinates_index][i];
         tc.diffuse.x = dtc.x;
         tc.diffuse.y = dtc.y;
     }
-    if (material.normal_texture)
+
+    if (coordinate_indices.normal_coordinates_index != -1)
     {
         aiVector3D &ntc = mesh.mTextureCoords[coordinate_indices.normal_coordinates_index][i];
         tc.normal.x = ntc.x;
         tc.normal.y = ntc.y;
     }
 
-    vertices.push_back({DirectX::XMFLOAT4(v.x, v.z, v.y, 1.0f), tc});
+    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y)/*, get_normal(mesh, i)*/, tc});
 }
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)

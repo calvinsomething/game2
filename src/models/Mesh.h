@@ -2,10 +2,12 @@
 
 #include <DirectXMath.h>
 #include <assimp/mesh.h>
+#include <iostream>
 #include <wrl.h>
 
 #include <stdexcept>
 
+#include "../gfx/ConstantBuffer.h"
 #include "../gfx/VertexShader.h"
 #include "Bone.h"
 #include "Material.h"
@@ -31,18 +33,31 @@ class MeshBase
     size_t start_vertex, vertex_count, start_index, index_count;
 };
 
+inline void mesh_bind_cb(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
+{
+    ctx->PSSetConstantBuffers(slot_index, 1, &buffer);
+}
+
+struct alignas(16) MeshBufferData
+{
+    uint32_t material_index;
+};
+
 template <typename T> class Mesh : public MeshBase
 {
   public:
-    Mesh(aiMesh &mesh, StdVector<T> &vertices, StdVector<uint32_t> &indices, Material material,
+    Mesh(Gfx &gfx, aiMesh &mesh, StdVector<T> &vertices, StdVector<uint32_t> &indices, size_t material_index,
          TextureCoordinateIndices coordinate_indices)
-        : vertices(vertices), indices(indices), material(material)
+        : vertices(vertices), indices(indices), buffer_data{(uint32_t)material_index},
+          constant_buffer(gfx, 0, mesh_bind_cb, sizeof(MeshBufferData))
     {
         load_vertices(mesh, vertices, coordinate_indices);
 
         load_indices(mesh, indices);
 
         name = mesh.mName.C_Str();
+
+        constant_buffer.write(&buffer_data, sizeof(buffer_data));
     }
 
     void animate(const StdUnorderedMap<const aiNode *, const aiNodeAnim *> &node_animations, double time_in_ticks)
@@ -150,18 +165,19 @@ template <typename T> class Mesh : public MeshBase
         }
     }
 
-    StdVector<DirectX::XMMATRIX> bone_matrices;
-
-    Material get_material()
+    void log()
     {
-        return material;
+        std::cout << name << " " << buffer_data.material_index << "\n";
     }
+
+    StdVector<DirectX::XMMATRIX> bone_matrices;
+    ConstantBuffer constant_buffer;
 
   private:
     StdVector<T> &vertices;
     StdVector<uint32_t> &indices;
 
-    Material material;
+    MeshBufferData buffer_data = {};
 
     // helpers
     void load_vertices(aiMesh &mesh, StdVector<T> &vertices, TextureCoordinateIndices coordinate_indices)
