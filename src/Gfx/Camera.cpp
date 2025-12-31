@@ -2,17 +2,14 @@
 
 using namespace DirectX;
 
-void bind_cb(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
-{
-    ctx->VSSetConstantBuffers(slot_index, 1, &buffer);
-}
-
 Camera::Camera(Gfx &gfx)
-    : azimuth(), distance(20.0f), eye_pos{0, 0, -distance}, focus_pos{0.0f, 0.0f, 0.0f}, up_dir{0.0f, 1.0f, 0.0f},
-      constant_buffer(gfx, ConstantBuffer::Slot::GLOBAL_BUFFER, &bind_cb, sizeof(Camera::BufferData)),
-      buffer_data{XMMatrixMultiplyTranspose(XMMatrixLookAtLH(eye_pos, focus_pos, up_dir),
-                                            XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f))}
+    : azimuth(), distance(20.0f), focus_pos{0.0f, 0.0f, 0.0f}, up_dir{0.0f, 1.0f, 0.0f},
+      constant_buffer(gfx, ConstantBuffer::Slot::CAMERA_BUFFER, &ConstantBuffer::bind_vs, sizeof(Camera::BufferData))
 {
+    buffer_data.camera_position = {0, 0, -distance};
+    buffer_data.view_proj_xform =
+        XMMatrixMultiplyTranspose(XMMatrixLookAtLH(buffer_data.camera_position, focus_pos, up_dir),
+                                  XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
 }
 
 void Camera::increase_elevation(float diff)
@@ -40,10 +37,11 @@ void Camera::update(DirectX::XMFLOAT3 position)
     XMVECTOR offset =
         XMVector3Transform(XMVECTOR{0, 0, -distance}, XMMatrixRotationRollPitchYaw(-elevation, azimuth, 0.0f));
 
-    eye_pos = XMVectorAdd(focus_pos, offset);
+    buffer_data.camera_position = XMVectorAdd(focus_pos, offset);
 
-    buffer_data.view_proj_xform = XMMatrixMultiplyTranspose(XMMatrixLookAtLH(eye_pos, focus_pos, up_dir),
-                                                            XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
+    buffer_data.view_proj_xform =
+        XMMatrixMultiplyTranspose(XMMatrixLookAtLH(buffer_data.camera_position, focus_pos, up_dir),
+                                  XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
 
     constant_buffer.write(&buffer_data, sizeof(buffer_data));
 

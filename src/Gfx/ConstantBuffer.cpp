@@ -31,3 +31,19 @@ void ConstantBuffer::resize(UINT byte_width)
 {
     init(nullptr, byte_width, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 }
+
+void ConstantBuffer::bind_vs(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
+{
+    ctx->VSSetConstantBuffers(slot_index, 1, &buffer);
+}
+
+void ConstantBuffer::bind_ps(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
+{
+    ctx->PSSetConstantBuffers(slot_index, 1, &buffer);
+}
+
+void ConstantBuffer::bind_vs_and_ps(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
+{
+    ctx->VSSetConstantBuffers(slot_index, 1, &buffer);
+    ctx->PSSetConstantBuffers(slot_index, 1, &buffer);
+}

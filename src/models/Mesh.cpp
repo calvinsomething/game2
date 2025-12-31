@@ -9,8 +9,8 @@ DirectX::XMFLOAT3 get_normal(aiMesh &mesh, size_t i)
     {
         aiVector3D n = mesh.mNormals[i];
         normal.x = n.x;
-        normal.y = n.y;
-        normal.z = n.z;
+        normal.y = n.z;
+        normal.z = n.y;
     }
 
     return normal;

@@ -28,7 +28,8 @@ inline bool (*color_loaders[COLOR_LOADERS_COUNT])(aiMaterial &, aiColor3D &) = {
 
 Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
                        TextureCoordinateIndices &coordinate_indices, StdVector<Texture> &textures,
-                       StdUnorderedMap<std::string, size_t> &texture_index_by_file_name, const std::string &directory)
+                       StdUnorderedMap<std::string, size_t> &texture_index_by_file_name, const std::string &directory,
+                       int &two_sided)
 {
     Material material = {};
 
@@ -138,6 +139,11 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
     material.color = colors[0];
 
     ai_material.Get(AI_MATKEY_ROUGHNESS_FACTOR, material.roughness);
+
+    if (aiGetMaterialInteger(&ai_material, AI_MATKEY_TWOSIDED, &two_sided) != AI_SUCCESS)
+    {
+        two_sided = false;
+    }
 
     return material;
 }

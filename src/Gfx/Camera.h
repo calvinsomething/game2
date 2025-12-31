@@ -7,6 +7,7 @@ class Camera
   public:
     struct BufferData
     {
+        DirectX::XMVECTOR camera_position;
         DirectX::XMMATRIX view_proj_xform;
     };
 
@@ -21,7 +22,6 @@ class Camera
   private:
     float elevation, azimuth, distance, max_distance = 20.0f, min_distance = 5.0f;
 
-    DirectX::XMVECTOR eye_pos;
     DirectX::XMVECTOR focus_pos;
     DirectX::XMVECTOR up_dir;
 

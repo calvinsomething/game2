@@ -64,13 +64,14 @@ template <typename T> class Model
         StdUnorderedMap<std::string, size_t> texture_index_by_file_name;
 
         StdVector<TextureCoordinateIndices> coordinate_indices(scene->mNumMaterials, TextureCoordinateIndices{});
+        StdVector<int> two_sided(scene->mNumMaterials, 0);
 
         size_t material_index_start = materials.size();
 
         for (size_t i = 0; i < scene->mNumMaterials; ++i)
         {
             materials.push_back(load_material(gfx, *scene, *scene->mMaterials[i], coordinate_indices[i], textures,
-                                              texture_index_by_file_name, directory));
+                                              texture_index_by_file_name, directory, two_sided[i]));
         }
 
         meshes.reserve(scene->mNumMeshes);
@@ -79,7 +80,7 @@ template <typename T> class Model
             aiMesh &mesh = *scene->mMeshes[i];
 
             meshes.emplace_back(gfx, mesh, vertices, indices, material_index_start + mesh.mMaterialIndex,
-                                coordinate_indices[mesh.mMaterialIndex]);
+                                coordinate_indices[mesh.mMaterialIndex], !!two_sided[mesh.mMaterialIndex]);
 
             Mesh<T> &m = meshes.back();
 

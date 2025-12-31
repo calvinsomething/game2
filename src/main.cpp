@@ -4,8 +4,8 @@
 #include <exception>
 
 #include "Error.h"
+#include "Global.h"
 #include "Window.h"
-#include "game/Clock.h"
 #include "gfx/Camera.h"
 #include "gfx/Gfx.h"
 #include "gfx/IndexBuffer.h"
@@ -17,16 +17,6 @@
 #include "input/Input.h"
 #include "models/Cube.h"
 #include "util.h"
-
-namespace Global
-{
-bool running = true;
-DirectX::XMFLOAT3 position{};
-DirectX::XMFLOAT3 twelve_oclock{0.0f, 0.0f, 1.0f};
-DirectX::XMFLOAT3 nine_oclock{-1.0f, 0.0f, 0.0f};
-
-Clock clock;
-}; // namespace Global
 
 struct InstanceData
 {
@@ -81,6 +71,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Camera camera(gfx);
 
+        ConstantBuffer lighting_buffer(gfx, ConstantBuffer::Slot::LIGHTING_BUFFER, &ConstantBuffer::bind_vs_and_ps,
+                                       Global::lighting_data);
+        // lighting_buffer.write(&Global::lighting_data, sizeof(Global::lighting_data));
+        lighting_buffer.bind();
+
         Cube cube(gfx, L"assets/textures/minecraft_cube.dds", *vertices, *indices, *materials, textures);
 
         Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures);
@@ -99,7 +94,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         cube.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) *
                     DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
         spider.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixRotationY(DirectX::XM_PI) *
-                      DirectX::XMMatrixTranslation(0.0f, -3.0f, 0.0f));
+                      DirectX::XMMatrixTranslation(0.0f, -2.0f, 0.0f));
         ninja.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixTranslation(0.0f, -1.5f, 0.0f));
 
         InstanceData instance_data[] = {{DirectX::XMMatrixTranspose(cube.get_transform()), 0},

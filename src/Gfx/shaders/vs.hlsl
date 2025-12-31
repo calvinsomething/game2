@@ -22,11 +22,18 @@ struct VSOut
     float4 pos : SV_Position;
     float3 normal : NORMAL;
     float4 color : COLOR;
+    float3 light_direction : NORMAL1;
 };
 
-cbuffer GlobalBuffer : register(b0)
+cbuffer CameraBuffer : register(b0)
 {
+	vector camera_position;
 	matrix view_proj;
+};
+
+cbuffer LightingBuffer : register(b1)
+{
+	float3 light_position;
 };
 
 float4 animated_pos(VSIn input)
@@ -69,9 +76,12 @@ VSOut main(VSIn input)
 	}
 
 	output.pos = mul(pos, input.instance.model_xform);
+
+	output.light_direction = light_position - output.pos.xyz;
+
 	output.pos = mul(output.pos, view_proj);
 
-	output.normal = input.normal;
+	output.normal = mul(input.normal, input.instance.model_xform);
 	
 	output.color = input.color;
     

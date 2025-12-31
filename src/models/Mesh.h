@@ -24,12 +24,18 @@ class MeshBase
         return UINT(vertex_count);
     }
 
+    bool get_two_sided() const
+    {
+        return two_sided;
+    }
+
   protected:
     MeshBase()
     {
     }
 
     size_t start_vertex, vertex_count, start_index, index_count;
+    bool two_sided;
 };
 
 inline void mesh_bind_cb(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)
@@ -46,9 +52,12 @@ template <typename T> class Mesh : public MeshBase
 {
   public:
     Mesh(Gfx &gfx, aiMesh &mesh, StdVector<T> &vertices, StdVector<uint32_t> &indices, size_t material_index,
-         TextureCoordinateIndices coordinate_indices)
-        : buffer_data{(uint32_t)material_index}, constant_buffer(gfx, 0, mesh_bind_cb, sizeof(MeshBufferData))
+         TextureCoordinateIndices coordinate_indices, bool two_sided)
+        : buffer_data{(uint32_t)material_index},
+          constant_buffer(gfx, ConstantBuffer::Slot::MESH_BUFFER, mesh_bind_cb, sizeof(MeshBufferData))
     {
+        Mesh::two_sided = two_sided;
+
         load_vertices(mesh, vertices, coordinate_indices);
 
         load_indices(mesh, indices);
@@ -60,7 +69,8 @@ template <typename T> class Mesh : public MeshBase
 
     Mesh(Gfx &gfx, size_t start_vertex, size_t vertex_count, size_t start_index, size_t index_count,
          size_t material_index)
-        : buffer_data{(uint32_t)material_index}, constant_buffer(gfx, 0, mesh_bind_cb, sizeof(MeshBufferData))
+        : buffer_data{(uint32_t)material_index},
+          constant_buffer(gfx, ConstantBuffer::Slot::MESH_BUFFER, mesh_bind_cb, sizeof(MeshBufferData))
     {
         Mesh::start_vertex = start_vertex;
         Mesh::vertex_count = vertex_count;

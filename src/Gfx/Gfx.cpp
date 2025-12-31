@@ -98,3 +98,19 @@ void Gfx::end_frame()
 {
     HANDLE_GFX_ERR(swap_chain->Present(0, 0));
 }
+
+// TODO create alternate rasterizer state with no backface culling for 2-sided meshes
+// {
+// 	D3D11_RASTERIZER_DESC raster_desc = {};
+//
+// 	raster_desc.FillMode = D3D11_FILL_SOLID;
+// 	raster_desc.CullMode = D3D11_CULL_NONE;
+// 	raster_desc.FrontCounterClockwise = FALSE;
+// 	raster_desc.DepthBias = 0;
+// 	raster_desc.DepthBiasClamp = 0.0f;
+// 	raster_desc.SlopeScaledDepthBias = 0.0f;
+// 	raster_desc.DepthClipEnable = TRUE;
+// 	raster_desc.ScissorEnable = FALSE;
+// 	raster_desc.MultisampleEnable = FALSE;
+// 	raster_desc.AntialiasedLineEnable = FALSE;
+// }

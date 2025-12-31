@@ -13,8 +13,8 @@ Buffer::Buffer(Gfx &gfx, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UI
     init(nullptr, byte_width, bind_flags, usage, cpu_access_flags, pitch, slice_pitch);
 }
 
-void Buffer::init(void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags, UINT pitch,
-                  UINT slice_pitch, UINT structured_byte_stride, D3D11_RESOURCE_MISC_FLAG misc_flags)
+void Buffer::init(const void *data, UINT byte_width, UINT bind_flags, D3D11_USAGE usage, UINT cpu_access_flags,
+                  UINT pitch, UINT slice_pitch, UINT structured_byte_stride, D3D11_RESOURCE_MISC_FLAG misc_flags)
 {
     D3D11_BUFFER_DESC bd = {};
     bd.BindFlags = bind_flags;

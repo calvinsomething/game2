@@ -20,26 +20,27 @@ function(set_src_list)
 endfunction()
 
 set_src_list(main.cpp
-	Window.cpp
+	debug.cpp
 	Error.cpp
 	game/Clock.cpp
-	gfx/Gfx.cpp
-	gfx/DepthBuffer.cpp
-	gfx/Camera.cpp
 	gfx/Buffer.cpp
-	gfx/VertexBuffer.cpp
-	gfx/IndexBuffer.cpp
+	gfx/Camera.cpp
 	gfx/ConstantBuffer.cpp
-	gfx/Shader.cpp
+	gfx/DepthBuffer.cpp
+	gfx/Gfx.cpp
+	gfx/IndexBuffer.cpp
 	gfx/PixelShader.cpp
-	gfx/VertexShader.cpp
+	gfx/Shader.cpp
 	gfx/Texture.cpp
+	gfx/VertexBuffer.cpp
+	gfx/VertexShader.cpp
+	Global.cpp
+	input/Input.cpp
 	models/Cube.cpp
 	models/Material.cpp
 	models/Mesh.cpp
-	input/Input.cpp
-	debug.cpp
-	util.cpp)
+	util.cpp
+	Window.cpp)
 
 set(CMAKE_WIN32_EXECUTABLE TRUE)
 
