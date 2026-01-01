@@ -8,6 +8,8 @@ struct VSIn
 {
     float3 pos : POSITION;
     float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
     float2 diffuse_map_coordinates : TEXCOORD;
     float2 normal_map_coordinates : TEXCOORD;
 	uint4 bone_indices : BONE_INDICES;
@@ -21,9 +23,11 @@ StructuredBuffer<matrix> bones : register(t0);
 struct VSOut
 {
     float4 pos : SV_Position;
-	float3 normal : NORMAL;
-    float2 diffuse_map_coordinates : TEXCOORD;
-    float2 normal_map_coordinates : TEXCOORD;
+	float3 normal : NORMAL0;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
+    float2 diffuse_map_coordinates : TEXCOORD0;
+    float2 normal_map_coordinates : TEXCOORD0;
 	float3 light_direction : NORMAL1;
 };
 
@@ -82,6 +86,8 @@ VSOut main(VSIn input)
 	output.light_direction = light_position - output.pos.xyz;
 
 	output.normal = mul(input.normal, input.instance.model_xform);
+	output.tangent = mul(input.tangent, input.instance.model_xform);
+	output.bitangent = mul(input.bitangent, input.instance.model_xform);
 
 	output.pos = mul(output.pos, view_proj);
     

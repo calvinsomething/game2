@@ -1,19 +1,24 @@
 #include "Mesh.h"
 
 // helpers
+DirectX::XMFLOAT3 load_float3(aiVector3D &v)
+{
+    return {v.x, v.z, v.y};
+}
+
 DirectX::XMFLOAT3 get_normal(aiMesh &mesh, size_t i)
 {
-    DirectX::XMFLOAT3 normal;
+    return mesh.mNormals ? load_float3(mesh.mNormals[i]) : DirectX::XMFLOAT3{};
+}
 
-    if (mesh.mNormals)
-    {
-        aiVector3D n = mesh.mNormals[i];
-        normal.x = n.x;
-        normal.y = n.z;
-        normal.z = n.y;
-    }
+DirectX::XMFLOAT3 get_tangent(aiMesh &mesh, size_t i)
+{
+    return mesh.mTangents ? load_float3(mesh.mTangents[i]) : DirectX::XMFLOAT3{};
+}
 
-    return normal;
+DirectX::XMFLOAT3 get_bitangent(aiMesh &mesh, size_t i)
+{
+    return mesh.mBitangents ? load_float3(mesh.mBitangents[i]) : DirectX::XMFLOAT3{};
 }
 
 template class Mesh<Vertex>;
@@ -23,9 +28,7 @@ template <>
 void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices,
                                TextureCoordinateIndices coordinate_indices)
 {
-    aiVector3D &v = mesh.mVertices[i];
-
-    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y), get_normal(mesh, i)});
+    vertices.push_back({load_float3(mesh.mVertices[i]), get_normal(mesh, i)});
 
     // DirectX::XMFLOAT4 color;
 
@@ -62,7 +65,7 @@ void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureV
         tc.normal.y = ntc.y;
     }
 
-    vertices.push_back({DirectX::XMFLOAT3(v.x, v.z, v.y), get_normal(mesh, i), tc});
+    vertices.push_back({load_float3(v), get_normal(mesh, i), get_tangent(mesh, i), get_bitangent(mesh, i), tc});
 }
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)

@@ -1,9 +1,11 @@
 struct PSIn
 {
     float4 pos : SV_Position;
-    float3 normal : NORMAL;
-    float2 diffuse_map_coordinates : TEXCOORD;
-    float2 normal_map_coordinates : TEXCOORD;
+	float3 normal : NORMAL0;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
+    float2 diffuse_map_coordinates : TEXCOORD0;
+    float2 normal_map_coordinates : TEXCOORD0;
 	float3 light_direction : NORMAL1;
 };
 
@@ -65,24 +67,39 @@ float4 main(PSIn input) : SV_Target
 			break;
 	}
 
-	// TODO transform sampled normal from tangent space to world space
+	bool has_bump_map = true;
+	float3 bump;
+
 	switch (materials[material_index].normal_map_index)
 	{
 		case 0:
-			// normal = tex_0.Sample(samp, input.normal_map_coordinates);
+			bump = tex_0.Sample(samp, input.normal_map_coordinates);
 			break;
 		case 1:
-			// normal = tex_1.Sample(samp, input.normal_map_coordinates);
+			bump = tex_1.Sample(samp, input.normal_map_coordinates);
 			break;
 		case 2:
-			// normal = tex_2.Sample(samp, input.normal_map_coordinates);
+			bump = tex_2.Sample(samp, input.normal_map_coordinates);
 			break;
 		case 3:
-			// normal = tex_3.Sample(samp, input.normal_map_coordinates);
+			bump = tex_3.Sample(samp, input.normal_map_coordinates);
 			break;
+		default:
+			has_bump_map = false;
+			break;
+	}
+
+	if (has_bump_map)
+	{
+		float3x3 tbn = {
+			normalize(input.tangent),
+			normalize(input.bitangent),
+			normal};
+
+		normal = mul(normalize(bump), tbn);
 	}
 
 	float illumination = dot(normal, light_direction) + light_position_w_ambient_amount.w;
 
-	return float4(color.xyz * illumination, color.w);
+	return float4(saturate(color.xyz * illumination), color.w);
 }
