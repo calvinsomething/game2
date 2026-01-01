@@ -8,7 +8,8 @@ struct PSIn
 
 struct Material
 {
-	float4 color;
+	float3 albedo_color;
+	float3 emissive_color;
 	int diffuse_map_index;
 	int normal_map_index;
 	float roughness;
@@ -36,11 +37,9 @@ float4 main(PSIn input) : SV_Target
 	float3 normal = normalize(input.normal);
 	float3 light_direction = normalize(input.light_direction);
 
-	float illumination = (dot(normal, light_direction) + light_position_w_ambient_amount.w * 4.0f);
+	float illumination = (max(0, dot(normal, light_direction)) + light_position_w_ambient_amount.w);
 
-	float4 color = materials[material_index].color;
+	float3 color = (materials[material_index].albedo_color + float3(0.1f, 0.1f, 0.1f)) * illumination * 2.0f;
 
-	color = saturate(float4(color.xyz * illumination, 1.0f));
-
-	return color;
+	return saturate(float4(color + materials[material_index].emissive_color, 1.0f));
 }

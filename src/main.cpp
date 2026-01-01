@@ -240,11 +240,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
                 m.constant_buffer.bind();
 
+                gfx.set_rasterizer_state(m.is_two_sided() ? Gfx::RasterizerState::TWO_SIDED
+                                                          : Gfx::RasterizerState::STANDARD);
+
                 vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
 
                 prev_index += n;
                 prev_vertex += m.get_vertex_count();
             }
+
+            gfx.set_rasterizer_state(Gfx::RasterizerState::STANDARD);
 
             // ninja
             ps2.bind();

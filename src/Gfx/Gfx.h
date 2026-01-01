@@ -31,12 +31,28 @@ class Gfx
 
     void set_view_proj_xform(DirectX::XMMATRIX mat);
 
+    enum class RasterizerState
+    {
+        STANDARD,
+        TWO_SIDED,
+    };
+
+    void set_rasterizer_state(RasterizerState rs);
+
   private:
     Microsoft::WRL::ComPtr<ID3D11Device> device;
     Microsoft::WRL::ComPtr<IDXGISwapChain> swap_chain;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
 
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target_view;
+
+    struct
+    {
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> standard;
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> two_sided;
+    } rasterizer_states;
+    RasterizerState current_rasterizer_state = RasterizerState::STANDARD;
+
     Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
 
     DepthBuffer depth_buffer;

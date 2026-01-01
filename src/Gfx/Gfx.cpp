@@ -77,7 +77,27 @@ Gfx::Gfx(HWND hwnd)
 
     HANDLE_GFX_ERR(device->CreateBlendState(&bd, blend_state.GetAddressOf()));
 
+    {
+        // create rasterizer states
+        D3D11_RASTERIZER_DESC rd = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT{});
+        HANDLE_GFX_ERR(device->CreateRasterizerState(&rd, rasterizer_states.standard.GetAddressOf()));
+
+        rd.CullMode = D3D11_CULL_NONE;
+        HANDLE_GFX_ERR(device->CreateRasterizerState(&rd, rasterizer_states.two_sided.GetAddressOf()));
+
+        set_rasterizer_state(RasterizerState::STANDARD);
+    }
+
     HANDLE_GFX_INFO(ctx->OMSetBlendState(blend_state.Get(), nullptr, 0xFFFFFFFF));
+}
+
+void Gfx::set_rasterizer_state(RasterizerState rs)
+{
+    if (current_rasterizer_state != rs)
+    {
+        auto p = reinterpret_cast<Microsoft::WRL::ComPtr<ID3D11RasterizerState> *>(&rasterizer_states);
+        ctx->RSSetState(p[int(rs)].Get());
+    }
 }
 
 Gfx::~Gfx()

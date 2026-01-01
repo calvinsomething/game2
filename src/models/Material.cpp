@@ -22,9 +22,15 @@ inline bool load_diffuse_color(aiMaterial &mat, aiColor3D &color)
     return mat.Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS;
 }
 
-constexpr size_t COLOR_LOADERS_COUNT = 1;
+inline bool load_emissive_color(aiMaterial &mat, aiColor3D &color)
+{
+    return mat.Get(AI_MATKEY_COLOR_EMISSIVE, color) == aiReturn_SUCCESS;
+}
 
-inline bool (*color_loaders[COLOR_LOADERS_COUNT])(aiMaterial &, aiColor3D &) = {load_diffuse_color};
+constexpr size_t COLOR_LOADERS_COUNT = 2;
+
+inline bool (*color_loaders[COLOR_LOADERS_COUNT])(aiMaterial &, aiColor3D &) = {load_diffuse_color,
+                                                                                load_emissive_color};
 
 Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
                        TextureCoordinateIndices &coordinate_indices, StdVector<Texture> &textures,
@@ -116,7 +122,7 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
         }
     }
 
-    DirectX::XMFLOAT4 colors[COLOR_LOADERS_COUNT];
+    DirectX::XMFLOAT3 colors[COLOR_LOADERS_COUNT];
     for (size_t i = 0; i < COLOR_LOADERS_COUNT; ++i)
     {
         aiColor3D color(0.f, 0.f, 0.f);
@@ -125,18 +131,17 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
             colors[i].x = color.r;
             colors[i].y = color.g;
             colors[i].z = color.b;
-            colors[i].w = 1.0f;
         }
         else
         {
             colors[i].x = 1.0f;
             colors[i].y = 1.0f;
             colors[i].z = 1.0f;
-            colors[i].w = 1.0f;
         }
     }
 
     material.color = colors[0];
+    material.emissive_color = colors[1];
 
     ai_material.Get(AI_MATKEY_ROUGHNESS_FACTOR, material.roughness);
 

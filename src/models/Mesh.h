@@ -24,7 +24,7 @@ class MeshBase
         return UINT(vertex_count);
     }
 
-    bool get_two_sided() const
+    bool is_two_sided() const
     {
         return two_sided;
     }
