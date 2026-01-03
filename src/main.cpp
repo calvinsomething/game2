@@ -26,6 +26,42 @@ struct InstanceData
 
 float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
+void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
+{
+    float step = Global::clock.speed_to_distance(30.0f);
+
+    if (keyboard.keys_down['W'])
+    {
+        Global::position = Global::position + Global::twelve_oclock * step;
+    }
+    else if (keyboard.keys_down['A'])
+    {
+        Global::position = Global::position + Global::nine_oclock * step;
+    }
+    else if (keyboard.keys_down['S'])
+    {
+        Global::position = Global::position - Global::twelve_oclock * step;
+    }
+    else if (keyboard.keys_down['D'])
+    {
+        Global::position = Global::position - Global::nine_oclock * step;
+    }
+}
+
+void handle_mouse_state(Input::MouseState mouse, Camera &camera)
+{
+    if (mouse.left_button.is_down)
+    {
+        camera.increase_pitch(mouse.movement.y * mouse.sensitivity);
+        camera.increase_yaw(mouse.movement.x * mouse.sensitivity);
+    }
+
+    if (mouse.scroll)
+    {
+        camera.increase_distance(-mouse.scroll * 0.01);
+    }
+}
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     Allocator<int>::allocator.init(50'000'000, 2000);
@@ -148,32 +184,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         v_buffers[0] = &vb2;
         VertexBuffers vbs2(gfx, v_buffers);
 
-        input.set_control_handler([&](unsigned char c) {
-            float step = Global::clock.speed_to_distance(50.0f);
-
-            switch (c)
-            {
-            case 'W':
-                Global::position = Global::position + Global::twelve_oclock * step;
-                break;
-            case 'A':
-                Global::position = Global::position + Global::nine_oclock * step;
-                break;
-            case 'S':
-                Global::position = Global::position - Global::twelve_oclock * step;
-                break;
-            case 'D':
-                Global::position = Global::position - Global::nine_oclock * step;
-                break;
-            case 'Q':
-                camera.increase_azimuth(0.2f);
-                break;
-            case 'E':
-                camera.increase_azimuth(-0.2f);
-                break;
-            }
-        });
-
         Global::clock.set_max_fps(60);
         Global::clock.start();
 
@@ -184,6 +194,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             Global::clock.start_frame();
 
             input.handle_input();
+
+            handle_keyboard_state(input.get_keyboard_state(), camera);
+            handle_mouse_state(input.get_mouse_state(), camera);
 
             window.handle_messages();
 

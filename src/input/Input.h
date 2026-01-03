@@ -1,6 +1,7 @@
 #pragma once
 
-#include <functional>
+#include <chrono>
+
 #include <windows.h>
 // have be imported after windows.h
 #include <hidusage.h>
@@ -9,16 +10,53 @@
 class Input
 {
   public:
+    struct KeyboardState
+    {
+        bool keys_down[256] = {};
+    };
+
+    struct MouseState
+    {
+        struct Button
+        {
+            friend class Input;
+
+            bool is_down, was_clicked;
+
+          private:
+            std::chrono::time_point<std::chrono::steady_clock> click_deadline;
+        };
+
+        struct
+        {
+            int x, y;
+        } movement;
+
+        int scroll;
+
+        Button left_button, right_button;
+
+        float sensitivity;
+    };
+
     void register_devices();
 
-    void set_control_handler(std::function<void(unsigned char)> &&handler);
+    KeyboardState get_keyboard_state();
 
     void handle_input();
+
+    MouseState get_mouse_state();
+
+    float mouse_sensitivity = 0.08f;
 
   private:
     void handle_keyboard_input(bool key_is_down, USHORT scan_code);
 
+    void reset_mouse_state();
+    void handle_mouse_input(RAWINPUT *raw);
+
     void process_data(RAWINPUT *raw);
 
-    std::function<void(unsigned char)> control_handler;
+    KeyboardState keyboard_state = {};
+    MouseState mouse_state = {};
 };

@@ -15,12 +15,12 @@ class Camera
 
     void update(DirectX::XMFLOAT3 position);
 
-    void increase_elevation(float diff);
-    void increase_azimuth(float diff);
+    void increase_pitch(float diff);
+    void increase_yaw(float diff);
     void increase_distance(float diff);
 
   private:
-    float elevation, azimuth, distance, max_distance = 20.0f, min_distance = 5.0f;
+    float pitch = 0, yaw = 0, distance = 0, max_distance = 20.0f, min_distance = 5.0f;
 
     DirectX::XMVECTOR focus_pos;
     DirectX::XMVECTOR up_dir;

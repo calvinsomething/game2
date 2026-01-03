@@ -1,8 +1,8 @@
 #include "Input.h"
 
-#include <utility>
-
 #include "../Error.h"
+
+constexpr std::chrono::milliseconds MAX_CLICK_DURATION(400);
 
 void Input::register_devices()
 {
@@ -17,6 +17,9 @@ void Input::register_devices()
 
 void Input::handle_input()
 {
+    keyboard_state = {};
+    reset_mouse_state();
+
     UINT buffer_size = 0;
 
     UINT result = GetRawInputBuffer(nullptr, &buffer_size, sizeof(RAWINPUTHEADER));
@@ -48,14 +51,58 @@ void Input::handle_input()
     }
 }
 
-void Input::set_control_handler(std::function<void(unsigned char)> &&handler)
+Input::MouseState Input::get_mouse_state()
 {
-    control_handler = std::move(handler);
+    return mouse_state;
+}
+
+Input::KeyboardState Input::get_keyboard_state()
+{
+    return keyboard_state;
 }
 
 void Input::handle_keyboard_input(bool key_is_down, USHORT v_key)
 {
-    control_handler(static_cast<unsigned char>(v_key));
+    keyboard_state.keys_down[v_key] = key_is_down;
+}
+
+void Input::reset_mouse_state()
+{
+    mouse_state = MouseState{{}, 0, mouse_state.left_button, mouse_state.right_button, mouse_sensitivity};
+    mouse_state.left_button.was_clicked = 0;
+    mouse_state.right_button.was_clicked = 0;
+}
+
+void Input::handle_mouse_input(RAWINPUT *raw)
+{
+    RAWMOUSE &mouse = raw->data.mouse;
+
+    if (!(mouse.usFlags & MOUSE_MOVE_ABSOLUTE))
+    {
+        mouse_state.movement = {raw->data.mouse.lLastX, raw->data.mouse.lLastY};
+    }
+
+    if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
+    {
+        if (!mouse_state.left_button.is_down)
+        {
+            mouse_state.left_button.is_down = true;
+            mouse_state.left_button.click_deadline = std::chrono::steady_clock::now() + MAX_CLICK_DURATION;
+        }
+    }
+    else if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP)
+    {
+        mouse_state.left_button.is_down = false;
+        if (std::chrono::steady_clock::now() < mouse_state.left_button.click_deadline)
+        {
+            mouse_state.left_button.was_clicked = true;
+        }
+    }
+
+    if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
+    {
+        mouse_state.scroll = *reinterpret_cast<short *>(&raw->data.mouse.usButtonData);
+    }
 }
 
 void Input::process_data(RAWINPUT *raw)
@@ -63,6 +110,7 @@ void Input::process_data(RAWINPUT *raw)
     switch (raw->header.dwType)
     {
     case RIM_TYPEMOUSE:
+        handle_mouse_input(raw);
         break;
     case RIM_TYPEKEYBOARD:
         if (raw->data.keyboard.VKey)
