@@ -93,6 +93,11 @@ float4 main(PSIn input) : SV_Target
 	float4 color;
 	load_color(materials[material_index].diffuse_map_index, input.diffuse_map_coordinates, color);
 
+	if (color.w < 0.01)
+	{
+		discard;
+	}
+
 	float3 bump;
 	if (load_bump(materials[material_index].normal_map_index, input.normal_map_coordinates, bump))
 	{

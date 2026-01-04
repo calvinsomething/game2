@@ -62,6 +62,7 @@ Gfx::Gfx(HWND hwnd)
 
     depth_buffer.init(device.Get(), ctx.Get(), UINT(vp.Width), UINT(vp.Height), render_target_view.Get());
 
+    // Blending requires sorted mesh drawing to avoid Z-buffer writes for translucent/transparent pixels.
     D3D11_BLEND_DESC bd = {};
 
     bd.AlphaToCoverageEnable = FALSE;

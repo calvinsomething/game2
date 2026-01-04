@@ -97,7 +97,7 @@ copy_runtime_deps()
 #
 add_custom_target(shaders)
 
-set(shaders_src ${PROJECT_SOURCE_DIR}/src/Gfx/shaders)
+set(shaders_src ${PROJECT_SOURCE_DIR}/src/gfx/shaders)
 set(shaders_bin ${CMAKE_BINARY_DIR}/shaders)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE SHADERS_BIN="${shaders_bin}")

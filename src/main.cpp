@@ -18,12 +18,6 @@
 #include "models/Cube.h"
 #include "util.h"
 
-struct InstanceData
-{
-    DirectX::XMMATRIX transform;
-    uint32_t bone_start;
-};
-
 float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
 void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
@@ -123,47 +117,43 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         Camera camera(gfx);
 
         ConstantBuffer lighting_buffer(gfx, ConstantBuffer::Slot::LIGHTING_BUFFER, &ConstantBuffer::bind_vs_and_ps,
-                                       Global::lighting_data);
-        // lighting_buffer.write(&Global::lighting_data, sizeof(Global::lighting_data));
+                                       Global::lighting_data); // bound as static/read-only
         lighting_buffer.bind();
 
-        Cube cube(gfx, L"assets/textures/minecraft_cube.dds", *vertices, *indices, *materials, textures);
+        InstanceData instance_data[3]{};
 
-        Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures);
-        Model ninja(gfx, "assets/models/ninja.fbx", *vertices2, *indices2, *materials, textures);
+        Cube cube(gfx, L"assets/textures/minecraft_cube.dds", *vertices, *indices, *materials, textures,
+                  instance_data[0]);
 
-        cube.set_position(-7.0f, 0.0f, 5.0f);
-        spider.set_position(7.0f, 0.0f, 5.0f);
-        ninja.set_position(11.0f, 0.0f, 0.0f);
+        Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures,
+                     instance_data[1]);
+        Model ninja(gfx, "assets/models/ninja.fbx", *vertices2, *indices2, *materials, textures, instance_data[2],
+                    spider.get_bone_count());
 
-        uint32_t bone_matrices_count = 0;
-        for (auto &m : spider.get_meshes())
-        {
-            bone_matrices_count += m.bone_matrices.size();
-        }
+        cube.set_position({-7.0f, 0.0f, 5.0f});
+        spider.set_position({7.0f, 0.0f, 5.0f});
+        ninja.set_position({11.0f, 0.0f, 0.0f});
 
-        cube.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) *
-                    DirectX::XMMatrixRotationRollPitchYaw(DirectX::XM_PI * -0.5f, 0.0f, 0.0f));
-        spider.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixRotationY(DirectX::XM_PI) *
-                      DirectX::XMMatrixTranslation(0.0f, -2.0f, 0.0f));
-        ninja.update(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f) * DirectX::XMMatrixTranslation(0.0f, -1.5f, 0.0f));
+        cube.scale(0.6f, 0.6f, 0.6f);
+        cube.rotate(-DirectX::XM_PIDIV2, 0.0f, 0.0f);
 
-        InstanceData instance_data[] = {{DirectX::XMMatrixTranspose(cube.get_transform()), 0},
-                                        {DirectX::XMMatrixTranspose(spider.get_transform()), 0},
-                                        {DirectX::XMMatrixTranspose(ninja.get_transform()), bone_matrices_count}};
+        spider.scale(0.6f, 0.6f, 0.6f);
+        spider.rotate(0, DirectX::XM_PI, 0);
+
+        ninja.scale(0.6f, 0.6f, 0.6f);
+
+        cube.update();
+        spider.update();
+        ninja.update();
 
         InstanceBuffer instance_buffer(gfx, &instance_data);
-
-        for (auto &m : ninja.get_meshes())
-        {
-            bone_matrices_count += m.bone_matrices.size();
-        }
 
         StructuredBuffer material_buffer(gfx, 0, materials->size(), sizeof(Material));
         material_buffer.bind_ps();
         material_buffer.update(materials->data(), materials->size() * sizeof(Material), 0);
 
-        StructuredBuffer bone_data_buffer(gfx, 0, bone_matrices_count, sizeof(DirectX::XMMATRIX));
+        StructuredBuffer bone_data_buffer(gfx, 0, spider.get_bone_count() + ninja.get_bone_count(),
+                                          sizeof(DirectX::XMMATRIX));
 
         VertexBuffer vb(gfx, *vertices);
         IndexBuffer ib(gfx, *indices);
@@ -202,29 +192,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         Global::clock.set_max_fps(60);
         Global::clock.start();
 
-        size_t i = 0;
-
         while (Global::running)
         {
             Global::clock.start_frame();
+
+            window.handle_messages();
 
             input.handle_input();
 
             handle_keyboard_state(input.get_keyboard_state(), camera);
             handle_mouse_state(input.get_mouse_state(), camera);
-
-            window.handle_messages();
-
-            ++i;
-            if (i > 200)
-            {
-                i = 0;
-                spider.start_animation();
-                ninja.start_animation();
-            }
-
-            spider.update(DirectX::XMMatrixIdentity());
-            ninja.update(DirectX::XMMatrixIdentity());
 
             gfx.clear(bg_color);
 
@@ -236,6 +213,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             cube.get_meshes()[0].constant_buffer.bind();
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
+
+            ninja.set_position(Global::position);
+            ninja.update();
+
+            instance_buffer.update(instance_data, sizeof(instance_data));
 
             bone_data_buffer.bind();
 

@@ -2,8 +2,16 @@
 
 #include "Buffer.h"
 
+#include <DirectXMath.h>
+
 #include <cstring>
 #include <stdexcept>
+
+struct InstanceData
+{
+    DirectX::XMMATRIX transform = DirectX::XMMatrixIdentity();
+    uint32_t bone_start;
+};
 
 class InstanceBuffer : public Buffer
 {

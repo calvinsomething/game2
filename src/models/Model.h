@@ -9,6 +9,7 @@
 #include <cstring>
 #include <stdexcept>
 
+#include "../Gfx/InstanceBuffer.h"
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
 #include "Material.h"
@@ -22,14 +23,17 @@ inline aiTextureType texture_types[] = {
 template <typename T> class Model
 {
   public:
-    Model() : transform(DirectX::XMMatrixIdentity())
+    Model(InstanceData &instance_data) : transform(DirectX::XMMatrixIdentity()), instance_data(instance_data)
     {
     }
 
     Model(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices,
-          StdVector<Material> &materials, StdVector<Texture> &textures)
-        : transform(DirectX::XMMatrixIdentity())
+          StdVector<Material> &materials, StdVector<Texture> &textures, InstanceData &instance_data,
+          uint32_t bone_start = 0)
+        : transform(DirectX::XMMatrixIdentity()), instance_data(instance_data)
     {
+        instance_data.bone_start = bone_start;
+
         scene = importer.ReadFile(file_name, aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_Triangulate |
                                                  aiProcess_FlipWindingOrder | aiProcess_JoinIdenticalVertices |
                                                  aiProcess_SortByPType | aiProcess_FlipUVs |
@@ -88,6 +92,8 @@ template <typename T> class Model
             {
                 m.load_bones(mesh, vertices);
             }
+
+            bone_count += m.bone_matrices.size();
         }
     }
 
@@ -96,9 +102,9 @@ template <typename T> class Model
         animation_start_time = clock.now();
     }
 
-    void update(const DirectX::XMMATRIX &xform)
+    void update()
     {
-        transform *= xform;
+        instance_data.transform = DirectX::XMMatrixTranspose(get_transform());
 
         if (animation_start_time.time_since_epoch().count())
         {
@@ -132,9 +138,14 @@ template <typename T> class Model
         return count;
     }
 
-    void set_position(float x, float y, float z)
+    void set_position(DirectX::XMFLOAT3 pos)
     {
-        position = DirectX::XMFLOAT3(x, y, z);
+        position = pos;
+    }
+
+    void rotate(float pitch, float yaw, float roll)
+    {
+        transform = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
     }
 
     void translate(float x, float y, float z)
@@ -142,6 +153,16 @@ template <typename T> class Model
         position.x += x;
         position.y += y;
         position.z += z;
+    }
+
+    void scale(float x, float y, float z)
+    {
+        transform *= DirectX::XMMatrixScaling(x, y, z);
+    }
+
+    void direct(DirectX::XMFLOAT3 direction)
+    {
+        Model<T>::direction = DirectX::XMLoadFloat3(&direction);
     }
 
     DirectX::XMMATRIX get_transform()
@@ -159,10 +180,19 @@ template <typename T> class Model
         return meshes;
     }
 
+    uint32_t get_bone_count()
+    {
+        return bone_count;
+    }
+
   protected:
-    // TODO rework this... maybe quaternion?
+    // TODO quaternions rotation
     DirectX::XMMATRIX transform;
 
+    InstanceData &instance_data;
+    uint32_t bone_count = 0;
+
+    DirectX::XMVECTOR direction;
     DirectX::XMFLOAT3 position;
 
     VertexShader::BufferData buffer_data;

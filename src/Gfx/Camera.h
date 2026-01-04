@@ -22,7 +22,7 @@ class Camera
     DirectX::XMVECTOR get_direction();
 
   private:
-    float pitch = 0, yaw = 0, distance = 0, max_distance = 20.0f, min_distance = 5.0f;
+    float pitch = 0, yaw = 0, distance = 0, max_distance = 20.0f, min_distance = 3.0f;
 
     DirectX::XMVECTOR focus_pos;
     DirectX::XMVECTOR up_dir;
