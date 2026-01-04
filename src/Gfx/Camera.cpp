@@ -16,27 +16,48 @@ Camera::Camera(Gfx &gfx)
                                   XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
 }
 
+void Camera::update_offset()
+{
+    offset = XMVector3Transform(XMVECTOR{0, 0, -distance}, XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
+}
+
 void Camera::increase_pitch(float diff)
 {
     pitch = max(min(pitch + diff, 1.57), -1.57);
+
+    update_offset();
 }
 
 void Camera::increase_yaw(float diff)
 {
     yaw = fmod(yaw + diff, XM_2PI);
+
+    update_offset();
+}
+
+XMVECTOR Camera::get_direction()
+{
+    XMFLOAT3 f3;
+    XMStoreFloat3(&f3, offset);
+
+    f3.y = 0;
+
+    XMVECTOR vec = XMLoadFloat3(&f3);
+
+    return -XMVector3Normalize(vec);
 }
 
 void Camera::increase_distance(float diff)
 {
     float next = distance + diff;
     distance = next < max_distance ? next > min_distance ? next : min_distance : max_distance;
+
+    update_offset();
 }
 
 void Camera::update(DirectX::XMFLOAT3 position)
 {
     focus_pos = XMVectorSet(position.x, position.y, position.z, 1.0f);
-
-    XMVECTOR offset = XMVector3Transform(XMVECTOR{0, 0, -distance}, XMMatrixRotationRollPitchYaw(pitch, yaw, 0.0f));
 
     buffer_data.camera_position = XMVectorAdd(focus_pos, offset);
 

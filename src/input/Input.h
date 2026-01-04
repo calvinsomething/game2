@@ -17,7 +17,7 @@ class Input
 
     struct MouseState
     {
-        struct Button
+        struct ButtonState
         {
             friend class Input;
 
@@ -34,7 +34,7 @@ class Input
 
         int scroll;
 
-        Button left_button, right_button;
+        ButtonState left_button, right_button;
 
         float sensitivity;
     };
@@ -54,6 +54,7 @@ class Input
 
     void reset_mouse_state();
     void handle_mouse_input(RAWINPUT *raw);
+    void handle_mouse_button(bool is_down, bool was_released, Input::MouseState::ButtonState &button_state);
 
     void process_data(RAWINPUT *raw);
 

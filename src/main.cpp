@@ -36,7 +36,7 @@ void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
     }
     else if (keyboard.keys_down['A'])
     {
-        Global::position = Global::position + Global::nine_oclock * step;
+        Global::position = Global::position - Global::three_oclock * step;
     }
     else if (keyboard.keys_down['S'])
     {
@@ -44,16 +44,31 @@ void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
     }
     else if (keyboard.keys_down['D'])
     {
-        Global::position = Global::position - Global::nine_oclock * step;
+        Global::position = Global::position + Global::three_oclock * step;
     }
 }
 
 void handle_mouse_state(Input::MouseState mouse, Camera &camera)
 {
-    if (mouse.left_button.is_down)
+    if (mouse.left_button.is_down || mouse.right_button.is_down)
     {
         camera.increase_pitch(mouse.movement.y * mouse.sensitivity);
         camera.increase_yaw(mouse.movement.x * mouse.sensitivity);
+
+        if (mouse.right_button.is_down)
+        {
+            auto ahead = camera.get_direction();
+
+            DirectX::XMFLOAT3 f3;
+            DirectX::XMStoreFloat3(&f3, ahead);
+
+            Global::twelve_oclock = f3;
+
+            DirectX::XMStoreFloat3(&f3,
+                                   DirectX::XMVector3Transform(ahead, DirectX::XMMatrixRotationY(DirectX::XM_PIDIV2)));
+
+            Global::three_oclock = f3;
+        }
     }
 
     if (mouse.scroll)

@@ -9,8 +9,9 @@ namespace Global
 extern bool running;
 
 extern DirectX::XMFLOAT3 position;
+extern DirectX::XMFLOAT3 position_delta;
 extern DirectX::XMFLOAT3 twelve_oclock;
-extern DirectX::XMFLOAT3 nine_oclock;
+extern DirectX::XMFLOAT3 three_oclock;
 
 extern Clock clock;
 

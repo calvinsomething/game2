@@ -73,6 +73,26 @@ void Input::reset_mouse_state()
     mouse_state.right_button.was_clicked = 0;
 }
 
+void Input::handle_mouse_button(bool is_down, bool was_released, Input::MouseState::ButtonState &button_state)
+{
+    if (is_down)
+    {
+        if (!mouse_state.left_button.is_down)
+        {
+            button_state.is_down = true;
+            button_state.click_deadline = std::chrono::steady_clock::now() + MAX_CLICK_DURATION;
+        }
+    }
+    else if (was_released)
+    {
+        button_state.is_down = false;
+        if (std::chrono::steady_clock::now() < button_state.click_deadline)
+        {
+            button_state.was_clicked = true;
+        }
+    }
+}
+
 void Input::handle_mouse_input(RAWINPUT *raw)
 {
     RAWMOUSE &mouse = raw->data.mouse;
@@ -82,22 +102,10 @@ void Input::handle_mouse_input(RAWINPUT *raw)
         mouse_state.movement = {raw->data.mouse.lLastX, raw->data.mouse.lLastY};
     }
 
-    if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN)
-    {
-        if (!mouse_state.left_button.is_down)
-        {
-            mouse_state.left_button.is_down = true;
-            mouse_state.left_button.click_deadline = std::chrono::steady_clock::now() + MAX_CLICK_DURATION;
-        }
-    }
-    else if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP)
-    {
-        mouse_state.left_button.is_down = false;
-        if (std::chrono::steady_clock::now() < mouse_state.left_button.click_deadline)
-        {
-            mouse_state.left_button.was_clicked = true;
-        }
-    }
+    handle_mouse_button(raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN,
+                        raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP, mouse_state.left_button);
+    handle_mouse_button(raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN,
+                        raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP, mouse_state.right_button);
 
     if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
     {
