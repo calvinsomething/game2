@@ -63,7 +63,7 @@ Material load_material(Gfx &gfx, const aiScene &scene, aiMaterial &ai_material,
             if (p_index != texture_index_by_file_name.end())
             {
                 texture_index = p_index->second;
-                std::cout << "already " << texture_file_name_string << "\n";
+                std::cout << "previously loaded: " << texture_file_name_string << "\n";
             }
             else
             {

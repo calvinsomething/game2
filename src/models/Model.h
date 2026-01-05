@@ -12,6 +12,7 @@
 #include "../Gfx/InstanceBuffer.h"
 #include "../Gfx/Texture.h"
 #include "../Gfx/VertexShader.h"
+#include "Animations.h"
 #include "Material.h"
 #include "Mesh.h"
 
@@ -49,19 +50,9 @@ template <typename T> class Model
             throw std::runtime_error("Model loaded with no meshes.");
         }
 
-        aiAnimation *animation = 0;
         if (scene->HasAnimations())
         {
-            animation = scene->mAnimations[0];
-
-            for (size_t i = 0; i < animation->mNumChannels; ++i)
-            {
-                aiNode *node = scene->mRootNode->FindNode(animation->mChannels[i]->mNodeName);
-                if (node)
-                {
-                    node_animations.insert({node, animation->mChannels[i]});
-                }
-            }
+            animations = Animations(scene);
         }
 
         std::string directory = directory_from_file_name(file_name);
@@ -88,7 +79,7 @@ template <typename T> class Model
 
             Mesh<T> &m = meshes.back();
 
-            if (animation)
+            if (scene->HasAnimations())
             {
                 m.load_bones(mesh, vertices);
             }
@@ -97,8 +88,10 @@ template <typename T> class Model
         }
     }
 
-    void start_animation()
+    void start_animation(const std::string &name)
     {
+        animations.set_animation(name);
+
         animation_start_time = clock.now();
     }
 
@@ -106,22 +99,25 @@ template <typename T> class Model
     {
         instance_data.transform = DirectX::XMMatrixTranspose(get_transform());
 
-        if (animation_start_time.time_since_epoch().count())
+        Animation *animation = animations.get();
+
+        if (animation)
         {
             double animation_time_sec = ((clock.now() - animation_start_time).count()) * 0.000000001;
 
-            double time_in_ticks = scene->mAnimations[0]->mTicksPerSecond * animation_time_sec;
+            double time_in_ticks = animation->ticks_per_second * animation_time_sec;
 
-            if (time_in_ticks >= 0 && time_in_ticks <= scene->mAnimations[0]->mDuration)
+            if (time_in_ticks >= 0 && time_in_ticks <= animation->duration)
             {
                 for (auto &m : meshes)
                 {
-                    m.animate(node_animations, time_in_ticks);
+                    m.animate(animation->node_anim_map, time_in_ticks);
                 }
             }
             else
             {
                 animation_start_time = {};
+                animations.unset();
             }
         }
     }
@@ -192,6 +188,8 @@ template <typename T> class Model
     InstanceData &instance_data;
     uint32_t bone_count = 0;
 
+    aiAnimation *animation = 0;
+
     DirectX::XMVECTOR direction;
     DirectX::XMFLOAT3 position;
 
@@ -208,5 +206,5 @@ template <typename T> class Model
     std::chrono::high_resolution_clock clock;
     std::chrono::time_point<decltype(clock)> animation_start_time = {};
 
-    StdUnorderedMap<const aiNode *, const aiNodeAnim *> node_animations;
+    Animations animations;
 };

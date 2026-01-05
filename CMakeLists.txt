@@ -36,6 +36,7 @@ set_src_list(main.cpp
 	gfx/VertexShader.cpp
 	Global.cpp
 	input/Input.cpp
+	models/Animations.cpp
 	models/Cube.cpp
 	models/Material.cpp
 	models/Mesh.cpp

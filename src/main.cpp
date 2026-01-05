@@ -20,25 +20,33 @@
 
 float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
+std::string animation = "";
+
 void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
 {
-    float step = Global::clock.speed_to_distance(30.0f);
+    animation = "";
+
+    Global::movement_speed = Global::clock.speed_to_distance(30.0f);
 
     if (keyboard.keys_down['W'])
     {
-        Global::position = Global::position + Global::twelve_oclock * step;
+        Global::position = Global::position + Global::twelve_oclock * Global::movement_speed;
     }
     else if (keyboard.keys_down['A'])
     {
-        Global::position = Global::position - Global::three_oclock * step;
+        Global::position = Global::position - Global::three_oclock * Global::movement_speed;
     }
     else if (keyboard.keys_down['S'])
     {
-        Global::position = Global::position - Global::twelve_oclock * step;
+        Global::position = Global::position - Global::twelve_oclock * Global::movement_speed;
     }
     else if (keyboard.keys_down['D'])
     {
-        Global::position = Global::position + Global::three_oclock * step;
+        Global::position = Global::position + Global::three_oclock * Global::movement_speed;
+    }
+    else if (keyboard.keys_down['Z'])
+    {
+        animation = "Punch";
     }
 }
 
@@ -76,6 +84,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     Allocator<int>::allocator.init(50'000'000, 2000);
 
     Window window;
+
+    Global::clock.set_max_fps(60);
+    Global::movement_speed = Global::clock.speed_to_distance(30.0f);
 
     try
     {
@@ -189,7 +200,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         v_buffers[0] = &vb2;
         VertexBuffers vbs2(gfx, v_buffers);
 
-        Global::clock.set_max_fps(60);
         Global::clock.start();
 
         while (Global::running)
@@ -215,6 +225,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             ninja.set_position(Global::position);
+            if (!animation.empty())
+            {
+                ninja.start_animation(animation);
+                animation = "";
+            }
             ninja.update();
 
             instance_buffer.update(instance_data, sizeof(instance_data));

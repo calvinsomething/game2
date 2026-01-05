@@ -8,6 +8,7 @@
 
 #include "../gfx/ConstantBuffer.h"
 #include "../gfx/VertexShader.h"
+#include "Animations.h"
 #include "Bone.h"
 #include "Material.h"
 
@@ -81,7 +82,7 @@ template <typename T> class Mesh : public MeshBase
         constant_buffer.write(&buffer_data, sizeof(buffer_data));
     }
 
-    void animate(const StdUnorderedMap<const aiNode *, const aiNodeAnim *> &node_animations, double time_in_ticks)
+    void animate(NodeAnimMap &node_animations, double time_in_ticks)
     {
         if (root_bone)
         {
@@ -207,8 +208,8 @@ template <typename T> class Mesh : public MeshBase
         vertex_count = vertices.size() - start_vertex;
     }
 
-    void update_bone(Bone *bone, const StdUnorderedMap<const aiNode *, const aiNodeAnim *> &node_animations,
-                     const DirectX::XMMATRIX &parent_transform, double time_in_ticks)
+    void update_bone(Bone *bone, NodeAnimMap &node_animations, const DirectX::XMMATRIX &parent_transform,
+                     double time_in_ticks)
     {
         if (!bone)
         {

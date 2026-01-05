@@ -12,8 +12,6 @@
 #include <memory_allocator/Adapter.h>
 #include <memory_allocator/BlockAllocator.h>
 
-#include "Error.h"
-
 // DirectX Math
 DirectX::XMFLOAT3 operator+(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b);
 
@@ -38,6 +36,9 @@ template <typename T> using StdVector = std::vector<T, Allocator<T>>;
 // Map
 template <typename K, typename V>
 using StdUnorderedMap = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, Allocator<std::pair<K const, V>>>;
+
+// String
+using StdString = std::basic_string<Allocator<char>>;
 
 // Set
 template <typename T> using StdSet = std::set<T, Allocator<T>>;

@@ -13,6 +13,8 @@ extern DirectX::XMFLOAT3 position_delta;
 extern DirectX::XMFLOAT3 twelve_oclock;
 extern DirectX::XMFLOAT3 three_oclock;
 
+extern float movement_speed;
+
 extern Clock clock;
 
 struct alignas(16) LightingData
