@@ -9,7 +9,7 @@
 
 #include "../util.h"
 
-using NodeAnimMap = std::unordered_map<const aiNode *, const aiNodeAnim *>;
+using NodeAnimMap = StdUnorderedMap<const aiNode *, const aiNodeAnim *>;
 
 struct Animation
 {
@@ -30,7 +30,7 @@ class Animations
     void unset();
 
   private:
-    std::unordered_map<std::string, Animation> animation_by_name;
+    StdUnorderedMap<std::string, Animation> animation_by_name;
 
     Animation *current_animation = 0;
 

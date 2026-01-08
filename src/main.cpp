@@ -81,7 +81,7 @@ void handle_mouse_state(Input::MouseState mouse, Camera &camera)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-    Allocator<int>::allocator.init(50'000'000, 2000);
+    Allocator<int>::allocator.init(50'000'000, 5000);
 
     Window window;
 
