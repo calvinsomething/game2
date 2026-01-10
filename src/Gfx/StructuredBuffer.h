@@ -43,8 +43,6 @@ class StructuredBuffer : public Buffer
         desc.Buffer.FirstElement = 0;
         desc.Buffer.NumElements = element_count;
 
-        std::cout << element_count << " x " << element_size << "\n";
-
         HANDLE_GFX_ERR(device->CreateShaderResourceView(buffer.Get(), &desc, srv.GetAddressOf()));
     }
 

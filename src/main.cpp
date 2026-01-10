@@ -24,6 +24,8 @@ std::string animation = "";
 
 void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
 {
+    static bool slowed_frame_rate = 0;
+
     animation = "";
 
     Global::movement_speed = Global::clock.speed_to_distance(30.0f);
@@ -48,14 +50,27 @@ void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
     {
         animation = "Punch";
     }
+    else if (keyboard.keys_down['F'])
+    {
+        slowed_frame_rate = !slowed_frame_rate;
+        Global::clock.set_max_fps(slowed_frame_rate ? 4 : 60);
+    }
 }
 
 void handle_mouse_state(Input::MouseState mouse, Camera &camera)
 {
+    static struct
+    {
+        float x[3], y[3];
+        bool active;
+    } mouse_movement{};
+
     if (mouse.left_button.is_down || mouse.right_button.is_down)
     {
-        camera.increase_pitch(mouse.movement.y * mouse.sensitivity);
-        camera.increase_yaw(mouse.movement.x * mouse.sensitivity);
+        mouse_movement.active = true;
+
+        mouse_movement.x[0] = mouse.movement.x * mouse.sensitivity;
+        mouse_movement.y[0] = mouse.movement.y * mouse.sensitivity;
 
         if (mouse.right_button.is_down)
         {
@@ -73,9 +88,27 @@ void handle_mouse_state(Input::MouseState mouse, Camera &camera)
         }
     }
 
+    if (mouse_movement.active)
+    {
+        camera.increase_pitch(mouse_movement.y[0] * 0.5f + mouse_movement.y[1] * 0.33f + mouse_movement.y[2] * 0.17f);
+        camera.increase_yaw(mouse_movement.x[0] * 0.5f + mouse_movement.x[1] * 0.33f + mouse_movement.x[2] * 0.17f);
+
+        // shift previous deltas
+        mouse_movement.x[2] = mouse_movement.x[1];
+        mouse_movement.x[1] = mouse_movement.x[0];
+        mouse_movement.x[0] = 0.0f;
+
+        mouse_movement.y[2] = mouse_movement.y[1];
+        mouse_movement.y[1] = mouse_movement.y[0];
+        mouse_movement.y[0] = 0.0f;
+
+        mouse_movement.active =
+            mouse_movement.x[1] || mouse_movement.x[2] || mouse_movement.y[1] || mouse_movement.y[2];
+    }
+
     if (mouse.scroll)
     {
-        camera.increase_distance(-mouse.scroll * 0.01);
+        camera.increase_distance(-mouse.scroll * 0.01f);
     }
 }
 
@@ -224,36 +257,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             cube.get_meshes()[0].constant_buffer.bind();
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
-            ninja.set_position(Global::position);
-            if (!animation.empty())
-            {
-                ninja.start_animation(animation);
-                animation = "";
-            }
-            ninja.update();
-
-            instance_buffer.update(instance_data, sizeof(instance_data));
-
-            bone_data_buffer.bind();
-
-            bone_data_buffer.start_batch_update();
-
-            size_t animation_data_offset = 0;
-            for (Mesh<TextureVertex> &m : spider.get_meshes())
-            {
-                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
-                animation_data_offset += animation_data_size;
-            }
-            for (Mesh<Vertex> &m : ninja.get_meshes())
-            {
-                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
-                animation_data_offset += animation_data_size;
-            }
-
-            bone_data_buffer.end_batch_update();
-
             // spider
 
             UINT prev_index = cube.get_meshes()[0].get_index_count(),
@@ -295,6 +298,36 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 prev_index += n;
                 prev_vertex += m.get_vertex_count();
             }
+
+            ninja.set_position(Global::position);
+            if (!animation.empty())
+            {
+                ninja.start_animation(animation);
+                animation = "";
+            }
+            ninja.update();
+
+            instance_buffer.update(instance_data, sizeof(instance_data));
+
+            bone_data_buffer.bind();
+
+            bone_data_buffer.start_batch_update();
+
+            size_t animation_data_offset = 0;
+            for (Mesh<TextureVertex> &m : spider.get_meshes())
+            {
+                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                animation_data_offset += animation_data_size;
+            }
+            for (Mesh<Vertex> &m : ninja.get_meshes())
+            {
+                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                animation_data_offset += animation_data_size;
+            }
+
+            bone_data_buffer.end_batch_update();
 
             camera.update(Global::position);
 

@@ -47,7 +47,7 @@ class Input
 
     MouseState get_mouse_state();
 
-    float mouse_sensitivity = 0.08f;
+    float mouse_sensitivity = 0.11f;
 
   private:
     void handle_keyboard_input(bool key_is_down, USHORT scan_code);
