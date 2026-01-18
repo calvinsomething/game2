@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ConstantBuffer.h"
+#include "../gfx/ConstantBuffer.h"
 
 class Camera
 {
@@ -11,13 +11,14 @@ class Camera
         DirectX::XMMATRIX view_proj_xform;
     };
 
+    struct Controls
+    {
+        float pitch_delta = 0, yaw_delta = 0, distance_delta = 0;
+    };
+
     Camera(Gfx &gfx);
 
-    void update(DirectX::XMFLOAT3 position);
-
-    void increase_pitch(float diff);
-    void increase_yaw(float diff);
-    void increase_distance(float diff);
+    void update(Controls controls, DirectX::XMFLOAT3 focus_position);
 
     DirectX::XMVECTOR get_direction();
 
@@ -28,9 +29,14 @@ class Camera
     DirectX::XMVECTOR up_dir;
 
     DirectX::XMVECTOR offset;
-    void update_offset();
 
     ConstantBuffer constant_buffer;
 
     BufferData buffer_data;
+
+    void increase_pitch(float diff);
+    void increase_yaw(float diff);
+    void increase_distance(float diff);
+
+    void update_offset();
 };

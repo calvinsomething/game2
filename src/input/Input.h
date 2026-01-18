@@ -41,11 +41,11 @@ class Input
 
     void register_devices();
 
-    KeyboardState get_keyboard_state();
+    KeyboardState get_keyboard_state() const;
 
     void handle_input();
 
-    MouseState get_mouse_state();
+    MouseState get_mouse_state() const;
 
     float mouse_sensitivity = 0.11f;
 

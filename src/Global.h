@@ -3,17 +3,17 @@
 #include <DirectXMath.h>
 
 #include "game/Clock.h"
+#include "input/Input.h"
 
 namespace Global
 {
 extern bool running;
 
-extern DirectX::XMFLOAT3 position;
-extern DirectX::XMFLOAT3 position_delta;
-extern DirectX::XMFLOAT3 twelve_oclock;
-extern DirectX::XMFLOAT3 three_oclock;
+extern DirectX::XMVECTOR north;
 
 extern float movement_speed;
+
+extern Input input;
 
 extern Clock clock;
 

@@ -24,14 +24,14 @@ inline aiTextureType texture_types[] = {
 template <typename T> class Model
 {
   public:
-    Model(InstanceData &instance_data) : transform(DirectX::XMMatrixIdentity()), instance_data(instance_data)
+    Model(InstanceData &instance_data) : instance_data(instance_data)
     {
     }
 
     Model(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices,
           StdVector<Material> &materials, StdVector<Texture> &textures, InstanceData &instance_data,
           uint32_t bone_start = 0)
-        : transform(DirectX::XMMatrixIdentity()), instance_data(instance_data)
+        : instance_data(instance_data)
     {
         instance_data.bone_start = bone_start;
 
@@ -139,11 +139,6 @@ template <typename T> class Model
         position = pos;
     }
 
-    void rotate(float pitch, float yaw, float roll)
-    {
-        transform = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-    }
-
     void translate(float x, float y, float z)
     {
         position.x += x;
@@ -153,17 +148,18 @@ template <typename T> class Model
 
     void scale(float x, float y, float z)
     {
-        transform *= DirectX::XMMatrixScaling(x, y, z);
+        scaling *= DirectX::XMMatrixScaling(x, y, z);
     }
 
-    void direct(DirectX::XMFLOAT3 direction)
+    void set_base_transform(const DirectX::XMMATRIX &xform)
     {
-        Model<T>::direction = DirectX::XMLoadFloat3(&direction);
+        base_transform = xform;
     }
 
     DirectX::XMMATRIX get_transform()
     {
-        return transform * DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+        return base_transform * scaling * DirectX::XMMatrixRotationQuaternion(orientation) *
+               DirectX::XMMatrixTranslation(position.x, position.y, position.z);
     }
 
     const aiTexture *get_ai_texture()
@@ -181,17 +177,27 @@ template <typename T> class Model
         return bone_count;
     }
 
+    void rotate(DirectX::XMVECTOR rotation)
+    {
+        orientation = DirectX::XMQuaternionMultiply(orientation, rotation);
+    }
+
+    void set_orientation(DirectX::XMVECTOR orientation)
+    {
+        Model::orientation = orientation;
+    }
+
   protected:
-    // TODO quaternions rotation
-    DirectX::XMMATRIX transform;
+    DirectX::XMMATRIX base_transform = DirectX::XMMatrixIdentity();
 
     InstanceData &instance_data;
     uint32_t bone_count = 0;
 
     aiAnimation *animation = 0;
 
-    DirectX::XMVECTOR direction;
-    DirectX::XMFLOAT3 position;
+    DirectX::XMMATRIX scaling = DirectX::XMMatrixIdentity();
+    DirectX::XMVECTOR orientation = DirectX::XMQuaternionIdentity();
+    DirectX::XMFLOAT3 position = {};
 
     VertexShader::BufferData buffer_data;
 

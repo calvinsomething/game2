@@ -51,12 +51,12 @@ void Input::handle_input()
     }
 }
 
-Input::MouseState Input::get_mouse_state()
+Input::MouseState Input::get_mouse_state() const
 {
     return mouse_state;
 }
 
-Input::KeyboardState Input::get_keyboard_state()
+Input::KeyboardState Input::get_keyboard_state() const
 {
     return keyboard_state;
 }

@@ -6,7 +6,9 @@
 #include "Error.h"
 #include "Global.h"
 #include "Window.h"
-#include "gfx/Camera.h"
+#include "game/Camera.h"
+#include "game/Character.h"
+#include "game/Controller.h"
 #include "gfx/Gfx.h"
 #include "gfx/IndexBuffer.h"
 #include "gfx/InstanceBuffer.h"
@@ -19,98 +21,6 @@
 #include "util.h"
 
 float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
-
-std::string animation = "";
-
-void handle_keyboard_state(Input::KeyboardState keyboard, Camera &camera)
-{
-    static bool slowed_frame_rate = 0;
-
-    animation = "";
-
-    Global::movement_speed = Global::clock.speed_to_distance(30.0f);
-
-    if (keyboard.keys_down['W'])
-    {
-        Global::position = Global::position + Global::twelve_oclock * Global::movement_speed;
-    }
-    else if (keyboard.keys_down['A'])
-    {
-        Global::position = Global::position - Global::three_oclock * Global::movement_speed;
-    }
-    else if (keyboard.keys_down['S'])
-    {
-        Global::position = Global::position - Global::twelve_oclock * Global::movement_speed;
-    }
-    else if (keyboard.keys_down['D'])
-    {
-        Global::position = Global::position + Global::three_oclock * Global::movement_speed;
-    }
-    else if (keyboard.keys_down['Z'])
-    {
-        animation = "Punch";
-    }
-    else if (keyboard.keys_down['F'])
-    {
-        slowed_frame_rate = !slowed_frame_rate;
-        Global::clock.set_max_fps(slowed_frame_rate ? 4 : 60);
-    }
-}
-
-void handle_mouse_state(Input::MouseState mouse, Camera &camera)
-{
-    static struct
-    {
-        float x[3], y[3];
-        bool active;
-    } mouse_movement{};
-
-    if (mouse.left_button.is_down || mouse.right_button.is_down)
-    {
-        mouse_movement.active = true;
-
-        mouse_movement.x[0] = mouse.movement.x * mouse.sensitivity;
-        mouse_movement.y[0] = mouse.movement.y * mouse.sensitivity;
-
-        if (mouse.right_button.is_down)
-        {
-            auto ahead = camera.get_direction();
-
-            DirectX::XMFLOAT3 f3;
-            DirectX::XMStoreFloat3(&f3, ahead);
-
-            Global::twelve_oclock = f3;
-
-            DirectX::XMStoreFloat3(&f3,
-                                   DirectX::XMVector3Transform(ahead, DirectX::XMMatrixRotationY(DirectX::XM_PIDIV2)));
-
-            Global::three_oclock = f3;
-        }
-    }
-
-    if (mouse_movement.active)
-    {
-        camera.increase_pitch(mouse_movement.y[0] * 0.5f + mouse_movement.y[1] * 0.33f + mouse_movement.y[2] * 0.17f);
-        camera.increase_yaw(mouse_movement.x[0] * 0.5f + mouse_movement.x[1] * 0.33f + mouse_movement.x[2] * 0.17f);
-
-        // shift previous deltas
-        mouse_movement.x[2] = mouse_movement.x[1];
-        mouse_movement.x[1] = mouse_movement.x[0];
-        mouse_movement.x[0] = 0.0f;
-
-        mouse_movement.y[2] = mouse_movement.y[1];
-        mouse_movement.y[1] = mouse_movement.y[0];
-        mouse_movement.y[0] = 0.0f;
-
-        mouse_movement.active =
-            mouse_movement.x[1] || mouse_movement.x[2] || mouse_movement.y[1] || mouse_movement.y[2];
-    }
-
-    if (mouse.scroll)
-    {
-        camera.increase_distance(-mouse.scroll * 0.01f);
-    }
-}
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -153,12 +63,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         StdVector<Texture> textures;
         textures.reserve(64);
 
-        Input input;
-        input.register_devices();
+        Global::input.register_devices();
 
         Gfx gfx(window.get_handle());
 
         Camera camera(gfx);
+
+        Controller controller;
 
         ConstantBuffer lighting_buffer(gfx, ConstantBuffer::Slot::LIGHTING_BUFFER, &ConstantBuffer::bind_vs_and_ps,
                                        Global::lighting_data); // bound as static/read-only
@@ -168,22 +79,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Cube cube(gfx, L"assets/textures/minecraft_cube.dds", *vertices, *indices, *materials, textures,
                   instance_data[0]);
+        cube.set_base_transform(DirectX::XMMatrixRotationQuaternion(
+            DirectX::XMVector4Normalize(DirectX::XMVECTOR{-1.0f, 0.0f, 0.0f, 1.0f})));
 
         Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures,
                      instance_data[1]);
+
         Model ninja(gfx, "assets/models/ninja.fbx", *vertices2, *indices2, *materials, textures, instance_data[2],
                     spider.get_bone_count());
+        ninja.set_base_transform(DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{0.0f, 1.0f}));
+
+        Character player_character(ninja);
 
         cube.set_position({-7.0f, 0.0f, 5.0f});
         spider.set_position({7.0f, 0.0f, 5.0f});
-        ninja.set_position({11.0f, 0.0f, 0.0f});
+
+        player_character.set_position({});
 
         cube.scale(0.6f, 0.6f, 0.6f);
-        cube.rotate(-DirectX::XM_PIDIV2, 0.0f, 0.0f);
-
         spider.scale(0.6f, 0.6f, 0.6f);
-        spider.rotate(0, DirectX::XM_PI, 0);
-
         ninja.scale(0.6f, 0.6f, 0.6f);
 
         cube.update();
@@ -241,10 +155,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             window.handle_messages();
 
-            input.handle_input();
-
-            handle_keyboard_state(input.get_keyboard_state(), camera);
-            handle_mouse_state(input.get_mouse_state(), camera);
+            Global::input.handle_input();
 
             gfx.clear(bg_color);
 
@@ -287,7 +198,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             prev_index = 0;
             prev_vertex = 0;
-            for (Mesh<Vertex> &m : ninja.get_meshes())
+            for (Mesh<Vertex> &m : player_character.model.get_meshes())
             {
                 UINT n = m.get_index_count();
 
@@ -299,13 +210,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 prev_vertex += m.get_vertex_count();
             }
 
-            ninja.set_position(Global::position);
-            if (!animation.empty())
+            controller.poll_input(Global::input);
+            if (controller.face_away_from_camera())
             {
-                ninja.start_animation(animation);
-                animation = "";
+                DirectX::XMFLOAT3 f3;
+                DirectX::XMStoreFloat3(&f3, camera.get_direction());
+
+                f3.y = 0;
+
+                player_character.set_twelve_oclock(DirectX::XMVector3NormalizeEst(DirectX::XMLoadFloat3(&f3)));
             }
-            ninja.update();
+
+            player_character.update(controller.get_character_controls());
 
             instance_buffer.update(instance_data, sizeof(instance_data));
 
@@ -329,7 +245,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             bone_data_buffer.end_batch_update();
 
-            camera.update(Global::position);
+            camera.update(controller.get_camera_controls(), player_character.get_position());
 
             gfx.end_frame();
         }

@@ -22,9 +22,11 @@ endfunction()
 set_src_list(main.cpp
 	debug.cpp
 	Error.cpp
+	game/Camera.cpp
+	game/Character.cpp
 	game/Clock.cpp
+	game/Controller.cpp
 	gfx/Buffer.cpp
-	gfx/Camera.cpp
 	gfx/ConstantBuffer.cpp
 	gfx/DepthBuffer.cpp
 	gfx/Gfx.cpp

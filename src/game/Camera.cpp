@@ -9,6 +9,7 @@ Camera::Camera(Gfx &gfx)
       constant_buffer(gfx, ConstantBuffer::Slot::CAMERA_BUFFER, &ConstantBuffer::bind_vs, sizeof(Camera::BufferData))
 {
     increase_distance(20.0f);
+    update_offset();
 
     buffer_data.camera_position = {0, 0, -distance};
     buffer_data.view_proj_xform =
@@ -23,41 +24,46 @@ void Camera::update_offset()
 
 void Camera::increase_pitch(float diff)
 {
-    pitch = max(min(pitch + diff, 1.57), -1.57);
-
-    update_offset();
+    pitch = max(min(pitch + diff, 1.57), -1.57); // max/min just less than 90 degrees from neutral
 }
 
 void Camera::increase_yaw(float diff)
 {
     yaw = fmod(yaw + diff, XM_2PI);
-
-    update_offset();
 }
 
 XMVECTOR Camera::get_direction()
 {
-    XMFLOAT3 f3;
-    XMStoreFloat3(&f3, offset);
-
-    f3.y = 0;
-
-    XMVECTOR vec = XMLoadFloat3(&f3);
-
-    return -XMVector3Normalize(vec);
+    return -XMVector3Normalize(offset);
 }
 
 void Camera::increase_distance(float diff)
 {
     float next = distance + diff;
     distance = next < max_distance ? next > min_distance ? next : min_distance : max_distance;
-
-    update_offset();
 }
 
-void Camera::update(DirectX::XMFLOAT3 position)
+void Camera::update(Controls controls, DirectX::XMFLOAT3 focus_position)
 {
-    focus_pos = XMVectorSet(position.x, position.y, position.z, 1.0f);
+    if (controls.pitch_delta || controls.yaw_delta || controls.distance_delta)
+    {
+        if (controls.pitch_delta)
+        {
+            increase_pitch(controls.pitch_delta);
+        }
+        if (controls.yaw_delta)
+        {
+            increase_yaw(controls.yaw_delta);
+        }
+        if (controls.distance_delta)
+        {
+            increase_distance(controls.distance_delta);
+        }
+
+        update_offset();
+    }
+
+    focus_pos = XMVectorSet(focus_position.x, focus_position.y, focus_position.z, 1.0f);
 
     buffer_data.camera_position = XMVectorAdd(focus_pos, offset);
 
