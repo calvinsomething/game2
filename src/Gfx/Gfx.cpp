@@ -3,15 +3,16 @@
 #include <dxgidebug.h>
 
 #include "../Error.h"
+#include "../Global.h"
 
 Gfx::Gfx(HWND hwnd)
 {
     DXGI_SWAP_CHAIN_DESC sd{};
     sd.BufferCount = 2;
-    sd.BufferDesc.Width = 640;
-    sd.BufferDesc.Height = 640;
+    sd.BufferDesc.Width = Global::client_width;
+    sd.BufferDesc.Height = Global::client_height;
     sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    sd.BufferDesc.RefreshRate.Numerator = 60;
+    sd.BufferDesc.RefreshRate.Numerator = Global::clock.get_max_fps();
     sd.BufferDesc.RefreshRate.Denominator = 1;
     sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     sd.OutputWindow = hwnd;
@@ -51,8 +52,8 @@ Gfx::Gfx(HWND hwnd)
     HANDLE_GFX_ERR(device->CreateRenderTargetView(back_buffer.Get(), nullptr, render_target_view.GetAddressOf()));
 
     D3D11_VIEWPORT vp;
-    vp.Width = 640;
-    vp.Height = 640;
+    vp.Width = Global::client_width;
+    vp.Height = Global::client_height;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = 0;

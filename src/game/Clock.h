@@ -17,6 +17,8 @@ class Clock
 
     long long get_frame_delta();
 
+    uint32_t get_max_fps();
+
     void set_max_fps(uint32_t fps);
 
     float speed_to_distance(float mph);
@@ -28,6 +30,7 @@ class Clock
 
     std::chrono::time_point<std::chrono::steady_clock> frame_time;
 
+    uint32_t max_fps;
     long long min_frame_delta = 0, previous_frame_duration = 0;
     double miles_per_hour_to_yards_per_frame_factor = 0.0f;
 };

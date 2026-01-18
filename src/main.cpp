@@ -28,6 +28,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     Window window;
 
+    RECT rect = window.get_rect();
+    Global::client_width = rect.right - rect.left;
+    Global::client_height = rect.bottom - rect.top;
+
+    window.set_full_screen();
+
     Global::clock.set_max_fps(60);
     Global::movement_speed = Global::clock.speed_to_distance(30.0f);
 

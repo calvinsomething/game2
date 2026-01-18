@@ -4,6 +4,8 @@ namespace Global
 {
 bool running = true;
 
+int client_width = 0, client_height = 0;
+
 DirectX::XMVECTOR north{0.0f, 0.0f, 1.0f, 0.0f};
 
 float movement_speed = 0;

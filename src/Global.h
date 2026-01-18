@@ -9,6 +9,8 @@ namespace Global
 {
 extern bool running;
 
+extern int client_width, client_height;
+
 extern DirectX::XMVECTOR north;
 
 extern float movement_speed;

@@ -64,6 +64,10 @@ void Controller::handle_movement_and_rotation(Input::KeyboardState &keyboard, In
             character_controls.rotation -= 1;
         }
     }
+    if (keyboard.keys_down[VK_ESCAPE])
+    {
+        Global::running = false;
+    }
 }
 
 void Controller::handle_actions(Input::KeyboardState &keyboard)

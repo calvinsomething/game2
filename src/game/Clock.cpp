@@ -50,7 +50,12 @@ long long Clock::get_frame_delta()
 
 void Clock::set_max_fps(uint32_t fps)
 {
-    min_frame_delta = 1000000000 / fps;
+    min_frame_delta = 1'000'000'000 / fps;
+}
+
+uint32_t Clock::get_max_fps()
+{
+    return max_fps;
 }
 
 // Returns the distance that would be travelled based on mph and the previous frame duration.

@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include "Global.h"
+
 Window::Window()
 {
     WNDCLASS wc = {};
@@ -11,20 +13,45 @@ Window::Window()
 
     hwnd = CreateWindowExW(0, wc.lpszClassName, wc.lpszClassName, WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                            // Size and position
-                           CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
+                           CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                            nullptr, // Parent window
                            nullptr, // Menu
                            wc.hInstance,
                            nullptr // Additional application data
     );
+
+    GetWindowInfo(hwnd, &info);
 }
 
-Window::~Window(){};
+Window::~Window() {};
 
-namespace Global
+RECT Window::get_rect()
 {
-extern bool running;
-}; // namespace Global
+    return info.rcClient;
+}
+
+void Window::set_rect(RECT rect)
+{
+    SetWindowPos(hwnd, HWND_TOP, rect.left, rect.top, rect.right, rect.bottom, SWP_SHOWWINDOW);
+}
+
+void Window::set_full_screen()
+{
+    set_rect(get_full_screen_size());
+    SetWindowLongPtrW(hwnd, GWL_STYLE, (info.dwStyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
+}
+
+RECT Window::get_full_screen_size()
+{
+    HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+    MONITORINFO monitor_info = {};
+    monitor_info.cbSize = sizeof(MONITORINFO);
+
+    GetMonitorInfoW(monitor, &monitor_info);
+
+    return monitor_info.rcMonitor;
+}
 
 LRESULT __stdcall Window::window_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
