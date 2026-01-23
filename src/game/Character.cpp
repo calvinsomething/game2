@@ -1,5 +1,28 @@
 #include "Character.h"
 
+constexpr float SIN_PI_DIV_8 = 0.3826834323650897717284599840304;
+constexpr float SIN_PI_DIV_4 = 0.70710678118654752440084436210485;
+
+constexpr float COS_PI_DIV_8 = 0.92387953251128675612818318939679;
+
+const DirectX::XMVECTOR Character::DirectionPad::rotations[3][3] = {
+    {
+        {0.0f, COS_PI_DIV_8, 0.0f, SIN_PI_DIV_8},
+        {0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, -COS_PI_DIV_8, 0.0f, SIN_PI_DIV_8},
+    },
+    {
+        {0.0f, -SIN_PI_DIV_4, 0.0f, SIN_PI_DIV_4},
+        {},
+        {0.0f, SIN_PI_DIV_4, 0.0f, SIN_PI_DIV_4},
+    },
+    {
+        {0.0f, -SIN_PI_DIV_8, 0.0f, COS_PI_DIV_8},
+        DirectX::XMQuaternionIdentity(),
+        {0.0f, SIN_PI_DIV_8, 0.0f, COS_PI_DIV_8},
+    },
+};
+
 void Character::update()
 {
     model.update();
@@ -7,21 +30,47 @@ void Character::update()
 
 void Character::update(const Controls &controls)
 {
-    float travel = Global::clock.speed_to_distance(movement_speed_mph);
-
     if (controls.rotation)
     {
-        twelve_oclock = DirectX::XMVector3Transform(
-            twelve_oclock, DirectX::XMMatrixRotationQuaternion(DirectX::XMVector4Normalize(
-                               DirectX::XMVECTOR{0.0f, 0.1f * controls.rotation, 0.0f, 1.0f})));
+        direction_pad.set_twelve_oclock(DirectX::XMVector3Transform(
+            direction_pad.twelve_oclock, DirectX::XMMatrixRotationQuaternion(DirectX::XMVector4Normalize(
+                                             DirectX::XMVECTOR{0.0f, 0.03f * controls.rotation, 0.0f, 1.0f}))));
     }
 
-    DirectX::XMVECTOR position_delta = DirectX::XMVectorScale(twelve_oclock, controls.movement.y * travel);
+    DirectX::XMVECTOR position_delta = {};
 
-    if (controls.movement.x)
+    if (controls.movement.y || controls.movement.x)
     {
-        position_delta = DirectX::XMVectorAdd(position_delta,
-                                              DirectX::XMVectorScale(get_three_oclock(), controls.movement.x * travel));
+        DirectX::XMVECTOR direction = direction_pad.get_direction(DirectionPad::CENTER + controls.movement.y,
+                                                                  DirectionPad::CENTER + controls.movement.x);
+        position_delta = DirectX::XMVectorScale(direction, Global::clock.speed_to_distance(movement_speed_mph));
+
+        if (Character::state != State::running)
+        {
+            Character::state = State::running;
+            model.loop_animation("Run");
+        }
+    }
+    else if (controls.action == Controls::Action::action_1)
+    {
+        Character::state = State::attacking;
+        model.start_animation("Punch");
+    }
+    else
+    {
+        switch (Character::state)
+        {
+        case State::attacking:
+            if (model.is_animating())
+            {
+                break;
+            }
+        case State::running:
+            Character::state = State::at_rest;
+            model.loop_animation("Idle");
+        default:
+            break;
+        }
     }
 
     DirectX::XMFLOAT3 f3;
@@ -37,7 +86,7 @@ void Character::update(const Controls &controls)
 DirectX::XMVECTOR Character::get_orientation()
 {
     DirectX::XMFLOAT3 f3;
-    DirectX::XMStoreFloat3(&f3, twelve_oclock);
+    DirectX::XMStoreFloat3(&f3, direction_pad.twelve_oclock);
 
     float radian = DirectX::XMScalarASin(f3.x);
     if (f3.z < 0)
@@ -61,20 +110,16 @@ void Character::set_position(DirectX::XMFLOAT3 position)
 
 void Character::set_twelve_oclock(DirectX::XMVECTOR direction)
 {
-    twelve_oclock = direction;
-    three_oclock_synced = false;
+    direction_pad.set_twelve_oclock(direction);
 }
 
-DirectX::XMVECTOR Character::get_three_oclock()
+DirectX::XMVECTOR Character::DirectionPad::get_direction(uint8_t y, uint8_t x)
 {
-    static DirectX::XMVECTOR vec;
-
-    if (!three_oclock_synced)
+    if (!directions[y][x].has_value())
     {
-        vec = DirectX::XMVector3Transform(
-            twelve_oclock, DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{0.0f, SIN_1_4_PI, 0.0f, SIN_1_4_PI}));
-        three_oclock_synced = true;
+        directions[y][x].emplace(
+            DirectX::XMVector3Transform(twelve_oclock, DirectX::XMMatrixRotationQuaternion(rotations[y][x])));
     }
 
-    return vec;
+    return directions[y][x].value();
 }

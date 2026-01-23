@@ -17,7 +17,6 @@ void Input::register_devices()
 
 void Input::handle_input()
 {
-    keyboard_state = {};
     reset_mouse_state();
 
     UINT buffer_size = 0;

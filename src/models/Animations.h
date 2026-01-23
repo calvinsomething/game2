@@ -25,6 +25,9 @@ class Animations
 
     bool set_animation(const std::string &name);
 
+    void set_looping(bool looping);
+    bool is_looping();
+
     Animation *get();
 
     void unset();
@@ -35,4 +38,6 @@ class Animations
     Animation *current_animation = 0;
 
     static std::string clean_name(const std::string &name);
+
+    bool loop = false;
 };

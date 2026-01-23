@@ -88,6 +88,13 @@ template <typename T> class Model
         }
     }
 
+    void loop_animation(const std::string &name)
+    {
+        start_animation(name);
+
+        animations.set_looping(true);
+    }
+
     void start_animation(const std::string &name)
     {
         animations.set_animation(name);
@@ -95,19 +102,29 @@ template <typename T> class Model
         animation_start_time = clock.now();
     }
 
+    bool is_animating()
+    {
+        return animations.get();
+    }
+
     void update()
     {
-        instance_data.transform = DirectX::XMMatrixTranspose(get_transform());
-
         Animation *animation = animations.get();
 
         if (animation)
         {
-            double animation_time_sec = ((clock.now() - animation_start_time).count()) * 0.000000001;
+            double animation_time_sec =
+                (clock.now() - animation_start_time).count() * 0.000000001; // nanoseconds to seconds
 
             double time_in_ticks = animation->ticks_per_second * animation_time_sec;
 
-            if (time_in_ticks >= 0 && time_in_ticks <= animation->duration)
+            if (time_in_ticks > animation->duration && animations.is_looping())
+            {
+                animation_start_time = clock.now();
+                time_in_ticks = 0;
+            }
+
+            if (time_in_ticks <= animation->duration)
             {
                 for (auto &m : meshes)
                 {
@@ -120,6 +137,8 @@ template <typename T> class Model
                 animations.unset();
             }
         }
+
+        instance_data.transform = DirectX::XMMatrixTranspose(get_transform());
     }
 
     UINT get_index_count()

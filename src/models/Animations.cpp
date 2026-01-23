@@ -40,6 +40,16 @@ std::string Animations::clean_name(const std::string &name)
     return name.substr(last_pipe);
 }
 
+void Animations::set_looping(bool looping)
+{
+    loop = looping;
+}
+
+bool Animations::is_looping()
+{
+    return loop;
+}
+
 Animation *Animations::get()
 {
     return current_animation;
@@ -52,6 +62,8 @@ void Animations::unset()
 
 bool Animations::set_animation(const std::string &name)
 {
+    loop = false;
+
     auto p = animation_by_name.find(name);
     if (p != animation_by_name.end())
     {
