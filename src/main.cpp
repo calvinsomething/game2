@@ -161,13 +161,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         while (Global::running)
         {
-            camera.update(controller.get_camera_controls(), player_character.get_position());
-
             Global::clock.start_frame();
 
             window.handle_messages();
 
             Global::input.handle_input();
+
+            camera.update(controller.get_camera_controls(), player_character.get_position());
 
             gfx.clear(bg_color);
 
@@ -184,6 +184,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             // spider
+            bone_data_buffer.bind();
+
+            bone_data_buffer.start_batch_update();
+
+            size_t animation_data_offset = 0;
+            for (Mesh<TextureVertex> &m : spider.get_meshes())
+            {
+                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                animation_data_offset += animation_data_size;
+            }
+            for (Mesh<Vertex> &m : ninja.get_meshes())
+            {
+                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
+                animation_data_offset += animation_data_size;
+            }
+
+            bone_data_buffer.end_batch_update();
 
             UINT prev_index = cube.get_meshes()[0].get_index_count(),
                  prev_vertex = cube.get_meshes()[0].get_vertex_count();
@@ -240,31 +259,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             instance_buffer.update(instance_data, sizeof(instance_data));
 
-            bone_data_buffer.bind();
-
-            bone_data_buffer.start_batch_update();
-
-            size_t animation_data_offset = 0;
-            for (Mesh<TextureVertex> &m : spider.get_meshes())
-            {
-                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
-                animation_data_offset += animation_data_size;
-            }
-            for (Mesh<Vertex> &m : ninja.get_meshes())
-            {
-                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
-                animation_data_offset += animation_data_size;
-            }
-
-            bone_data_buffer.end_batch_update();
-
             gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
             gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::ENVIRONMENT_BUFFER);
             skybox.bind_and_draw();
-
-            camera.update(controller.get_camera_controls(), player_character.get_position());
 
             gfx.end_frame();
         }
