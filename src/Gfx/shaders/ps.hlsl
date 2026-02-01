@@ -15,7 +15,7 @@ struct Material
 	float roughness;
 };
 
-StructuredBuffer<Material> materials : register(t0);
+StructuredBuffer<Material> materials : register(t1);
 
 cbuffer CameraBuffer : register(b0)
 {

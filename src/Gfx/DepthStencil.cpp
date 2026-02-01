@@ -2,8 +2,8 @@
 
 #include "../Error.h"
 
-void Gfx::DepthBuffer::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT buffer_width, UINT buffer_height,
-                            ID3D11RenderTargetView *render_target_view)
+void Gfx::DepthStencil::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT buffer_width, UINT buffer_height,
+                             ID3D11RenderTargetView *render_target_view)
 {
     D3D11_TEXTURE2D_DESC texture_desc = {};
     texture_desc.Width = buffer_width;
@@ -22,34 +22,39 @@ void Gfx::DepthBuffer::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT
 
     HANDLE_GFX_ERR(device->CreateTexture2D(&texture_desc, nullptr, texture.GetAddressOf()));
 
+    // Create different depth stencil states
+    //
     D3D11_DEPTH_STENCIL_DESC stencil_desc = {};
 
-    // Depth test parameters
+    // Depth Buffer State
     stencil_desc.DepthEnable = true;
     stencil_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     stencil_desc.DepthFunc = D3D11_COMPARISON_LESS;
-
     // Stencil test parameters
-    // stencil_desc.StencilEnable = true;
-    // stencil_desc.StencilReadMask = 0xFF;
-    // stencil_desc.StencilWriteMask = 0xFF;
+    // stencil_desc->StencilEnable = true;
+    // stencil_desc->StencilReadMask = 0xFF;
+    // stencil_desc->StencilWriteMask = 0xFF;
 
     // Stencil operations if pixel is front-facing
-    // stencil_desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    // stencil_desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-    // stencil_desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    // stencil_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    // stencil_desc->FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    // stencil_desc->FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    // stencil_desc->FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    // stencil_desc->FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
     // Stencil operations if pixel is back-facing
-    // stencil_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    // stencil_desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    // stencil_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    // stencil_desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    // stencil_desc->BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    // stencil_desc->BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    // stencil_desc->BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    // stencil_desc->BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> state;
-    HANDLE_GFX_ERR(device->CreateDepthStencilState(&stencil_desc, state.GetAddressOf()));
+    HANDLE_GFX_ERR(device->CreateDepthStencilState(&stencil_desc, states[State::DEPTH_BUFFER].GetAddressOf()));
 
-    HANDLE_GFX_INFO(ctx->OMSetDepthStencilState(state.Get(), 0));
+    // Skybox Depth Buffer State
+    stencil_desc.DepthEnable = true;
+    stencil_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    stencil_desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+    HANDLE_GFX_ERR(device->CreateDepthStencilState(&stencil_desc, states[State::ENVIRONMENT_BUFFER].GetAddressOf()));
 
     // D3D11_DEPTH_STENCIL_VIEW_DESC view_desc;
     // view_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
@@ -66,7 +71,7 @@ void Gfx::DepthBuffer::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT
                             view.Get());         // Depth stencil view for the render target
 }
 
-ID3D11DepthStencilView *Gfx::DepthBuffer::get_view()
+void Gfx::DepthStencil::bind_state(ID3D11DeviceContext *ctx, State state)
 {
-    return view.Get();
+    HANDLE_GFX_INFO(ctx->OMSetDepthStencilState(states[state].Get(), 0));
 }

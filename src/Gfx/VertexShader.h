@@ -87,3 +87,14 @@ class TextureVertexShader : public Shader
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
 };
+
+class SkyboxVertexShader : public Shader
+{
+  public:
+    SkyboxVertexShader(Gfx &gfx);
+
+    void bind() override;
+
+  private:
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
+};

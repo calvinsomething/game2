@@ -33,14 +33,14 @@ struct Material
 	float roughness;
 };
 
-StructuredBuffer<Material> materials : register(t0);
+StructuredBuffer<Material> materials : register(t1);
 
-Texture2D tex_0 : register (t1);
-Texture2D tex_1 : register (t2);
-Texture2D tex_2 : register (t3);
-Texture2D tex_3 : register (t4);
+Texture2D tex_0 : register(t2);
+Texture2D tex_1 : register(t3);
+Texture2D tex_2 : register(t4);
+Texture2D tex_3 : register(t5);
 
-SamplerState samp : register (s0);
+SamplerState samp : register(s0);
 
 void load_color(int map_index, float2 uv, out float4 color)
 {
@@ -87,16 +87,17 @@ bool load_bump(int map_index, float2 uv, out float3 bump)
 
 float4 main(PSIn input) : SV_Target
 {
-	float3 normal = normalize(input.normal);
-	float3 light_direction = normalize(input.light_direction);
-
 	float4 color;
 	load_color(materials[material_index].diffuse_map_index, input.diffuse_map_coordinates, color);
 
+	// fully transparent values can be discarded
+	// translucent values should be drawn with the appropriate depth stencil state as to preserve background color
 	if (color.w < 0.01)
 	{
 		discard;
 	}
+
+	float3 normal = input.normal;
 
 	float3 bump;
 	if (load_bump(materials[material_index].normal_map_index, input.normal_map_coordinates, bump))
@@ -104,17 +105,18 @@ float4 main(PSIn input) : SV_Target
 		float3x3 tbn = {
 			normalize(input.tangent),
 			normalize(input.bitangent),
-			normal};
+			normal
+		};
 
 		normal = mul(normalize(bump), tbn);
 	}
 
-	// if (dot(normal, light_direction) > 0.9f)
+	// if (dot(normal, input.light_direction) > 0.9f)
 	// {
 	// 	return float4(0.0f,1.0f,0.0f,color.w);
 	// }
 
-	float illumination = max(0, dot(normal, light_direction)) + light_position_w_ambient_amount.w;
+	float illumination = max(0, dot(normal, input.light_direction)) + light_position_w_ambient_amount.w;
 
 	return float4(saturate(color.xyz * illumination), color.w);
 }

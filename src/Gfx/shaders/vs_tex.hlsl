@@ -83,9 +83,9 @@ VSOut main(VSIn input)
 
 	output.pos = mul(pos, input.instance.model_xform);
 
-	output.light_direction = light_position - output.pos.xyz;
+	output.light_direction = normalize(light_position - output.pos.xyz);
 
-	output.normal = mul(input.normal, input.instance.model_xform);
+	output.normal = normalize(mul(input.normal, input.instance.model_xform));
 	output.tangent = mul(input.tangent, input.instance.model_xform);
 	output.bitangent = mul(input.bitangent, input.instance.model_xform);
 

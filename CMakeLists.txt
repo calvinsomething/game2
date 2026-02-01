@@ -26,9 +26,10 @@ set_src_list(main.cpp
 	game/Character.cpp
 	game/Clock.cpp
 	game/Controller.cpp
+	game/Skybox.cpp
 	gfx/Buffer.cpp
 	gfx/ConstantBuffer.cpp
-	gfx/DepthBuffer.cpp
+	gfx/DepthStencil.cpp
 	gfx/Gfx.cpp
 	gfx/IndexBuffer.cpp
 	gfx/PixelShader.cpp
@@ -107,27 +108,29 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE SHADERS_BIN="${shaders_bin}")
 
 file(MAKE_DIRECTORY ${shaders_bin})
 
-set(shader_files
+set(vs_files
 	vs.hlsl
 	vs_tex.hlsl
+	vs_skybox.hlsl)
+
+foreach(file_name ${vs_files})
+	set_source_files_properties(${file_name} PROPERTIES
+		type vs
+		version _5_0)
+endforeach()
+
+set(ps_files
 	ps.hlsl
-	ps_tex.hlsl)
+	ps_tex.hlsl
+	ps_skybox.hlsl)
 
-set_source_files_properties(vs.hlsl PROPERTIES
-	type vs
-    version _5_0)
+foreach(file_name ${ps_files})
+	set_source_files_properties(${file_name} PROPERTIES
+		type ps
+		version _5_0)
+endforeach()
 
-set_source_files_properties(vs_tex.hlsl PROPERTIES
-	type vs
-    version _5_0)
-
-set_source_files_properties(ps.hlsl PROPERTIES
-	type ps
-    version _5_0)
-
-set_source_files_properties(ps_tex.hlsl PROPERTIES
-	type ps
-    version _5_0)
+set(shader_files "${vs_files};${ps_files}")
 
 foreach(file ${shader_files})
 	get_filename_component(shader_name ${file} NAME_WE)

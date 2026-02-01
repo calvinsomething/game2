@@ -6,7 +6,7 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
 {
     auto byte_code = load("vs.cso");
 
-    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, &shader));
+    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
 
     D3D11_INPUT_ELEMENT_DESC layout[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -62,7 +62,7 @@ TextureVertexShader::TextureVertexShader(Gfx &gfx) : Shader(gfx)
 {
     auto byte_code = load("vs_tex.cso");
 
-    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, &shader));
+    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
 
     D3D11_INPUT_ELEMENT_DESC layout[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -114,4 +114,24 @@ void TextureVertexShader::draw_indexed_instanced(UINT start_index, UINT index_co
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     HANDLE_GFX_INFO(ctx->DrawIndexedInstanced(index_count, instance_count, start_index, vertex_offset, start_instance));
+}
+
+SkyboxVertexShader::SkyboxVertexShader(Gfx &gfx) : Shader(gfx)
+{
+    auto byte_code = load("vs_skybox.cso");
+
+    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
+
+    D3D11_INPUT_ELEMENT_DESC layout = {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA,
+                                       0};
+
+    HANDLE_GFX_ERR(
+        device->CreateInputLayout(&layout, 1, byte_code.data(), byte_code.size(), input_layout.GetAddressOf()));
+}
+
+void SkyboxVertexShader::bind()
+{
+    ctx->IASetInputLayout(input_layout.Get());
+
+    ctx->VSSetShader(shader.Get(), nullptr, 0);
 }

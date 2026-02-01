@@ -24,8 +24,7 @@ void Buffer::init(const void *data, UINT byte_width, UINT bind_flags, D3D11_USAG
     bd.StructureByteStride = structured_byte_stride;
     bd.MiscFlags = misc_flags;
 
-    D3D11_SUBRESOURCE_DATA *p_srd = 0;
-    D3D11_SUBRESOURCE_DATA srd = {};
+    D3D11_SUBRESOURCE_DATA *p_srd = 0, srd = {};
 
     if (data)
     {

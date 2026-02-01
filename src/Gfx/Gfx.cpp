@@ -51,17 +51,16 @@ Gfx::Gfx(HWND hwnd)
 
     HANDLE_GFX_ERR(device->CreateRenderTargetView(back_buffer.Get(), nullptr, render_target_view.GetAddressOf()));
 
-    D3D11_VIEWPORT vp;
-    vp.Width = Global::client_width;
-    vp.Height = Global::client_height;
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
+    viewport.Width = Global::client_width;
+    viewport.Height = Global::client_height;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
 
-    HANDLE_GFX_INFO(ctx->RSSetViewports(1, &vp));
+    HANDLE_GFX_INFO(ctx->RSSetViewports(1, &viewport));
 
-    depth_buffer.init(device.Get(), ctx.Get(), UINT(vp.Width), UINT(vp.Height), render_target_view.Get());
+    depth_stencil.init(device.Get(), ctx.Get(), UINT(viewport.Width), UINT(viewport.Height), render_target_view.Get());
 
     // Blending requires sorted mesh drawing to avoid Z-buffer writes for translucent/transparent pixels.
     D3D11_BLEND_DESC bd = {};
@@ -93,6 +92,10 @@ Gfx::Gfx(HWND hwnd)
     HANDLE_GFX_INFO(ctx->OMSetBlendState(blend_state.Get(), nullptr, 0xFFFFFFFF));
 }
 
+Gfx::~Gfx()
+{
+}
+
 void Gfx::set_rasterizer_state(RasterizerState rs)
 {
     if (current_rasterizer_state != rs)
@@ -102,8 +105,9 @@ void Gfx::set_rasterizer_state(RasterizerState rs)
     }
 }
 
-Gfx::~Gfx()
+void Gfx::bind_depth_stencil_state(DepthStencil::State state)
 {
+    depth_stencil.bind_state(ctx.Get(), state);
 }
 
 void Gfx::clear(float *color)
@@ -111,28 +115,12 @@ void Gfx::clear(float *color)
     HANDLE_GFX_INFO(ctx->ClearRenderTargetView(render_target_view.Get(), color));
 
     HANDLE_GFX_INFO(
-        ctx->ClearDepthStencilView(depth_buffer.get_view(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
+        ctx->ClearDepthStencilView(depth_stencil.view.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
-    HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), depth_buffer.get_view()));
+    HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), depth_stencil.view.Get()));
 }
 
 void Gfx::end_frame()
 {
     HANDLE_GFX_ERR(swap_chain->Present(0, 0));
 }
-
-// TODO create alternate rasterizer state with no backface culling for 2-sided meshes
-// {
-// 	D3D11_RASTERIZER_DESC raster_desc = {};
-//
-// 	raster_desc.FillMode = D3D11_FILL_SOLID;
-// 	raster_desc.CullMode = D3D11_CULL_NONE;
-// 	raster_desc.FrontCounterClockwise = FALSE;
-// 	raster_desc.DepthBias = 0;
-// 	raster_desc.DepthBiasClamp = 0.0f;
-// 	raster_desc.SlopeScaledDepthBias = 0.0f;
-// 	raster_desc.DepthClipEnable = TRUE;
-// 	raster_desc.ScissorEnable = FALSE;
-// 	raster_desc.MultisampleEnable = FALSE;
-// 	raster_desc.AntialiasedLineEnable = FALSE;
-// }

@@ -81,7 +81,7 @@ VSOut main(VSIn input)
 
 	output.pos = mul(output.pos, view_proj);
 
-	output.normal = mul(input.normal, input.instance.model_xform);
+	output.normal = (mul(input.normal, input.instance.model_xform)).xyz;
 	
 	output.color = input.color;
     

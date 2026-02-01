@@ -10,19 +10,27 @@ class Gfx
 {
     friend class GfxAccess;
 
-    class DepthBuffer
+  public:
+    class DepthStencil
     {
       public:
         void init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT buffer_width, UINT buffer_height,
                   ID3D11RenderTargetView *render_target_view);
 
-        ID3D11DepthStencilView *get_view();
-
-      private:
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView> view;
+
+        enum State : unsigned
+        {
+            DEPTH_BUFFER,
+            ENVIRONMENT_BUFFER,
+
+            TOTAL_STATE_COUNT_DO_NOT_USE
+        };
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> states[State::TOTAL_STATE_COUNT_DO_NOT_USE];
+
+        void bind_state(ID3D11DeviceContext *ctx, State state);
     };
 
-  public:
     Gfx(HWND hwnd);
     ~Gfx();
 
@@ -38,6 +46,8 @@ class Gfx
     };
 
     void set_rasterizer_state(RasterizerState rs);
+
+    void bind_depth_stencil_state(DepthStencil::State state);
 
   private:
     Microsoft::WRL::ComPtr<ID3D11Device> device;
@@ -55,7 +65,8 @@ class Gfx
 
     Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
 
-    DepthBuffer depth_buffer;
+    D3D11_VIEWPORT viewport;
+    DepthStencil depth_stencil;
 };
 
 class GfxAccess

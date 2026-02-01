@@ -9,9 +9,9 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "../Gfx/InstanceBuffer.h"
-#include "../Gfx/Texture.h"
-#include "../Gfx/VertexShader.h"
+#include "../gfx/InstanceBuffer.h"
+#include "../gfx/Texture.h"
+#include "../gfx/VertexShader.h"
 #include "Animations.h"
 #include "Material.h"
 #include "Mesh.h"
@@ -29,7 +29,7 @@ template <typename T> class Model
     }
 
     Model(Gfx &gfx, const std::string &file_name, StdVector<T> &vertices, StdVector<uint32_t> &indices,
-          StdVector<Material> &materials, StdVector<Texture> &textures, InstanceData &instance_data,
+          StdVector<Material> &materials, StdVector<Texture2D> &textures, InstanceData &instance_data,
           uint32_t bone_start = 0)
         : instance_data(instance_data)
     {

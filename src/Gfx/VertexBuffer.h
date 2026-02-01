@@ -14,6 +14,13 @@ class VertexBuffer : public Buffer
         stride = sizeof(T); // assuming no padding/offset
     }
 
+    template <typename T> VertexBuffer(Gfx &gfx, T *vertices, size_t size) : Buffer(gfx)
+    {
+        stride = sizeof(T); // assuming no padding/offset
+
+        init(vertices, size * stride, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DEFAULT);
+    }
+
     template <typename T> VertexBuffer(Gfx &gfx, StdVector<T> &vertices) : Buffer(gfx)
     {
         stride = sizeof(T); // assuming no padding/offset

@@ -9,6 +9,7 @@
 #include "game/Camera.h"
 #include "game/Character.h"
 #include "game/Controller.h"
+#include "game/Skybox.h"
 #include "gfx/Gfx.h"
 #include "gfx/IndexBuffer.h"
 #include "gfx/InstanceBuffer.h"
@@ -24,7 +25,7 @@ float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-    Allocator<int>::allocator.init(50'000'000, 5000);
+    Allocator<int>::allocator.init(250'000'000, 8000);
 
     Window window;
 
@@ -66,7 +67,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         StdVector<Material> *materials = new StdVector<Material>;
         materials->reserve(64);
 
-        StdVector<Texture> textures;
+        StdVector<Texture2D> textures;
         textures.reserve(64);
 
         Global::input.register_devices();
@@ -112,7 +113,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         InstanceBuffer instance_buffer(gfx, &instance_data);
 
-        StructuredBuffer material_buffer(gfx, 0, materials->size(), sizeof(Material));
+        StructuredBuffer material_buffer(gfx, 1, materials->size(), sizeof(Material));
         material_buffer.bind_ps();
         material_buffer.update(materials->data(), materials->size() * sizeof(Material), 0);
 
@@ -127,6 +128,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         TexturePixelShader ps(gfx);
         VertexShader vs2(gfx);
         PixelShader ps2(gfx);
+
+        // Skybox
+        Skybox skybox(gfx, "assets/hdr/DayInTheClouds4k.hdr");
 
         ps.set_textures(textures);
 
@@ -157,6 +161,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         while (Global::running)
         {
+            camera.update(controller.get_camera_controls(), player_character.get_position());
+
             Global::clock.start_frame();
 
             window.handle_messages();
@@ -165,6 +171,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             gfx.clear(bg_color);
 
+            gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::DEPTH_BUFFER);
+
             ib.bind();
             vbs.bind();
             vs.bind();
@@ -172,6 +180,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             ps.bind();
 
             cube.get_meshes()[0].constant_buffer.bind();
+
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             // spider
@@ -250,6 +259,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             }
 
             bone_data_buffer.end_batch_update();
+
+            gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
+            gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::ENVIRONMENT_BUFFER);
+            skybox.bind_and_draw();
 
             camera.update(controller.get_camera_controls(), player_character.get_position());
 
