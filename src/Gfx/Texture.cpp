@@ -1,5 +1,8 @@
 #include "Texture.h"
 
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <stdexcept>
 
@@ -128,10 +131,15 @@ void Texture2D::load(const aiTexture *ai_texture)
 #define STBI_ONLY_HDR
 #include <nothings/stb/stb_image.h>
 
+struct Pixel
+{
+    unsigned char r, g, b, a;
+};
+
 void Texture2D::load_cube_from_hdr(const char *file_name)
 {
-    int x, y, n;
-    unsigned char *data = stbi_load(file_name, &x, &y, &n, 4);
+    int width, height, n;
+    unsigned char *data = stbi_load(file_name, &width, &height, &n, 4);
 
     std::cout << "HDR file contains " << n << " channels\n";
 
@@ -148,9 +156,11 @@ void Texture2D::load_cube_from_hdr(const char *file_name)
         throw std::runtime_error(msg);
     }
 
+    constexpr size_t cube_span = 1024;
+
     D3D11_TEXTURE2D_DESC texture_desc = {};
-    texture_desc.Width = x / 2;
-    texture_desc.Height = y;
+    texture_desc.Width = cube_span;
+    texture_desc.Height = cube_span;
     texture_desc.ArraySize = 6;
     texture_desc.MipLevels = 1;
     texture_desc.SampleDesc.Count = 1;
@@ -161,22 +171,62 @@ void Texture2D::load_cube_from_hdr(const char *file_name)
     texture_desc.CPUAccessFlags = 0;
     texture_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-    UINT pitch = x * 2; //* 4;
-    UINT size = pitch * y;
+    Pixel *p = Allocator<Pixel>().allocate(6 * cube_span * cube_span);
+    Pixel(&cube)[6][cube_span][cube_span] = reinterpret_cast<Pixel(&)[6][cube_span][cube_span]>(*p);
 
-    unsigned char *buffer = static_cast<unsigned char *>(malloc(size));
-    memcpy(buffer, data, size);
+    for (size_t face = 0; face < 6; ++face)
+    {
+        for (size_t row = 0; row < cube_span; ++row)
+        {
+            float dst_v = 1.0f - ((row + 0.5f) * 2.0f / cube_span);
 
-    // TODO why does this crash
-    // stbi_image_free(data);
+            for (size_t pixel = 0; pixel < cube_span; ++pixel)
+            {
+                float dst_u = (pixel + 0.5f) * 2.0f / cube_span - 1.0f;
+
+                float x, y, z;
+                switch (face)
+                {
+                case D3D11_TEXTURECUBE_FACE_POSITIVE_X:
+                    x = 1.0f, y = dst_v, z = -dst_u;
+                    break;
+                case D3D11_TEXTURECUBE_FACE_NEGATIVE_X:
+                    x = -1.0f, y = dst_v, z = dst_u;
+                    break;
+                case D3D11_TEXTURECUBE_FACE_POSITIVE_Y:
+                    x = dst_u, y = 1.0f, z = -dst_v;
+                    break;
+                case D3D11_TEXTURECUBE_FACE_NEGATIVE_Y:
+                    x = dst_u, y = -1.0f, z = dst_v;
+                    break;
+                case D3D11_TEXTURECUBE_FACE_POSITIVE_Z:
+                    x = dst_u, y = dst_v, z = 1.0f;
+                    break;
+                case D3D11_TEXTURECUBE_FACE_NEGATIVE_Z:
+                    x = -dst_u, y = dst_v, z = -1.0f;
+                }
+
+                float theta = std::atan2(x, z);                      // longitude
+                float phi = std::atan2(y, std::sqrt(x * x + z * z)); // latitude
+
+                float src_u = (DirectX::XM_PI + theta) / (DirectX::XM_PI * 2.0f);
+                float src_v = (DirectX::XM_PIDIV2 - phi) / DirectX::XM_PI;
+
+                size_t pixel_u = size_t(src_u * width + width) % width,
+                       pixel_v = size_t(src_v * height + height) % height;
+
+                cube[face][row][pixel] = *reinterpret_cast<Pixel *>(data + ((long long)pixel_v * width + pixel_u) * 4);
+            }
+        }
+    }
 
     D3D11_SUBRESOURCE_DATA init_data[6];
 
-    for (auto &id : init_data)
+    for (size_t face = 0; face < 6; ++face)
     {
-        id.pSysMem = buffer;
-        id.SysMemPitch = pitch;
-        id.SysMemSlicePitch = 0;
+        init_data[face].pSysMem = cube[face];
+        init_data[face].SysMemPitch = cube_span * sizeof(*p);
+        init_data[face].SysMemSlicePitch = 0;
     }
 
     HANDLE_GFX_ERR(device->CreateTexture2D(&texture_desc, init_data, texture.GetAddressOf()));

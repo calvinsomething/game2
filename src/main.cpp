@@ -25,7 +25,7 @@ float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-    Allocator<int>::allocator.init(250'000'000, 8000);
+    Allocator<int>::allocator.init(500'000'000, 10'000);
 
     Window window;
 
