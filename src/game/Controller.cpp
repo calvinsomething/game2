@@ -46,7 +46,7 @@ void Controller::handle_movement_and_rotation(Input::KeyboardState &keyboard, In
     {
         if (_face_away_from_camera)
         {
-            character_controls.movement.x += 1;
+            character_controls.movement.x += character_controls.movement.y ? character_controls.movement.y : 1;
         }
         else
         {
@@ -57,7 +57,7 @@ void Controller::handle_movement_and_rotation(Input::KeyboardState &keyboard, In
     {
         if (mouse.right_button.is_down)
         {
-            character_controls.movement.x -= 1;
+            character_controls.movement.x -= character_controls.movement.y ? character_controls.movement.y : 1;
         }
         else
         {
