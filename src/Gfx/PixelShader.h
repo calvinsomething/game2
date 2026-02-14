@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComputeShader.h"
 #include "Shader.h"
 
 #include "../gfx/Texture.h"
@@ -30,7 +31,7 @@ class SkyboxPixelShader : public PixelShader
   public:
     SkyboxPixelShader(Gfx &gfx);
 
-    void load_texture(const char *file_name);
+    void load_texture(ComputeShader &cs, size_t cube_span);
 
     void bind() override;
 

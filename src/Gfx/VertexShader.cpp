@@ -4,7 +4,7 @@
 
 VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
 {
-    auto byte_code = load("vs.cso");
+    auto byte_code = load(ShaderSource::VERTEX);
 
     HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
 
@@ -60,7 +60,7 @@ void VertexShader::draw_indexed_instanced(UINT start_index, UINT index_count, UI
 // TextureVertexShader
 TextureVertexShader::TextureVertexShader(Gfx &gfx) : Shader(gfx)
 {
-    auto byte_code = load("vs_tex.cso");
+    auto byte_code = load(ShaderSource::VERTEX_TEXTURE);
 
     HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
 
@@ -118,7 +118,7 @@ void TextureVertexShader::draw_indexed_instanced(UINT start_index, UINT index_co
 
 SkyboxVertexShader::SkyboxVertexShader(Gfx &gfx) : Shader(gfx)
 {
-    auto byte_code = load("vs_skybox.cso");
+    auto byte_code = load(ShaderSource::VERTEX_SKYBOX);
 
     HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
 

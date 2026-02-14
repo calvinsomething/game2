@@ -10,6 +10,8 @@
 
 #include "../Error.h"
 #include "../util.h"
+#include "ComputeShader.h"
+#include "StructuredBuffer.h"
 
 // Texture
 //
@@ -125,36 +127,59 @@ void Texture2D::load(const aiTexture *ai_texture)
     HANDLE_GFX_ERR(device->CreateShaderResourceView(texture.Get(), &view_desc, view.GetAddressOf()));
 }
 
-// TextureCube
-//
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_HDR
-#include <nothings/stb/stb_image.h>
-
-struct Pixel
+ID3D11Texture2D *Texture2D::get_resource()
 {
-    unsigned char r, g, b, a;
-};
+    return texture.Get();
+}
 
-void Texture2D::load_cube_from_hdr(const char *file_name)
+void Texture2D::initialize_texture_cube(size_t cube_span)
 {
-    int width, height, n;
-    unsigned char *data = stbi_load(file_name, &width, &height, &n, 4);
+    // create and load data into texture resource
+    D3D11_TEXTURE2D_DESC texture_desc = {};
+    texture_desc.Width = cube_span;
+    texture_desc.Height = cube_span;
+    texture_desc.ArraySize = 6;
+    texture_desc.MipLevels = 1;
+    texture_desc.SampleDesc.Count = 1;
+    texture_desc.SampleDesc.Quality = 0;
+    texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    texture_desc.Usage = D3D11_USAGE_DEFAULT;
+    texture_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+    texture_desc.CPUAccessFlags = 0;
+    texture_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-    std::cout << "HDR file contains " << n << " channels\n";
+    D3D11_SUBRESOURCE_DATA init_data[6];
 
-    if (!data)
+    uint32_t *red = Allocator<uint32_t>().allocate(1024 * 1024);
+    for (size_t i = 0; i < 1024; ++i)
     {
-        const char *reason = stbi_failure_reason();
-        if (reason)
+        for (size_t j = 0; j < 1024; ++j)
         {
-            auto msg = build_string("Failed to load file '", file_name, "': ", reason);
-            throw std::runtime_error(msg);
+            red[i * 1024 + j] = 0xFF0000FF;
         }
-
-        auto msg = build_string("Failed to load file: ", file_name);
-        throw std::runtime_error(msg);
     }
+
+    for (size_t face = 0; face < 6; ++face)
+    {
+        init_data[face].pSysMem = red;
+        init_data[face].SysMemPitch = cube_span * 4;
+        init_data[face].SysMemSlicePitch = 0;
+    }
+
+    HANDLE_GFX_ERR(device->CreateTexture2D(&texture_desc, init_data, texture.GetAddressOf()));
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+    srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    srv_desc.TextureCube = {};
+    srv_desc.TextureCube.MipLevels = 1;
+
+    HANDLE_GFX_ERR(device->CreateShaderResourceView(texture.Get(), &srv_desc, view.GetAddressOf()));
+}
+
+/*
+
+
 
     constexpr size_t cube_span = 1024;
 
@@ -240,3 +265,4 @@ void Texture2D::load_cube_from_hdr(const char *file_name)
 
     HANDLE_GFX_ERR(device->CreateShaderResourceView(texture.Get(), &view_desc, view.GetAddressOf()));
 }
+*/

@@ -30,7 +30,9 @@ class Texture2D : public Texture
     void load(const wchar_t *file_name);
     void load(const aiTexture *ai_texture);
 
-    void load_cube_from_hdr(const char *file_name);
+    void initialize_texture_cube(size_t cube_span);
+
+    ID3D11Texture2D *get_resource();
 
   private:
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;

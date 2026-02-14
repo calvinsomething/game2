@@ -28,12 +28,14 @@ set_src_list(main.cpp
 	game/Controller.cpp
 	game/Skybox.cpp
 	gfx/Buffer.cpp
+	gfx/ComputeShader.cpp
 	gfx/ConstantBuffer.cpp
 	gfx/DepthStencil.cpp
 	gfx/Gfx.cpp
 	gfx/IndexBuffer.cpp
 	gfx/PixelShader.cpp
 	gfx/Shader.cpp
+	gfx/StaticBuffer.cpp
 	gfx/Texture.cpp
 	gfx/VertexBuffer.cpp
 	gfx/VertexShader.cpp
@@ -113,32 +115,34 @@ set(vs_files
 	vs_tex.hlsl
 	vs_skybox.hlsl)
 
-foreach(file_name ${vs_files})
-	set_source_files_properties(${file_name} PROPERTIES
-		type vs
-		version _5_0)
-endforeach()
+set_source_files_properties(${vs_files}
+	PROPERTIES
+		profile vs_5_0)
 
 set(ps_files
 	ps.hlsl
 	ps_tex.hlsl
 	ps_skybox.hlsl)
 
-foreach(file_name ${ps_files})
-	set_source_files_properties(${file_name} PROPERTIES
-		type ps
-		version _5_0)
-endforeach()
+set_source_files_properties(${ps_files}
+	PROPERTIES
+		profile ps_5_0)
 
-set(shader_files "${vs_files};${ps_files}")
+set(cs_files
+	cs_skybox.hlsl)
+
+set_source_files_properties(${cs_files}
+	PROPERTIES
+		profile cs_5_0)
+
+set(shader_files "${vs_files};${ps_files};${cs_files}")
 
 foreach(file ${shader_files})
 	get_filename_component(shader_name ${file} NAME_WE)
-	get_source_file_property(shader_type ${file} type)
-	get_source_file_property(shader_version ${file} version)
+	get_source_file_property(shader_profile ${file} profile)
 
 	add_custom_command(TARGET shaders
-		COMMAND fxc.exe /T ${shader_type}${shader_version} /Fo ${shaders_bin}/${shader_name}.cso /Fd ${shaders_bin}/${shader_name}.pdb /Zi $<$<CONFIG:Debug>:/Od> ${file}
+		COMMAND fxc.exe /T ${shader_profile} /Fo ${shaders_bin}/${shader_name}.cso /Fd ${shaders_bin}/${shader_name}.pdb /Zi $<$<CONFIG:Debug>:/Od> ${file}
 		MAIN_DEPENDENCY ${file}
 		WORKING_DIRECTORY ${shaders_src}
 		COMMENT "Compiling ${file}...")

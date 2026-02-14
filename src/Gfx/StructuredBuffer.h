@@ -5,36 +5,28 @@
 #include "../Error.h"
 #include "../util.h"
 #include "Gfx.h"
-#include <iostream>
 
 class StructuredBuffer : public Buffer
 {
   public:
     template <typename T>
-    StructuredBuffer(Gfx &gfx, size_t slot_index, StdVector<T> &elements) : Buffer(gfx), slot_index(slot_index)
+    StructuredBuffer(Gfx &gfx, size_t slot_index, StdVector<T> &elements)
+        : Buffer(gfx), stride(sizeof(T)), slot_index(slot_index)
     {
-        stride = sizeof(T);
-
-        init(elements.data(), elements.size() * stride, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC,
-             D3D11_CPU_ACCESS_WRITE, 0, 0, stride, D3D11_RESOURCE_MISC_BUFFER_STRUCTURED);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
-        desc.Format = DXGI_FORMAT_UNKNOWN;
-        desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-
-        desc.Buffer.FirstElement = 0;
-        desc.Buffer.NumElements = elements.size();
-
-        HANDLE_GFX_ERR(device->CreateShaderResourceView(buffer.Get(), &desc, srv.GetAddressOf()));
+        init(elements.data(), elements.size());
     }
 
     StructuredBuffer(Gfx &gfx, size_t slot_index, size_t element_count, size_t element_size)
-        : Buffer(gfx), slot_index(slot_index)
+        : Buffer(gfx), stride(element_size), slot_index(slot_index)
     {
-        stride = element_size;
+        init(nullptr, element_count);
+    }
 
-        init(nullptr, element_count * stride, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE,
-             0, 0, stride, D3D11_RESOURCE_MISC_BUFFER_STRUCTURED);
+    void init(void *data, size_t element_count, D3D11_USAGE usage = D3D11_USAGE_DYNAMIC,
+              UINT cpu_access = D3D11_CPU_ACCESS_WRITE)
+    {
+        Buffer::init(data, element_count * stride, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, cpu_access, 0, 0,
+                     stride, D3D11_RESOURCE_MISC_BUFFER_STRUCTURED);
 
         D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
         desc.Format = DXGI_FORMAT_UNKNOWN;
@@ -54,6 +46,11 @@ class StructuredBuffer : public Buffer
     void bind_ps()
     {
         HANDLE_GFX_INFO(ctx->PSSetShaderResources(slot_index, 1, srv.GetAddressOf()));
+    }
+
+    void bind_cs()
+    {
+        HANDLE_GFX_INFO(ctx->CSSetShaderResources(slot_index, 1, srv.GetAddressOf()));
     }
 
   private:
