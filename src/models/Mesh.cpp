@@ -1,4 +1,5 @@
 #include "Mesh.h"
+
 #include "assimp/vector3.h"
 
 // helpers

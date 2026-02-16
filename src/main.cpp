@@ -87,11 +87,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Cube cube(gfx, L"assets/textures/minecraft_cube.dds", *vertices, *indices, *materials, textures,
                   instance_data[0]);
-        cube.set_correction_transform(
-            DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)}));
+        cube.set_correction_transform(DirectX::XMMatrixMultiply(
+            DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)}),
+            DirectX::XMMatrixTranslation(0.0f, 5.0f, 0.0f)));
 
         Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures,
                      instance_data[1]);
+        spider.set_correction_transform(
+            DirectX::XMMatrixMultiply(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f),
+                                      DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{0.0f, 1.0f, 0.0f, 0.0f})),
+            0.0f, *vertices);
 
         Model ninja(gfx, "assets/models/ninja.fbx", *vertices2, *indices2, *materials, textures, instance_data[2],
                     spider.get_bone_count());
@@ -100,21 +105,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                                       DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{0.0f, 1.0f, 0.0f, 0.0f})),
             0.0f, *vertices2);
 
-        Model grass_platform(gfx, "assets/models/GrassPlatform/GrassPlatform.obj", *vertices2, *indices2, *materials,
+        Model grass_platform(gfx, "assets/models/GrassPlatform/grass_platform.obj", *vertices2, *indices2, *materials,
                              textures, instance_data[3]);
         grass_platform.set_correction_transform(
             DirectX::XMMatrixMultiply(
-                DirectX::XMMatrixScaling(50.0f, 50.0f, 50.0f),
+                DirectX::XMMatrixScaling(70.0f, 70.0f, 70.0f),
                 DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)})),
             1.0f, *vertices2);
 
         Character player_character(ninja);
+        player_character.set_position({0.0f, 0.0f, -10.0f});
 
-        cube.set_position({-7.0f, 3.0f, 5.0f});
+        cube.set_position({-7.0f, 0.0f, 5.0f});
         spider.set_position({7.0f, 0.0f, 5.0f});
-
-        cube.scale(0.6f, 0.6f, 0.6f);
-        spider.scale(0.6f, 0.6f, 0.6f);
 
         grass_platform.update();
         cube.update();
@@ -179,6 +182,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             camera.update(controller.get_camera_controls(), player_character.get_position());
 
+            controller.poll_input(Global::input);
+            if (controller.face_away_from_camera())
+            {
+                DirectX::XMFLOAT3 f3;
+                DirectX::XMStoreFloat3(&f3, camera.get_direction());
+
+                f3.y = 0;
+
+                player_character.set_twelve_oclock(DirectX::XMVector3NormalizeEst(DirectX::XMLoadFloat3(&f3)));
+            }
+
+            player_character.update(controller.get_character_controls());
+
             gfx.clear(bg_color);
 
             gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::DEPTH_BUFFER);
@@ -217,14 +233,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             UINT prev_index = cube.get_meshes()[0].get_index_count(),
                  prev_vertex = cube.get_meshes()[0].get_vertex_count();
 
+            // setting two_sided for this model because of "fur"
+            gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
             for (Mesh<TextureVertex> &m : spider.get_meshes())
             {
                 UINT n = m.get_index_count();
 
                 m.constant_buffer.bind();
 
-                gfx.set_rasterizer_state(m.is_two_sided() ? Gfx::RasterizerState::TWO_SIDED
-                                                          : Gfx::RasterizerState::STANDARD);
+                // Blender apparently doesn't export the two_sided fbx value...
+                // gfx.set_rasterizer_state(m.is_two_sided() ? Gfx::RasterizerState::TWO_SIDED
+                //                                           : Gfx::RasterizerState::STANDARD);
 
                 vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
 
@@ -254,26 +273,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 prev_vertex += m.get_vertex_count();
             }
 
-            vs2.draw_indexed_instanced(prev_index, grass_platform.get_meshes()[0].get_index_count(), 3, 1, prev_vertex);
-
-            controller.poll_input(Global::input);
-            if (controller.face_away_from_camera())
+            for (Mesh<Vertex> &m : grass_platform.get_meshes())
             {
-                DirectX::XMFLOAT3 f3;
-                DirectX::XMStoreFloat3(&f3, camera.get_direction());
+                UINT n = m.get_index_count();
 
-                f3.y = 0;
+                m.constant_buffer.bind();
 
-                player_character.set_twelve_oclock(DirectX::XMVector3NormalizeEst(DirectX::XMLoadFloat3(&f3)));
+                vs2.draw_indexed_instanced(prev_index, n, 3, 1, prev_vertex);
+
+                prev_index += n;
+                prev_vertex += m.get_vertex_count();
             }
-
-            player_character.update(controller.get_character_controls());
 
             instance_buffer.update(instance_data, sizeof(instance_data));
 
-            gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
+            // draw skybox
             gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::ENVIRONMENT_BUFFER);
+            gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
             skybox.bind_and_draw();
+            gfx.set_rasterizer_state(Gfx::RasterizerState::STANDARD);
 
             gfx.end_frame();
         }

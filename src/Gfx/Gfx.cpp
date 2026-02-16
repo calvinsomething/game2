@@ -102,6 +102,8 @@ void Gfx::set_rasterizer_state(RasterizerState rs)
     {
         auto p = reinterpret_cast<Microsoft::WRL::ComPtr<ID3D11RasterizerState> *>(&rasterizer_states);
         ctx->RSSetState(p[int(rs)].Get());
+
+        current_rasterizer_state = rs;
     }
 }
 
