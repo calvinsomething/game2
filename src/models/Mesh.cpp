@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "assimp/vector3.h"
 
 // helpers
 DirectX::XMFLOAT3 load_float3(aiVector3D &v)
@@ -28,7 +29,12 @@ template <>
 void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertices,
                                TextureCoordinateIndices coordinate_indices)
 {
-    vertices.push_back({load_float3(mesh.mVertices[i]), get_normal(mesh, i)});
+    aiVector3D &v = mesh.mVertices[i];
+
+    vertices.push_back({load_float3(v), get_normal(mesh, i)});
+
+    min_y = v.y < min_y ? v.y : min_y;
+    max_y = v.y > max_y ? v.y : max_y;
 
     // DirectX::XMFLOAT4 color;
 
@@ -66,6 +72,9 @@ void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureV
     }
 
     vertices.push_back({load_float3(v), get_normal(mesh, i), get_tangent(mesh, i), get_bitangent(mesh, i), tc});
+
+    min_y = v.y < min_y ? v.y : min_y;
+    max_y = v.y > max_y ? v.y : max_y;
 }
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)

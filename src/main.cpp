@@ -19,6 +19,7 @@
 #include "gfx/VertexShader.h"
 #include "input/Input.h"
 #include "models/Cube.h"
+#include "models/Model.h"
 #include "util.h"
 
 float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
@@ -82,31 +83,40 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                                        Global::lighting_data); // bound as static/read-only
         lighting_buffer.bind();
 
-        InstanceData instance_data[3]{};
+        InstanceData instance_data[4]{};
 
         Cube cube(gfx, L"assets/textures/minecraft_cube.dds", *vertices, *indices, *materials, textures,
                   instance_data[0]);
-        cube.set_base_transform(DirectX::XMMatrixRotationQuaternion(
-            DirectX::XMVector4Normalize(DirectX::XMVECTOR{-1.0f, 0.0f, 0.0f, 1.0f})));
+        cube.set_correction_transform(
+            DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)}));
 
         Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures,
                      instance_data[1]);
 
         Model ninja(gfx, "assets/models/ninja.fbx", *vertices2, *indices2, *materials, textures, instance_data[2],
                     spider.get_bone_count());
-        ninja.set_base_transform(DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{0.0f, 1.0f}));
+        ninja.set_correction_transform(
+            DirectX::XMMatrixMultiply(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f),
+                                      DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{0.0f, 1.0f, 0.0f, 0.0f})),
+            0.0f, *vertices2);
+
+        Model grass_platform(gfx, "assets/models/GrassPlatform/GrassPlatform.obj", *vertices2, *indices2, *materials,
+                             textures, instance_data[3]);
+        grass_platform.set_correction_transform(
+            DirectX::XMMatrixMultiply(
+                DirectX::XMMatrixScaling(50.0f, 50.0f, 50.0f),
+                DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)})),
+            1.0f, *vertices2);
 
         Character player_character(ninja);
 
-        cube.set_position({-7.0f, 0.0f, 5.0f});
+        cube.set_position({-7.0f, 3.0f, 5.0f});
         spider.set_position({7.0f, 0.0f, 5.0f});
-
-        player_character.set_position({});
 
         cube.scale(0.6f, 0.6f, 0.6f);
         spider.scale(0.6f, 0.6f, 0.6f);
-        ninja.scale(0.6f, 0.6f, 0.6f);
 
+        grass_platform.update();
         cube.update();
         spider.update();
         ninja.update();
@@ -243,6 +253,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 prev_index += n;
                 prev_vertex += m.get_vertex_count();
             }
+
+            vs2.draw_indexed_instanced(prev_index, grass_platform.get_meshes()[0].get_index_count(), 3, 1, prev_vertex);
 
             controller.poll_input(Global::input);
             if (controller.face_away_from_camera())

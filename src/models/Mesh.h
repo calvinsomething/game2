@@ -20,6 +20,11 @@ class MeshBase
         return UINT(index_count);
     }
 
+    UINT get_start_vertex() const
+    {
+        return UINT(start_vertex);
+    }
+
     UINT get_vertex_count() const
     {
         return UINT(vertex_count);
@@ -30,13 +35,25 @@ class MeshBase
         return two_sided;
     }
 
+    float get_min_y()
+    {
+        return min_y;
+    }
+
+    float get_max_y()
+    {
+        return max_y;
+    }
+
   protected:
     MeshBase()
     {
     }
 
     size_t start_vertex, vertex_count, start_index, index_count;
-    bool two_sided;
+    bool two_sided = false;
+
+    float min_y = std::numeric_limits<float>::infinity(), max_y = std::numeric_limits<float>::lowest();
 };
 
 inline void mesh_bind_cb(ID3D11DeviceContext *ctx, ID3D11Buffer *buffer, size_t slot_index)

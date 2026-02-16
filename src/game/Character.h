@@ -77,7 +77,7 @@ class Character
         std::optional<DirectX::XMVECTOR> directions[3][3] = {{}, {Global::north}};
     };
 
-    DirectX::XMFLOAT3 position;
+    DirectX::XMFLOAT3 position = {};
 
     DirectionPad direction_pad = {};
 

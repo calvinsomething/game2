@@ -6,18 +6,18 @@ cbuffer CameraBuffer : register(b0)
 
 struct VSOut
 {
-	float3 vertex_position : POSITION;
-	float4 pixel_position : SV_Position;
+	float3 world_position : POSITION;
+	float4 ndc_position : SV_Position;
 };
 
 VSOut main(float3 position : POSITION)
 {
 	VSOut output;
 
-	output.vertex_position = position;
+	output.world_position = position;
 
-	output.pixel_position = mul(position, view_proj);
-	output.pixel_position.z = output.pixel_position.w;
+	output.ndc_position = mul(position, view_proj);
+	output.ndc_position.z = output.ndc_position.w;
 
 	return output;
 }

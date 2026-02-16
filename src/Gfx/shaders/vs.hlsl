@@ -84,6 +84,6 @@ VSOut main(VSIn input)
 	output.normal = (mul(input.normal, input.instance.model_xform)).xyz;
 	
 	output.color = input.color;
-    
+
     return output;
 }

@@ -182,7 +182,7 @@ class Bone
 
         auto rotation_xform = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.z, rotation.y);
 
-        // apply armature rotation, reverse the translation, rotate back
+        // apply armature rotation, *reverse the translation*, rotate back
         DirectX::XMMATRIX matrix = rotation_xform * DirectX::XMMatrixTranslation(-tx, -tz, -ty) *
                                    DirectX::XMMatrixInverse(nullptr, rotation_xform);
 

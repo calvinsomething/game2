@@ -79,6 +79,9 @@ template <typename T> class Model
 
             Mesh<T> &m = meshes.back();
 
+            min_y = m.get_min_y() < min_y ? m.get_min_y() : min_y;
+            max_y = m.get_max_y() > max_y ? m.get_max_y() : max_y;
+
             if (scene->HasAnimations())
             {
                 m.load_bones(mesh, vertices);
@@ -170,14 +173,45 @@ template <typename T> class Model
         scaling *= DirectX::XMMatrixScaling(x, y, z);
     }
 
-    void set_base_transform(const DirectX::XMMATRIX &xform)
+    // y_origin_to_height_ratio must be between 0.0f - 1.0f, otherwise it will be ignored
+    void set_correction_transform(const DirectX::XMMATRIX &xform, float y_origin_to_height_ratio = -1.0f,
+                                  const StdVector<T> &vertices = {})
     {
-        base_transform = xform;
+        min_y = std::numeric_limits<float>::infinity(), max_y = std::numeric_limits<float>::lowest();
+
+        correction_transform = xform;
+
+        if (y_origin_to_height_ratio >= 0.0f && y_origin_to_height_ratio <= 1.0f && !vertices.empty())
+        {
+            size_t vertex_count = 0, start_vertex = vertices.size();
+
+            for (auto &m : meshes)
+            {
+                vertex_count += m.get_vertex_count();
+                start_vertex = m.get_start_vertex() < start_vertex ? m.get_start_vertex() : start_vertex;
+            }
+
+            for (size_t i = 0; i < vertex_count; ++i)
+            {
+                DirectX::XMVECTOR vec = DirectX::XMVector3Transform(
+                    DirectX::XMLoadFloat3(&vertices[start_vertex + i].position), correction_transform);
+                DirectX::XMFLOAT3 f3;
+                DirectX::XMStoreFloat3(&f3, vec);
+
+                min_y = f3.y < min_y ? f3.y : min_y;
+                max_y = f3.y > max_y ? f3.y : max_y;
+            }
+            float model_height = max_y - min_y;
+
+            correction_transform = DirectX::XMMatrixMultiply(
+                correction_transform,
+                DirectX::XMMatrixTranslation(0.0f, -min_y - y_origin_to_height_ratio * model_height, 0.0f));
+        }
     }
 
     DirectX::XMMATRIX get_transform()
     {
-        return base_transform * scaling * DirectX::XMMatrixRotationQuaternion(orientation) *
+        return correction_transform * scaling * DirectX::XMMatrixRotationQuaternion(orientation) *
                DirectX::XMMatrixTranslation(position.x, position.y, position.z);
     }
 
@@ -207,7 +241,7 @@ template <typename T> class Model
     }
 
   protected:
-    DirectX::XMMATRIX base_transform = DirectX::XMMatrixIdentity();
+    DirectX::XMMATRIX correction_transform = DirectX::XMMatrixIdentity();
 
     InstanceData &instance_data;
     uint32_t bone_count = 0;
@@ -232,4 +266,6 @@ template <typename T> class Model
     std::chrono::time_point<decltype(clock)> animation_start_time = {};
 
     Animations animations;
+
+    float min_y = std::numeric_limits<float>::infinity(), max_y = std::numeric_limits<float>::lowest();
 };
