@@ -3,6 +3,8 @@
 
 #include <exception>
 
+#include "init.h"
+
 #include "Error.h"
 #include "Global.h"
 #include "Window.h"
@@ -20,14 +22,11 @@
 #include "input/Input.h"
 #include "models/Cube.h"
 #include "models/Model.h"
-#include "util.h"
 
 float bg_color[] = {0.15f, 0.15f, 0.2f, 1.0f};
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-    Allocator<int>::allocator.init(500'000'000, 10'000);
-
     Window window;
 
     RECT rect = window.get_rect();
@@ -79,7 +78,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
         Controller controller;
 
-        ConstantBuffer lighting_buffer(gfx, ConstantBuffer::Slot::LIGHTING_BUFFER, &ConstantBuffer::bind_vs_and_ps,
+        ConstantBuffer lighting_buffer(gfx, ConstantBuffer::Slot::LIGHTING_BUFFER, ConstantBuffer::bind_vs_and_ps,
                                        Global::lighting_data); // bound as static/read-only
         lighting_buffer.bind();
 
@@ -113,8 +112,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)})),
             1.0f, *vertices2);
 
+        for (Mesh<Vertex> &m : grass_platform.get_meshes())
+        {
+            Global::collision_system.load_floor_triangles(&vertices2->at(m.get_start_vertex()),
+                                                          &indices2->at(m.get_start_index()), m.get_index_count(),
+                                                          grass_platform.get_transform());
+        }
+
         Character player_character(ninja);
-        player_character.set_position({0.0f, 0.0f, -10.0f});
+        player_character.set_position({0.0f, 0.0f, -8.0f});
 
         cube.set_position({-7.0f, 0.0f, 5.0f});
         spider.set_position({7.0f, 0.0f, 5.0f});

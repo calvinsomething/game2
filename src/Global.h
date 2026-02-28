@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 
 #include "game/Clock.h"
+#include "game/CollisionSystem.h"
 #include "input/Input.h"
 
 namespace Global
@@ -18,6 +19,8 @@ extern float movement_speed;
 extern Input input;
 
 extern Clock clock;
+
+extern CollisionSystem collision_system;
 
 struct alignas(16) LightingData
 {

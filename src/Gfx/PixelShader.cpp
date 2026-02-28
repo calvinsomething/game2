@@ -63,7 +63,6 @@ void SkyboxPixelShader::load_texture(ComputeShader &cs, size_t cube_span)
 {
     texture_array.initialize_texture_cube(cube_span);
 
-    // TODO why is the UAV not loading into the CS properly
     D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
     uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
     uav_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;

@@ -43,6 +43,7 @@ class Gfx
     {
         STANDARD,
         TWO_SIDED,
+        WIREFRAME,
     };
 
     void set_rasterizer_state(RasterizerState rs);
@@ -60,6 +61,7 @@ class Gfx
     {
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> standard;
         Microsoft::WRL::ComPtr<ID3D11RasterizerState> two_sided;
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> wireframe;
     } rasterizer_states;
     RasterizerState current_rasterizer_state = RasterizerState::STANDARD;
 

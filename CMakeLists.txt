@@ -25,6 +25,7 @@ set_src_list(main.cpp
 	game/Camera.cpp
 	game/Character.cpp
 	game/Clock.cpp
+	game/CollisionSystem.cpp
 	game/Controller.cpp
 	game/Skybox.cpp
 	gfx/Buffer.cpp

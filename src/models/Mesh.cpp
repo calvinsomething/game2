@@ -34,9 +34,6 @@ void Mesh<Vertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<Vertex> &vertic
 
     vertices.push_back({load_float3(v), get_normal(mesh, i)});
 
-    min_y = v.y < min_y ? v.y : min_y;
-    max_y = v.y > max_y ? v.y : max_y;
-
     // DirectX::XMFLOAT4 color;
 
     // aiColor4D *c = mesh.mColors[0];
@@ -73,9 +70,6 @@ void Mesh<TextureVertex>::load_vertex(aiMesh &mesh, size_t i, StdVector<TextureV
     }
 
     vertices.push_back({load_float3(v), get_normal(mesh, i), get_tangent(mesh, i), get_bitangent(mesh, i), tc});
-
-    min_y = v.y < min_y ? v.y : min_y;
-    max_y = v.y > max_y ? v.y : max_y;
 }
 
 template <> void Mesh<TextureVertex>::load_bones(aiMesh &mesh, StdVector<TextureVertex> &vertices)

@@ -86,6 +86,9 @@ Gfx::Gfx(HWND hwnd)
         rd.CullMode = D3D11_CULL_NONE;
         HANDLE_GFX_ERR(device->CreateRasterizerState(&rd, rasterizer_states.two_sided.GetAddressOf()));
 
+        rd.FillMode = D3D11_FILL_WIREFRAME;
+        HANDLE_GFX_ERR(device->CreateRasterizerState(&rd, rasterizer_states.wireframe.GetAddressOf()));
+
         set_rasterizer_state(RasterizerState::STANDARD);
     }
 

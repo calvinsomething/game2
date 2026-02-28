@@ -34,6 +34,14 @@ DirectX::XMFLOAT3 normalize(DirectX::XMFLOAT3 f3)
     return f3;
 }
 
+DirectX::XMFLOAT3 transform(DirectX::XMFLOAT3 f3, const DirectX::XMMATRIX &xform)
+{
+    DirectX::XMVECTOR vec = DirectX::XMLoadFloat3(&f3);
+    vec = DirectX::XMVector3Transform(vec, xform);
+    DirectX::XMStoreFloat3(&f3, vec);
+    return f3;
+}
+
 std::string load_file(const std::string &file_name)
 {
     std::ifstream fs(file_name, std::ios::binary | std::ios::ate);

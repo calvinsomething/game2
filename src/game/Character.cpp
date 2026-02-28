@@ -1,9 +1,14 @@
 #include "Character.h"
 
-constexpr float SIN_PI_DIV_8 = 0.3826834323650897717284599840304;
-constexpr float SIN_PI_DIV_4 = 0.70710678118654752440084436210485;
+#include <iostream>
 
-constexpr float COS_PI_DIV_8 = 0.92387953251128675612818318939679;
+#include "../debug.h"
+#include "CollisionSystem.h"
+
+constexpr float SIN_PI_DIV_8 = 0.382683432365f;
+constexpr float SIN_PI_DIV_4 = 0.707106781187f;
+
+constexpr float COS_PI_DIV_8 = 0.923879532511f;
 
 const DirectX::XMVECTOR Character::DirectionPad::rotations[3][3] = {
     {
@@ -56,6 +61,11 @@ void Character::update(const Controls &controls)
         Character::state = State::attacking;
         model.start_animation("Punch");
     }
+    else if (controls.action == Controls::Action::action_2)
+    {
+        Character::state = State::attacking;
+        model.start_animation("Weapon");
+    }
     else
     {
         switch (Character::state)
@@ -104,8 +114,13 @@ DirectX::XMFLOAT3 Character::get_position()
 
 void Character::set_position(DirectX::XMFLOAT3 position)
 {
-    Character::position = position;
-    model.set_position(position);
+    CollisionFloor floor = Global::collision_system.get_floor(position);
+
+    if (floor.hit) // forces character to remain on floor
+    {
+        Character::position = position;
+        model.set_position(position);
+    }
 }
 
 void Character::set_twelve_oclock(DirectX::XMVECTOR direction)

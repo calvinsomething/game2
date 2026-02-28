@@ -23,6 +23,8 @@ DirectX::XMFLOAT3 operator*(DirectX::XMFLOAT3 v, float f);
 
 DirectX::XMFLOAT3 normalize(DirectX::XMFLOAT3 f3);
 
+DirectX::XMFLOAT3 transform(DirectX::XMFLOAT3 f3, const DirectX::XMMATRIX &xform);
+
 // Files
 std::string load_file(const std::string &file_name);
 
@@ -41,7 +43,7 @@ using StdUnorderedMap = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>,
 using StdString = std::basic_string<Allocator<char>>;
 
 // Set
-template <typename T> using StdSet = std::set<T, Allocator<T>>;
+template <typename T> using StdSet = std::set<T, std::less<T>, Allocator<T>>;
 
 template <typename T, typename A> UINT load_vector(std::vector<T, A> &dest, T *src, size_t n)
 {

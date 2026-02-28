@@ -16,3 +16,10 @@ void log_matrix(const DirectX::XMMATRIX &m)
               << f._14 << ", " << f._24 << ", " << f._34 << ", " << f._44 << "\n";
 #endif
 }
+
+void log_float3(const DirectX::XMFLOAT3 &f3)
+{
+#ifndef NDEBUG
+    std::cout << f3.x << ", " << f3.y << ", " << f3.z << "\n";
+#endif
+}

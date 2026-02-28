@@ -35,6 +35,7 @@ cbuffer MeshBuffer : register(b2)
 float4 main(PSIn input) : SV_Target
 {
 	float3 normal = normalize(input.normal);
+
 	float3 light_direction = normalize(input.light_direction);
 
 	float illumination = (max(0, dot(normal, light_direction)) + light_position_w_ambient_amount.w);
