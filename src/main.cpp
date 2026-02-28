@@ -149,7 +149,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         PixelShader ps2(gfx);
 
         // Skybox
-        Skybox skybox(gfx, "assets/hdr/DayInTheClouds4k.hdr");
+        Skybox skybox(gfx, "assets/hdr/PlanetaryEarth4k.hdr");
 
         ps.set_textures(textures);
 

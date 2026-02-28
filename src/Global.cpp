@@ -17,7 +17,7 @@ Clock clock;
 CollisionSystem collision_system;
 
 LightingData lighting_data{
-    DirectX::XMFLOAT4{50.0f, 100.0f, 0.0f, // diffuse
+    DirectX::XMFLOAT4{0.0f, 20.0f, 100.0f, // diffuse
                       0.3f},               // ambient
 };
 
