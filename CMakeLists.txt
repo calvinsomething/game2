@@ -62,25 +62,22 @@ target_compile_definitions(${PROJECT_NAME}
 #
 add_subdirectory(vendor/include)
 
+target_include_directories(${PROJECT_NAME}
+	PRIVATE
+		vendor/include)
+
 target_link_directories(${PROJECT_NAME}
 	PRIVATE
-		C:/Lib)
+		vendor/lib)
 
 target_link_libraries(${PROJECT_NAME}
+	assimp/assimp-vc143-mtd
+	assimp/unit
 	d3d11
 	dxgi
 	dxguid
-
-	assimp/unit
-	assimp/assimp-vc143-mtd
-
 	DDSTextureLoader
 	memory_allocator)
-
-target_include_directories(${PROJECT_NAME}
-	PRIVATE
-		C:/Include
-		vendor/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	execute_process(COMMAND

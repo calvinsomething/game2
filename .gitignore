@@ -1,5 +1,7 @@
 .cache
 debug
 release
-vendor/bin
-assets
+
+vendor/bin/*
+vendor/include/assimp
+vendor/lib/*
