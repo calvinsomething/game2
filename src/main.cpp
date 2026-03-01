@@ -90,7 +90,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)}),
             DirectX::XMMatrixTranslation(0.0f, 5.0f, 0.0f)));
 
-        Model spider(gfx, "assets/models/spider/spider_clean.fbx", *vertices, *indices, *materials, textures,
+        Model spider(gfx, "assets/models/spider/spider_3.fbx", *vertices, *indices, *materials, textures,
                      instance_data[1]);
         spider.set_correction_transform(
             DirectX::XMMatrixMultiply(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f),
@@ -199,6 +199,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 player_character.set_twelve_oclock(DirectX::XMVector3NormalizeEst(DirectX::XMLoadFloat3(&f3)));
             }
 
+            player_character.set_target(spider);
             player_character.update(controller.get_character_controls());
 
             gfx.clear(bg_color);
@@ -215,7 +216,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
-            // spider
+            spider.update();
+
             bone_data_buffer.bind();
 
             bone_data_buffer.start_batch_update();
@@ -247,7 +249,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
                 m.constant_buffer.bind();
 
-                // Blender apparently doesn't export the two_sided fbx value...
+                // Blender apparently doesn't export the two_sided fbx mesh property...
                 // gfx.set_rasterizer_state(m.is_two_sided() ? Gfx::RasterizerState::TWO_SIDED
                 //                                           : Gfx::RasterizerState::STANDARD);
 

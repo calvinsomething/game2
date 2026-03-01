@@ -1,4 +1,5 @@
 #include "Animations.h"
+#include <cctype>
 
 Animations::Animations(const aiScene *scene)
 {
@@ -37,7 +38,22 @@ std::string Animations::clean_name(const std::string &name)
         ++last_pipe;
     }
 
-    return name.substr(last_pipe);
+    std::string tail = name.substr(last_pipe);
+
+    size_t start = tail.size() - 1, end = 0;
+
+    for (size_t i = 0; i < tail.size(); ++i)
+    {
+        if (!std::isspace(tail[i]))
+        {
+            start = i < start ? i : start;
+            end = i + 1 > end ? i + 1 : end;
+
+            tail[i] = std::tolower(tail[i]);
+        }
+    }
+
+    return tail.substr(start, end);
 }
 
 void Animations::set_looping(bool looping)

@@ -100,11 +100,11 @@ template <typename T> class Model
         animations.set_looping(true);
     }
 
-    void start_animation(const std::string &name)
+    void start_animation(const std::string &name, std::chrono::milliseconds delay = std::chrono::milliseconds(0))
     {
         animations.set_animation(name);
 
-        animation_start_time = clock.now();
+        animation_start_time = clock.now() + delay;
     }
 
     bool is_animating()
@@ -118,8 +118,7 @@ template <typename T> class Model
 
         if (animation)
         {
-            double animation_time_sec =
-                (clock.now() - animation_start_time).count() * 0.000000001; // nanoseconds to seconds
+            double animation_time_sec = std::chrono::duration<double>(clock.now() - animation_start_time).count();
 
             double time_in_ticks = animation->ticks_per_second * animation_time_sec;
 
@@ -131,9 +130,12 @@ template <typename T> class Model
 
             if (time_in_ticks <= animation->duration)
             {
-                for (auto &m : meshes)
+                if (time_in_ticks >= 0)
                 {
-                    m.animate(animation->node_anim_map, time_in_ticks);
+                    for (auto &m : meshes)
+                    {
+                        m.animate(animation->node_anim_map, time_in_ticks);
+                    }
                 }
             }
             else
@@ -171,6 +173,11 @@ template <typename T> class Model
         }
 
         return count;
+    }
+
+    DirectX::XMFLOAT3 get_position() const
+    {
+        return position;
     }
 
     void set_position(DirectX::XMFLOAT3 pos)

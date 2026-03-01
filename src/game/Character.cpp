@@ -53,18 +53,26 @@ void Character::update(const Controls &controls)
         if (Character::state != State::running)
         {
             Character::state = State::running;
-            model.loop_animation("Run");
+            model.loop_animation("run");
         }
     }
     else if (controls.action == Controls::Action::action_1)
     {
         Character::state = State::attacking;
-        model.start_animation("Punch");
+        model.start_animation("punch");
+        if (target)
+        {
+            target->start_animation("die", std::chrono::milliseconds(600));
+        }
     }
     else if (controls.action == Controls::Action::action_2)
     {
         Character::state = State::attacking;
-        model.start_animation("Weapon");
+        model.start_animation("weapon");
+        if (target)
+        {
+            target->start_animation("die", std::chrono::milliseconds(600));
+        }
     }
     else
     {
@@ -77,7 +85,7 @@ void Character::update(const Controls &controls)
             }
         case State::running:
             Character::state = State::at_rest;
-            model.loop_animation("Idle");
+            model.loop_animation("idle");
         default:
             break;
         }
@@ -126,6 +134,30 @@ void Character::set_position(DirectX::XMFLOAT3 position)
 void Character::set_twelve_oclock(DirectX::XMVECTOR direction)
 {
     direction_pad.set_twelve_oclock(direction);
+}
+
+void Character::set_target(Model<TextureVertex> &model)
+{
+    auto pos = model.get_position();
+
+    DirectX::XMFLOAT3 offset = {pos.x - position.x, pos.y - position.y, pos.z - position.z};
+
+    float distance_squared = offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
+
+    if (distance_squared < attack_range_squared)
+    {
+        float scale = 1 / std::sqrt(distance_squared);
+
+        DirectX::XMVECTOR v = {offset.x * scale, offset.y * scale, offset.z * scale, 1.0f};
+
+        if (DirectX::XMVectorGetX(DirectX::XMVector3Dot(direction_pad.twelve_oclock, v)) > COS_PI_DIV_8)
+        {
+            target = &model;
+            return;
+        }
+    }
+
+    target = nullptr;
 }
 
 DirectX::XMVECTOR Character::DirectionPad::get_direction(uint8_t y, uint8_t x)

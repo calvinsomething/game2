@@ -38,6 +38,8 @@ class Character
     void set_position(DirectX::XMFLOAT3 position);
     void set_twelve_oclock(DirectX::XMVECTOR direction);
 
+    void set_target(Model<TextureVertex> &model);
+
     // TODO move to protected and move model update logic to Character
     Model<Vertex> &model;
 
@@ -84,6 +86,10 @@ class Character
     float movement_speed_mph = 30.0f;
 
     State state = State::at_rest;
+
+    static constexpr float attack_range = 5.0f, attack_range_squared = attack_range * attack_range;
+
+    Model<TextureVertex> *target;
 
     DirectX::XMVECTOR get_orientation();
 };
