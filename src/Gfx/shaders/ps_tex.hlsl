@@ -42,25 +42,20 @@ Texture2D tex_3 : register(t5);
 
 SamplerState samp : register(s0);
 
-void load_color(int map_index, float2 uv, out float4 color)
+float4 load_color(int map_index, float2 uv)
 {
 	switch (map_index)
 	{
 		case 0:
-			color = tex_0.Sample(samp, uv);
-			break;
+			return tex_0.Sample(samp, uv);
 		case 1:
-			color = tex_1.Sample(samp, uv);
-			break;
+			return tex_1.Sample(samp, uv);
 		case 2:
-			color = tex_2.Sample(samp, uv);
-			break;
+			return tex_2.Sample(samp, uv);
 		case 3:
-			color = tex_3.Sample(samp, uv);
-			break;
+			return tex_3.Sample(samp, uv);
 		default:
-			color = float4(materials[material_index].albedo_color, 1.0f);
-			break;
+			return float4(materials[material_index].albedo_color, 1.0f);
 	}
 }
 
@@ -69,16 +64,16 @@ bool load_bump(int map_index, float2 uv, out float3 bump)
 	switch (map_index)
 	{
 		case 0:
-			bump = tex_0.Sample(samp, uv);
+			bump = 2 * tex_0.Sample(samp, uv) - 1.0f;
 			return true;
 		case 1:
-			bump = tex_1.Sample(samp, uv);
+			bump = 2 * tex_1.Sample(samp, uv) - 1.0f;
 			return true;
 		case 2:
-			bump = tex_2.Sample(samp, uv);
+			bump = 2 * tex_2.Sample(samp, uv) - 1.0f;
 			return true;
 		case 3:
-			bump = tex_3.Sample(samp, uv);
+			bump = 2 * tex_3.Sample(samp, uv) - 1.0f;
 			return true;
 	}
 
@@ -87,17 +82,17 @@ bool load_bump(int map_index, float2 uv, out float3 bump)
 
 float4 main(PSIn input) : SV_Target
 {
-	float4 color;
-	load_color(materials[material_index].diffuse_map_index, input.diffuse_map_coordinates, color);
+	float4 color = load_color(materials[material_index].diffuse_map_index, input.diffuse_map_coordinates);
 
 	// fully transparent values can be discarded
-	// translucent values should be drawn with the appropriate depth stencil state as to preserve background color
+	// translucent values should be drawn in a seperate pass
+	// with a depth stencil state that allows blending with more forward pixels
 	if (color.w < 0.01)
 	{
 		discard;
 	}
 
-	float3 normal = input.normal;
+	float3 normal = normalize(input.normal);
 
 	float3 bump;
 	if (load_bump(materials[material_index].normal_map_index, input.normal_map_coordinates, bump))
@@ -108,15 +103,10 @@ float4 main(PSIn input) : SV_Target
 			normal
 		};
 
-		normal = mul(normalize(bump), tbn);
+		normal = normalize(mul(bump, tbn));
 	}
 
-	// if (dot(normal, input.light_direction) > 0.9f)
-	// {
-	// 	return float4(0.0f,1.0f,0.0f,color.w);
-	// }
-
-	float illumination = max(0, dot(normal, input.light_direction)) + light_position_w_ambient_amount.w;
+	float illumination = max(0, 0.3f + dot(normal, normalize(input.light_direction)) * 0.9f); // + light_position_w_ambient_amount.w;
 
 	return float4(saturate(color.xyz * illumination), color.w);
 }

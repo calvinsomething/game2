@@ -42,54 +42,94 @@ cbuffer LightingBuffer : register(b1)
 	float3 light_position;
 };
 
-float4 animated_pos(VSIn input)
+struct AnimatedData
+{
+	float4 position;
+	float3 normal;
+	float3 tangent;
+	float3 bitangent;
+};
+
+AnimatedData animated_data(VSIn input)
 {
 	float total_weight = 0;
 
-	float4 pos = {0, 0, 0, 1.0f};
+	AnimatedData output = {
+		{0.0f, 0.0f, 0.0f, 1.0f},
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f}
+	};
 
 	for (uint i = 0; i < input.bone_count; ++i)
 	{
-		float4 animated_vertex = mul(float4(input.pos, 1.0f), bones[input.bone_indices[i] + input.instance.bone_start]);
-		pos[0] += animated_vertex[0] * input.bone_weights[i];
-		pos[1] += animated_vertex[1] * input.bone_weights[i];
-		pos[2] += animated_vertex[2] * input.bone_weights[i];
+		matrix bone = bones[input.bone_indices[i] + input.instance.bone_start];
+
+		float3 animated_vertex = mul(float4(input.pos, 1.0f), bone);
+		output.position += float4(animated_vertex * input.bone_weights[i], 0.0f);
+
+		float3 animated_normal = mul(input.normal, bone);
+		output.normal += animated_normal;
+
+		float3 animated_tangent = mul(input.tangent, bone);
+		output.tangent += animated_tangent;
+
+		float3 animated_bitangent = mul(input.bitangent, bone);
+		output.bitangent += animated_bitangent;
+
 		total_weight += input.bone_weights[i];
 	}
 	
 	float total_inv = 1.0f / total_weight;
 
-	pos[0] *= total_inv;
-	pos[1] *= total_inv;
-	pos[2] *= total_inv;
+	output.position.x *= total_inv;
+	output.position.y *= total_inv;
+	output.position.z *= total_inv;
 
-	return pos;
+	output.normal *= total_inv;
+
+	output.tangent *= total_inv;
+
+	output.bitangent *= total_inv;
+
+	return output;
 }
 
 VSOut main(VSIn input)
 {
     VSOut output;
 
-	float4 pos;
+	float4 position;
+	float3 normal;
+	float3 tangent;
+	float3 bitangent;
 
 	if (input.bone_count)
 	{
-		pos = animated_pos(input);
+		AnimatedData ad = animated_data(input);
+
+		position = ad.position;
+		normal = ad.normal;
+		tangent = ad.tangent;
+		bitangent = ad.bitangent;
 	}
 	else
 	{
-		pos = float4(input.pos, 1.0f);
+		position = float4(input.pos, 1.0f);
+
+		normal = input.normal;
+		tangent = input.tangent;
+		bitangent = input.bitangent;
 	}
 
-	output.pos = mul(pos, input.instance.model_xform);
+	position = mul(position, input.instance.model_xform);
+	output.normal = mul(normal, input.instance.model_xform);
+	output.tangent = mul(tangent, input.instance.model_xform);
+	output.bitangent = mul(bitangent, input.instance.model_xform);
 
-	output.light_direction = normalize(light_position - output.pos.xyz);
+	output.light_direction = light_position - position.xyz;
 
-	output.normal = normalize(mul(input.normal, input.instance.model_xform));
-	output.tangent = mul(input.tangent, input.instance.model_xform);
-	output.bitangent = mul(input.bitangent, input.instance.model_xform);
-
-	output.pos = mul(output.pos, view_proj);
+	output.pos = mul(position, view_proj);
     
 	output.diffuse_map_coordinates = input.diffuse_map_coordinates;
 	output.normal_map_coordinates = input.normal_map_coordinates;

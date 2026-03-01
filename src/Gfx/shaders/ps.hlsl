@@ -38,7 +38,7 @@ float4 main(PSIn input) : SV_Target
 
 	float3 light_direction = normalize(input.light_direction);
 
-	float illumination = (max(0, dot(normal, light_direction)) + light_position_w_ambient_amount.w);
+	float illumination = max(0, 0.3f + dot(normal, normalize(input.light_direction)) * 0.7f); // + light_position_w_ambient_amount.w;
 
 	float3 color = (materials[material_index].albedo_color + float3(0.1f, 0.1f, 0.1f)) * illumination * 2.0f;
 

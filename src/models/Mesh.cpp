@@ -20,7 +20,7 @@ DirectX::XMFLOAT3 get_tangent(aiMesh &mesh, size_t i)
 
 DirectX::XMFLOAT3 get_bitangent(aiMesh &mesh, size_t i)
 {
-    return mesh.mBitangents ? load_float3(mesh.mBitangents[i]) : DirectX::XMFLOAT3{};
+    return mesh.mBitangents ? -load_float3(mesh.mBitangents[i]) : DirectX::XMFLOAT3{};
 }
 
 template class Mesh<Vertex>;
