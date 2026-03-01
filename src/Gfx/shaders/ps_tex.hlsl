@@ -55,7 +55,7 @@ float4 load_color(int map_index, float2 uv)
 		case 3:
 			return tex_3.Sample(samp, uv);
 		default:
-			return float4(materials[material_index].albedo_color, 1.0f);
+			return float4(materials[material_index].albedo_color * 2.0f + float3(0.2f, 0.2f, 0.2f), 1.0f);
 	}
 }
 
@@ -80,7 +80,7 @@ bool load_bump(int map_index, float2 uv, out float3 bump)
 	return false;
 }
 
-float4 main(PSIn input) : SV_Target
+float4 main(PSIn input, bool is_front_face : SV_IsFrontFace) : SV_Target
 {
 	float4 color = load_color(materials[material_index].diffuse_map_index, input.diffuse_map_coordinates);
 
@@ -93,6 +93,10 @@ float4 main(PSIn input) : SV_Target
 	}
 
 	float3 normal = normalize(input.normal);
+	if (!is_front_face)
+	{
+		normal = -normal;
+	}
 
 	float3 bump;
 	if (load_bump(materials[material_index].normal_map_index, input.normal_map_coordinates, bump))
@@ -106,7 +110,7 @@ float4 main(PSIn input) : SV_Target
 		normal = normalize(mul(bump, tbn));
 	}
 
-	float illumination = max(0, 0.3f + dot(normal, normalize(input.light_direction)) * 0.9f); // + light_position_w_ambient_amount.w;
+	float illumination = max(0, 0.3f + dot(normal, normalize(input.light_direction))) + light_position_w_ambient_amount.w;
 
 	return float4(saturate(color.xyz * illumination), color.w);
 }

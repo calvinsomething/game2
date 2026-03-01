@@ -18,7 +18,7 @@ CollisionSystem collision_system;
 
 LightingData lighting_data{
     DirectX::XMFLOAT4{0.0f, 20.0f, 100.0f, // diffuse
-                      0.3f},               // ambient
+                      0.0f},               // ambient
 };
 
 }; // namespace Global
