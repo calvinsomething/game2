@@ -28,7 +28,7 @@ struct VSOut
 	float3 bitangent : BITANGENT;
     float2 diffuse_map_coordinates : TEXCOORD0;
     float2 normal_map_coordinates : TEXCOORD0;
-	float3 light_direction : NORMAL1;
+	float3 world_position : POSITION;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -127,8 +127,7 @@ VSOut main(VSIn input)
 	output.tangent = mul(tangent, input.instance.model_xform);
 	output.bitangent = mul(bitangent, input.instance.model_xform);
 
-	output.light_direction = light_position - position.xyz;
-
+	output.world_position = position;
 	output.pos = mul(position, view_proj);
     
 	output.diffuse_map_coordinates = input.diffuse_map_coordinates;

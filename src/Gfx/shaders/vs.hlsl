@@ -22,7 +22,7 @@ struct VSOut
     float4 pos : SV_Position;
     float3 normal : NORMAL;
     float4 color : COLOR;
-    float3 light_direction : NORMAL1;
+	float3 world_position : POSITION;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -97,7 +97,7 @@ VSOut main(VSIn input)
 
 	position = mul(position, input.instance.model_xform);
 
-	output.light_direction = light_position - position.xyz;
+	output.world_position = position;
 
 	output.pos = mul(position, view_proj);
 

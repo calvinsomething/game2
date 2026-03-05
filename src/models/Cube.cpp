@@ -45,6 +45,7 @@ Cube::Cube(Gfx &gfx, const std::wstring &texture_file_name, StdVector<TextureVer
 
     Material mat = {};
     mat.diffuse_texture_index = textures.size();
+    mat.roughness = 0.6f;
 
     textures.emplace_back(gfx, texture_file_name.c_str());
 

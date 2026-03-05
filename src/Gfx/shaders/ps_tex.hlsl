@@ -6,7 +6,7 @@ struct PSIn
 	float3 bitangent : BITANGENT;
     float2 diffuse_map_coordinates : TEXCOORD0;
     float2 normal_map_coordinates : TEXCOORD0;
-	float3 light_direction : NORMAL1;
+	float3 world_position : POSITION;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -61,23 +61,28 @@ float4 load_color(int map_index, float2 uv)
 
 bool load_bump(int map_index, float2 uv, out float3 bump)
 {
+	float3 sampled = {0,0,0};
 	switch (map_index)
 	{
 		case 0:
-			bump = 2 * tex_0.Sample(samp, uv) - 1.0f;
-			return true;
+			sampled = tex_0.Sample(samp, uv);
+			break;
 		case 1:
-			bump = 2 * tex_1.Sample(samp, uv) - 1.0f;
-			return true;
+			sampled = tex_1.Sample(samp, uv);
+			break;
 		case 2:
-			bump = 2 * tex_2.Sample(samp, uv) - 1.0f;
-			return true;
+			sampled = tex_2.Sample(samp, uv);
+			break;
 		case 3:
-			bump = 2 * tex_3.Sample(samp, uv) - 1.0f;
-			return true;
+			sampled = tex_3.Sample(samp, uv);
+			break;
+		default:
+			return false;
 	}
 
-	return false;
+	bump = sampled * 2 - 1.0f;
+
+	return true;
 }
 
 float4 main(PSIn input, bool is_front_face : SV_IsFrontFace) : SV_Target
@@ -110,7 +115,15 @@ float4 main(PSIn input, bool is_front_face : SV_IsFrontFace) : SV_Target
 		normal = normalize(mul(bump, tbn));
 	}
 
-	float illumination = max(0, 0.3f + dot(normal, normalize(input.light_direction))) + light_position_w_ambient_amount.w;
+	float3 light_dir = normalize(light_position_w_ambient_amount.xyz - input.world_position);
 
-	return float4(saturate(color.xyz * illumination), color.w);
+	float illumination = max(0, 0.3f + dot(normal, light_dir)) + light_position_w_ambient_amount.w;
+
+	float3 light_reflection = reflect(-light_dir, normal) * (1.0f - materials[material_index].roughness);
+
+	float3 camera_dir = normalize(camera_position.xyz - input.world_position);
+
+	float highlight = pow(max(0, dot(light_reflection, camera_dir)), 5) * (illumination > 0.0f);
+
+	return float4(saturate(color.xyz * illumination + highlight), color.w);
 }

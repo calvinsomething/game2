@@ -8,8 +8,8 @@
 
 struct Material
 {
-    DirectX::XMFLOAT3 color;
-    DirectX::XMFLOAT3 emissive_color;
+    DirectX::XMFLOAT3 color = {};
+    DirectX::XMFLOAT3 emissive_color = {};
     int32_t diffuse_texture_index = -1;
     int32_t normal_texture_index = -1;
     float roughness = 1.0f;

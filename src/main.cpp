@@ -90,7 +90,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             DirectX::XMMatrixRotationQuaternion(DirectX::XMVECTOR{std::sqrt(0.5f), 0.0f, 0.0f, -std::sqrt(0.5f)}),
             DirectX::XMMatrixTranslation(0.0f, 5.0f, 0.0f)));
 
-        Model spider(gfx, "assets/models/spider/spider_3.fbx", *vertices, *indices, *materials, textures,
+        Model spider(gfx, "assets/models/spider/spider.fbx", *vertices, *indices, *materials, textures,
                      instance_data[1]);
         spider.set_correction_transform(
             DirectX::XMMatrixMultiply(DirectX::XMMatrixScaling(0.6f, 0.6f, 0.6f),

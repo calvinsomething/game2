@@ -6,7 +6,8 @@ using namespace DirectX;
 
 Camera::Camera(Gfx &gfx)
     : focus_pos{0.0f, 0.0f, 0.0f}, up_dir{0.0f, 1.0f, 0.0f},
-      constant_buffer(gfx, ConstantBuffer::Slot::CAMERA_BUFFER, &ConstantBuffer::bind_vs, sizeof(Camera::BufferData))
+      constant_buffer(gfx, ConstantBuffer::Slot::CAMERA_BUFFER, &ConstantBuffer::bind_vs_and_ps,
+                      sizeof(Camera::BufferData))
 {
     increase_distance(20.0f);
     update_offset();
