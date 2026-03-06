@@ -50,7 +50,6 @@ void Gfx::DepthStencil::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UIN
     HANDLE_GFX_ERR(device->CreateDepthStencilState(&stencil_desc, states[State::DEPTH_BUFFER].GetAddressOf()));
 
     // Skybox Depth Buffer State
-    stencil_desc.DepthEnable = true;
     stencil_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     stencil_desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 
