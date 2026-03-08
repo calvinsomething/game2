@@ -4,8 +4,9 @@
 
 constexpr char SHADER_DIR[] = SHADERS_BIN;
 
-const char *source_files[] = {"vs.cso",     "vs_tex.cso",    "vs_skybox.cso", "ps.cso",
-                              "ps_tex.cso", "ps_skybox.cso", "cs_skybox.cso"};
+const char *source_files[] = {"vs.cso",        "vs_tex.cso",        "vs_skybox.cso",
+                              "ps.cso",        "ps_tex.cso",        "ps_skybox.cso",
+                              "cs_skybox.cso", "vs_shadow_map.cso", "vs_tex_shadow_map.cso"};
 
 Shader::Shader(Gfx &gfx) : GfxAccess(gfx)
 {
@@ -24,4 +25,9 @@ std::string Shader::load(ShaderSource source)
     std::string byte_code = load_file(path);
 
     return byte_code;
+}
+
+ID3D11InputLayout *Shader::get_input_layout()
+{
+    return input_layout.Get();
 }

@@ -17,12 +17,12 @@ VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)
         {"BONE_WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"BONE_COUNT", 0, DXGI_FORMAT_R32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"MODEL_XFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"MODEL_XFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
+        {"WORLD_XFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"WORLD_XFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"MODEL_XFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
+        {"WORLD_XFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"MODEL_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
+        {"WORLD_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
         {"BONE_START", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
@@ -76,12 +76,12 @@ TextureVertexShader::TextureVertexShader(Gfx &gfx) : Shader(gfx)
         {"BONE_WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"BONE_COUNT", 0, DXGI_FORMAT_R32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"MODEL_XFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"MODEL_XFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
+        {"WORLD_XFORM", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+        {"WORLD_XFORM", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"MODEL_XFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
+        {"WORLD_XFORM", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
-        {"MODEL_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
+        {"WORLD_XFORM", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT,
          D3D11_INPUT_PER_INSTANCE_DATA, 1},
         {"BONE_START", 0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
     };
@@ -134,4 +134,46 @@ void SkyboxVertexShader::bind()
     ctx->IASetInputLayout(input_layout.Get());
 
     ctx->VSSetShader(shader.Get(), nullptr, 0);
+}
+
+ShadowMapVertexShader::ShadowMapVertexShader(Gfx &gfx) : Shader(gfx)
+{
+    auto byte_code = load(ShaderSource::VERTEX_SHADOW_MAP);
+
+    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader.GetAddressOf()));
+
+    byte_code = load(ShaderSource::VERTEX_TEX_SHADOW_MAP);
+
+    HANDLE_GFX_ERR(device->CreateVertexShader(byte_code.data(), byte_code.size(), nullptr, shader_tex.GetAddressOf()));
+}
+
+void ShadowMapVertexShader::bind()
+{
+    throw std::runtime_error("ShadowMapVertexShader::bind requires an input_layout argument.");
+}
+
+void ShadowMapVertexShader::bind(ID3D11InputLayout *input_layout)
+{
+    ctx->IASetInputLayout(input_layout);
+
+    ctx->VSSetShader(shader.Get(), nullptr, 0);
+
+    ctx->PSSetShader(nullptr, nullptr, 0);
+}
+
+void ShadowMapVertexShader::bind_tex(ID3D11InputLayout *input_layout)
+{
+    ctx->IASetInputLayout(input_layout);
+
+    ctx->VSSetShader(shader_tex.Get(), nullptr, 0);
+
+    ctx->PSSetShader(nullptr, nullptr, 0);
+}
+
+void ShadowMapVertexShader::draw_indexed_instanced(UINT start_index, UINT index_count, UINT start_instance,
+                                                   UINT instance_count, UINT vertex_offset)
+{
+    ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    HANDLE_GFX_INFO(ctx->DrawIndexedInstanced(index_count, instance_count, start_index, vertex_offset, start_instance));
 }

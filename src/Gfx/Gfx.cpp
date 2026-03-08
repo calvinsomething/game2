@@ -58,9 +58,8 @@ Gfx::Gfx(HWND hwnd)
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
 
-    HANDLE_GFX_INFO(ctx->RSSetViewports(1, &viewport));
-
-    depth_stencil.init(device.Get(), ctx.Get(), UINT(viewport.Width), UINT(viewport.Height), render_target_view.Get());
+    depth_stencil.init(*this, UINT(viewport.Width), UINT(viewport.Height));
+    shadow_map.init(*this, UINT(viewport.Width * 4), UINT(viewport.Height * 4));
 
     // Blending requires sorted mesh drawing to avoid Z-buffer writes for translucent/transparent pixels.
     D3D11_BLEND_DESC bd = {};
@@ -89,14 +88,17 @@ Gfx::Gfx(HWND hwnd)
         rd.FillMode = D3D11_FILL_WIREFRAME;
         HANDLE_GFX_ERR(device->CreateRasterizerState(&rd, rasterizer_states.wireframe.GetAddressOf()));
 
+        rd.FillMode = D3D11_FILL_SOLID;
+        rd.CullMode = D3D11_CULL_FRONT;
+        rd.DepthBias = 10;
+        rd.SlopeScaledDepthBias = 1.5f;
+        rd.DepthBiasClamp = 0.0f;
+        HANDLE_GFX_ERR(device->CreateRasterizerState(&rd, rasterizer_states.shadow_map.GetAddressOf()));
+
         set_rasterizer_state(RasterizerState::STANDARD);
     }
 
     HANDLE_GFX_INFO(ctx->OMSetBlendState(blend_state.Get(), nullptr, 0xFFFFFFFF));
-}
-
-Gfx::~Gfx()
-{
 }
 
 void Gfx::set_rasterizer_state(RasterizerState rs)
@@ -112,7 +114,7 @@ void Gfx::set_rasterizer_state(RasterizerState rs)
 
 void Gfx::bind_depth_stencil_state(DepthStencil::State state)
 {
-    depth_stencil.bind_state(ctx.Get(), state);
+    depth_stencil.bind_state(*this, state);
 }
 
 void Gfx::clear(float *color)
@@ -122,7 +124,28 @@ void Gfx::clear(float *color)
     HANDLE_GFX_INFO(
         ctx->ClearDepthStencilView(depth_stencil.view.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
-    HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), depth_stencil.view.Get()));
+    HANDLE_GFX_INFO(ctx->ClearDepthStencilView(shadow_map.depth_view.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0));
+}
+
+void Gfx::set_render_target(RenderTarget rt)
+{
+    switch (rt)
+    {
+    case RenderTarget::MAIN:
+        HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), depth_stencil.view.Get()));
+        ctx->PSSetShaderResources(6, 1, shadow_map.srv.GetAddressOf());
+        ctx->PSSetSamplers(6, 1, shadow_map.sampler_state.GetAddressOf());
+        HANDLE_GFX_INFO(ctx->RSSetViewports(1, &viewport));
+        break;
+    case RenderTarget::SHADOW_MAP: {
+        ID3D11ShaderResourceView *null_srv = nullptr;
+        ctx->PSSetShaderResources(6, 1, &null_srv);
+    }
+        HANDLE_GFX_INFO(ctx->OMSetDepthStencilState(shadow_map.depth_state.Get(), 0));
+        HANDLE_GFX_INFO(ctx->OMSetRenderTargets(0, nullptr, shadow_map.depth_view.Get()));
+        HANDLE_GFX_INFO(ctx->RSSetViewports(1, &shadow_map.viewport));
+        break;
+    }
 }
 
 void Gfx::end_frame()

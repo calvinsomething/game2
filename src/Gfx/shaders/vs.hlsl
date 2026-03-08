@@ -1,6 +1,6 @@
 struct InstanceData
 {
-	matrix model_xform : MODEL_XFORM;
+	matrix world_xform : WORLD_XFORM;
 	uint bone_start : BONE_START;
 };
 
@@ -95,13 +95,13 @@ VSOut main(VSIn input)
 		normal = input.normal;
 	}
 
-	position = mul(position, input.instance.model_xform);
+	position = mul(position, input.instance.world_xform);
 
 	output.world_position = position;
 
 	output.pos = mul(position, view_proj);
 
-	output.normal = (mul(normal, input.instance.model_xform)).xyz;
+	output.normal = (mul(normal, input.instance.world_xform)).xyz;
 	
 	output.color = input.color;
 

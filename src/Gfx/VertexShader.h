@@ -98,3 +98,20 @@ class SkyboxVertexShader : public Shader
   private:
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
 };
+
+class ShadowMapVertexShader : public Shader
+{
+  public:
+    ShadowMapVertexShader(Gfx &gfx);
+
+    void bind() override;
+    void bind(ID3D11InputLayout *input_layout);
+    void bind_tex(ID3D11InputLayout *input_layout);
+
+    void draw_indexed_instanced(UINT start_index, UINT index_count, UINT start_instance, UINT instance_count,
+                                UINT vertex_offset = 0);
+
+  private:
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> shader_tex;
+};

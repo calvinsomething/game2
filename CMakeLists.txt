@@ -36,6 +36,7 @@ set_src_list(main.cpp
 	gfx/IndexBuffer.cpp
 	gfx/PixelShader.cpp
 	gfx/Shader.cpp
+	gfx/ShadowMap.cpp
 	gfx/StaticBuffer.cpp
 	gfx/Texture.cpp
 	gfx/VertexBuffer.cpp
@@ -111,7 +112,9 @@ file(MAKE_DIRECTORY ${shaders_bin})
 set(vs_files
 	vs.hlsl
 	vs_tex.hlsl
-	vs_skybox.hlsl)
+	vs_skybox.hlsl
+	vs_shadow_map.hlsl
+	vs_tex_shadow_map.hlsl)
 
 set_source_files_properties(${vs_files}
 	PROPERTIES

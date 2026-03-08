@@ -2,8 +2,7 @@
 
 #include "../Error.h"
 
-void Gfx::DepthStencil::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UINT buffer_width, UINT buffer_height,
-                             ID3D11RenderTargetView *render_target_view)
+void Gfx::DepthStencil::init(Gfx &gfx, UINT buffer_width, UINT buffer_height)
 {
     D3D11_TEXTURE2D_DESC texture_desc = {};
     texture_desc.Width = buffer_width;
@@ -20,7 +19,7 @@ void Gfx::DepthStencil::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UIN
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
 
-    HANDLE_GFX_ERR(device->CreateTexture2D(&texture_desc, nullptr, texture.GetAddressOf()));
+    HANDLE_GFX_ERR(gfx.device->CreateTexture2D(&texture_desc, nullptr, texture.GetAddressOf()));
 
     // Create different depth stencil states
     //
@@ -47,30 +46,26 @@ void Gfx::DepthStencil::init(ID3D11Device *device, ID3D11DeviceContext *ctx, UIN
     // stencil_desc->BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
     // stencil_desc->BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-    HANDLE_GFX_ERR(device->CreateDepthStencilState(&stencil_desc, states[State::DEPTH_BUFFER].GetAddressOf()));
+    HANDLE_GFX_ERR(gfx.device->CreateDepthStencilState(&stencil_desc, states[State::DEPTH_BUFFER].GetAddressOf()));
 
     // Skybox Depth Buffer State
     stencil_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     stencil_desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 
-    HANDLE_GFX_ERR(device->CreateDepthStencilState(&stencil_desc, states[State::ENVIRONMENT_BUFFER].GetAddressOf()));
+    HANDLE_GFX_ERR(
+        gfx.device->CreateDepthStencilState(&stencil_desc, states[State::ENVIRONMENT_BUFFER].GetAddressOf()));
 
     // D3D11_DEPTH_STENCIL_VIEW_DESC view_desc;
     // view_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
     // view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     // view_desc.Texture2D.MipSlice = 0;
 
-    HANDLE_GFX_ERR(device->CreateDepthStencilView(texture.Get(),
-                                                  nullptr, // Depth stencil desc
-                                                  view.GetAddressOf()));
-
-    // Bind the depth stencil view
-    ctx->OMSetRenderTargets(1,                   // One rendertarget view
-                            &render_target_view, // Render target view, created earlier
-                            view.Get());         // Depth stencil view for the render target
+    HANDLE_GFX_ERR(gfx.device->CreateDepthStencilView(texture.Get(),
+                                                      nullptr, // view desc
+                                                      view.GetAddressOf()));
 }
 
-void Gfx::DepthStencil::bind_state(ID3D11DeviceContext *ctx, State state)
+void Gfx::DepthStencil::bind_state(Gfx &gfx, State state)
 {
-    HANDLE_GFX_INFO(ctx->OMSetDepthStencilState(states[state].Get(), 0));
+    HANDLE_GFX_INFO(gfx.ctx->OMSetDepthStencilState(states[state].Get(), 0));
 }

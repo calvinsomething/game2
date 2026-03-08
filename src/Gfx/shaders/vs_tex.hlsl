@@ -1,6 +1,6 @@
 struct InstanceData
 {
-	matrix model_xform : MODEL_XFORM;
+	matrix world_xform : WORLD_XFORM;
 	uint bone_start : BONE_START;
 };
 
@@ -26,8 +26,8 @@ struct VSOut
 	float3 normal : NORMAL0;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
-    float2 diffuse_map_coordinates : TEXCOORD0;
-    float2 normal_map_coordinates : TEXCOORD0;
+    float2 diffuse_map_coordinates : TEXCOORD;
+    float2 normal_map_coordinates : TEXCOORD;
 	float3 world_position : POSITION;
 };
 
@@ -122,10 +122,10 @@ VSOut main(VSIn input)
 		bitangent = input.bitangent;
 	}
 
-	position = mul(position, input.instance.model_xform);
-	output.normal = mul(normal, input.instance.model_xform);
-	output.tangent = mul(tangent, input.instance.model_xform);
-	output.bitangent = mul(bitangent, input.instance.model_xform);
+	position = mul(position, input.instance.world_xform);
+	output.normal = mul(normal, input.instance.world_xform);
+	output.tangent = mul(tangent, input.instance.world_xform);
+	output.bitangent = mul(bitangent, input.instance.world_xform);
 
 	output.world_position = position;
 	output.pos = mul(position, view_proj);

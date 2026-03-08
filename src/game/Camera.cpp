@@ -11,11 +11,6 @@ Camera::Camera(Gfx &gfx)
 {
     increase_distance(20.0f);
     update_offset();
-
-    buffer_data.camera_position = {0, 0, -distance};
-    buffer_data.view_proj_xform =
-        XMMatrixMultiplyTranspose(XMMatrixLookAtLH(buffer_data.camera_position, focus_pos, up_dir),
-                                  XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
 }
 
 void Camera::update_offset()

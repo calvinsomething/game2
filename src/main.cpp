@@ -32,6 +32,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     RECT rect = window.get_rect();
     Global::client_width = rect.right - rect.left;
     Global::client_height = rect.bottom - rect.top;
+    Global::client_aspect_ratio = float(Global::client_width) / Global::client_height;
 
     window.set_full_screen();
 
@@ -148,6 +149,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         VertexShader vs2(gfx);
         PixelShader ps2(gfx);
 
+        ShadowMapVertexShader vs_shadow(gfx);
+
         // Skybox
         Skybox skybox(gfx, "assets/hdr/PlanetaryEarth4k.hdr");
 
@@ -176,6 +179,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         v_buffers[0] = &vb2;
         VertexBuffers vbs2(gfx, v_buffers);
 
+        bone_data_buffer.bind();
+
         Global::clock.start();
 
         while (Global::running)
@@ -199,26 +204,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 player_character.set_twelve_oclock(DirectX::XMVector3NormalizeEst(DirectX::XMLoadFloat3(&f3)));
             }
 
-            player_character.set_target(spider);
-            player_character.update(controller.get_character_controls());
-
-            gfx.clear(bg_color);
-
-            gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::DEPTH_BUFFER);
-
-            ib.bind();
-            vbs.bind();
-            vs.bind();
-
-            ps.bind();
-
-            cube.get_meshes()[0].constant_buffer.bind();
-
-            vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
-
             spider.update();
 
-            bone_data_buffer.bind();
+            player_character.set_target(spider);
+            player_character.update(controller.get_character_controls());
 
             bone_data_buffer.start_batch_update();
 
@@ -237,6 +226,67 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             }
 
             bone_data_buffer.end_batch_update();
+
+            gfx.clear(bg_color);
+
+            // Shadow map pass
+            {
+                gfx.set_render_target(Gfx::RenderTarget::SHADOW_MAP);
+                gfx.set_rasterizer_state(Gfx::RasterizerState::SHADOW_MAP);
+
+                vs_shadow.bind(vs2.get_input_layout());
+                ib2.bind();
+                vbs2.bind();
+
+                UINT prev_index = 0, prev_vertex = 0;
+                for (Mesh<Vertex> &m : player_character.model.get_meshes())
+                {
+                    UINT n = m.get_index_count();
+
+                    m.constant_buffer.bind();
+
+                    vs_shadow.draw_indexed_instanced(prev_index, n, 2, 1, prev_vertex);
+
+                    prev_index += n;
+                    prev_vertex += m.get_vertex_count();
+                }
+
+                vs_shadow.bind_tex(vs.get_input_layout());
+                ib.bind();
+                vbs.bind();
+
+                prev_index = 0;
+                prev_vertex = 0;
+
+                vs_shadow.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
+
+                prev_index = cube.get_meshes()[0].get_index_count();
+                prev_vertex = cube.get_meshes()[0].get_vertex_count();
+
+                for (Mesh<TextureVertex> &m : spider.get_meshes())
+                {
+                    UINT n = m.get_index_count();
+
+                    m.constant_buffer.bind();
+
+                    vs_shadow.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
+
+                    prev_index += n;
+                    prev_vertex += m.get_vertex_count();
+                }
+            }
+
+            gfx.set_render_target(Gfx::RenderTarget::MAIN);
+            gfx.set_rasterizer_state(Gfx::RasterizerState::STANDARD);
+            gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::DEPTH_BUFFER);
+
+            vs.bind();
+
+            ps.bind();
+
+            cube.get_meshes()[0].constant_buffer.bind();
+
+            vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
             UINT prev_index = cube.get_meshes()[0].get_index_count(),
                  prev_vertex = cube.get_meshes()[0].get_vertex_count();
@@ -299,7 +349,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::ENVIRONMENT_BUFFER);
             gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
             skybox.bind_and_draw();
-            gfx.set_rasterizer_state(Gfx::RasterizerState::STANDARD);
 
             gfx.end_frame();
         }

@@ -1,22 +1,19 @@
+#include "directional_light.hlsl"
+
 struct PSIn
 {
     float4 pos : SV_Position;
 	float3 normal : NORMAL0;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
-    float2 diffuse_map_coordinates : TEXCOORD0;
-    float2 normal_map_coordinates : TEXCOORD0;
+    float2 diffuse_map_coordinates : TEXCOORD;
+    float2 normal_map_coordinates : TEXCOORD;
 	float3 world_position : POSITION;
 };
 
 cbuffer CameraBuffer : register(b0)
 {
 	vector camera_position;
-};
-
-cbuffer LightingBuffer : register(b1)
-{
-	float4 light_position_w_ambient_amount;
 };
 
 cbuffer MeshBuffer : register(b2)
@@ -117,7 +114,7 @@ float4 main(PSIn input, bool is_front_face : SV_IsFrontFace) : SV_Target
 
 	float3 light_dir = normalize(light_position_w_ambient_amount.xyz - input.world_position);
 
-	float illumination = max(0, 0.3f + dot(normal, light_dir)) + light_position_w_ambient_amount.w;
+	float illumination = max(0.0f, (dot(normal, light_dir) + 0.5f) / 1.5f) * shadow(input.world_position, 0.65f) + light_position_w_ambient_amount.w;
 
 	float3 light_reflection = reflect(-light_dir, normal) * (1.0f - materials[material_index].roughness);
 
