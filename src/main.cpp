@@ -209,23 +209,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             player_character.set_target(spider);
             player_character.update(controller.get_character_controls());
 
+            // bone data
             bone_data_buffer.start_batch_update();
 
-            size_t animation_data_offset = 0;
-            for (Mesh<TextureVertex> &m : spider.get_meshes())
-            {
-                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
-                animation_data_offset += animation_data_size;
-            }
-            for (Mesh<Vertex> &m : ninja.get_meshes())
-            {
-                size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
-                bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, animation_data_offset);
-                animation_data_offset += animation_data_size;
-            }
+            size_t animation_data_offset = spider.update_bone_buffer(bone_data_buffer, 0);
+            ninja.update_bone_buffer(bone_data_buffer, animation_data_offset);
 
             bone_data_buffer.end_batch_update();
+            //
 
             gfx.clear(bg_color);
 
@@ -238,18 +229,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 ib2.bind();
                 vbs2.bind();
 
-                UINT prev_index = 0, prev_vertex = 0;
-                for (Mesh<Vertex> &m : player_character.model.get_meshes())
-                {
-                    UINT n = m.get_index_count();
-
-                    m.constant_buffer.bind();
-
-                    vs_shadow.draw_indexed_instanced(prev_index, n, 2, 1, prev_vertex);
-
-                    prev_index += n;
-                    prev_vertex += m.get_vertex_count();
-                }
+                size_t prev_index = 0, prev_vertex = 0;
+                player_character.model.draw_indexed_instanced(vs_shadow, prev_index, prev_vertex, 2);
 
                 vs_shadow.bind_tex(vs.get_input_layout());
                 ib.bind();
@@ -258,22 +239,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 prev_index = 0;
                 prev_vertex = 0;
 
+                cube.draw_indexed_instanced(vs_shadow, prev_index, prev_vertex, 0);
                 vs_shadow.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
 
                 prev_index = cube.get_meshes()[0].get_index_count();
                 prev_vertex = cube.get_meshes()[0].get_vertex_count();
 
-                for (Mesh<TextureVertex> &m : spider.get_meshes())
-                {
-                    UINT n = m.get_index_count();
-
-                    m.constant_buffer.bind();
-
-                    vs_shadow.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
-
-                    prev_index += n;
-                    prev_vertex += m.get_vertex_count();
-                }
+                spider.draw_indexed_instanced(vs_shadow, prev_index, prev_vertex, 1);
             }
 
             gfx.set_render_target(Gfx::RenderTarget::MAIN);
@@ -281,33 +253,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             gfx.bind_depth_stencil_state(Gfx::DepthStencil::State::DEPTH_BUFFER);
 
             vs.bind();
-
             ps.bind();
 
-            cube.get_meshes()[0].constant_buffer.bind();
+            size_t prev_index = 0, prev_vertex = 0;
 
-            vs.draw_indexed_instanced(0, cube.get_index_count(), 0, 1);
-
-            UINT prev_index = cube.get_meshes()[0].get_index_count(),
-                 prev_vertex = cube.get_meshes()[0].get_vertex_count();
+            cube.draw_indexed_instanced(vs, prev_index, prev_vertex, 0);
 
             // setting two_sided for this model because of "fur"
             gfx.set_rasterizer_state(Gfx::RasterizerState::TWO_SIDED);
-            for (Mesh<TextureVertex> &m : spider.get_meshes())
-            {
-                UINT n = m.get_index_count();
 
-                m.constant_buffer.bind();
-
-                // Blender apparently doesn't export the two_sided fbx mesh property...
-                // gfx.set_rasterizer_state(m.is_two_sided() ? Gfx::RasterizerState::TWO_SIDED
-                //                                           : Gfx::RasterizerState::STANDARD);
-
-                vs.draw_indexed_instanced(prev_index, n, 1, 1, prev_vertex);
-
-                prev_index += n;
-                prev_vertex += m.get_vertex_count();
-            }
+            spider.draw_indexed_instanced(vs_shadow, prev_index, prev_vertex, 1);
 
             gfx.set_rasterizer_state(Gfx::RasterizerState::STANDARD);
 
@@ -319,29 +274,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
             prev_index = 0;
             prev_vertex = 0;
-            for (Mesh<Vertex> &m : player_character.model.get_meshes())
-            {
-                UINT n = m.get_index_count();
 
-                m.constant_buffer.bind();
-
-                vs2.draw_indexed_instanced(prev_index, n, 2, 1, prev_vertex);
-
-                prev_index += n;
-                prev_vertex += m.get_vertex_count();
-            }
-
-            for (Mesh<Vertex> &m : grass_platform.get_meshes())
-            {
-                UINT n = m.get_index_count();
-
-                m.constant_buffer.bind();
-
-                vs2.draw_indexed_instanced(prev_index, n, 3, 1, prev_vertex);
-
-                prev_index += n;
-                prev_vertex += m.get_vertex_count();
-            }
+            // flat shaded
+            player_character.model.draw_indexed_instanced(vs2, prev_index, prev_vertex, 2);
+            grass_platform.draw_indexed_instanced(vs2, prev_index, prev_vertex, 3);
 
             instance_buffer.update(instance_data, sizeof(instance_data));
 

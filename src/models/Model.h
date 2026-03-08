@@ -10,6 +10,7 @@
 #include <stdexcept>
 
 #include "../gfx/InstanceBuffer.h"
+#include "../gfx/StructuredBuffer.h"
 #include "../gfx/Texture.h"
 #include "../gfx/VertexShader.h"
 #include "Animations.h"
@@ -221,6 +222,38 @@ template <typename T> class Model
                 correction_transform,
                 DirectX::XMMatrixTranslation(0.0f, -min_y - y_origin_by_height_ratio * model_height, 0.0f));
         }
+    }
+
+    template <typename S> void draw_indexed_instanced(S &shader, size_t &index, size_t &vertex, size_t instance_index)
+    {
+        for (Mesh<T> &m : meshes)
+        {
+            UINT n = m.get_index_count();
+
+            m.constant_buffer.bind();
+
+            // Blender apparently doesn't export the two_sided fbx mesh property...
+            // gfx.set_rasterizer_state(m.is_two_sided() ? Gfx::RasterizerState::TWO_SIDED
+            //                                           : Gfx::RasterizerState::STANDARD);
+            shader.draw_indexed_instanced(index, n, instance_index, 1, vertex);
+
+            index += n;
+            vertex += m.get_vertex_count();
+        }
+    }
+
+    size_t update_bone_buffer(StructuredBuffer &bone_data_buffer, size_t start_offset)
+    {
+        size_t offset = start_offset;
+
+        for (Mesh<T> &m : meshes)
+        {
+            size_t animation_data_size = m.bone_matrices.size() * sizeof(m.bone_matrices[0]);
+            bone_data_buffer.update(m.bone_matrices.data(), animation_data_size, offset);
+            offset += animation_data_size;
+        }
+
+        return offset;
     }
 
     DirectX::XMMATRIX get_transform()
