@@ -25,15 +25,15 @@ float shadow(float3 world_position, float min)
 	float result = 0.0f;
 
 	[unroll]
-	for (int x = -1; x <= 1; x++)
+	for (int x = -2; x <= 2; x++)
 	{
 		[unroll]
-        for (int y = -1; y <= 1; y++)
+        for (int y = -2; y <= 2; y++)
 		{
             result += shadow_map.SampleCmpLevelZero(shadow_samp, uv + float2(x, y) * texel_size, position.z);
 		}
 	}
 
-	return max(min, result / 9.0f);
+	return max(min, result / 25.0f);
 }
 
