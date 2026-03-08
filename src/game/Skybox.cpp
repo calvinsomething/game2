@@ -1,13 +1,20 @@
 #include "Skybox.h"
 
+#include <winnt.h>
+
 #include "../Error.h"
 #include "../gfx/ComputeShader.h"
 
-extern const size_t CUBE_POSITIONS_COUNT;
-extern DirectX::XMFLOAT3 cube_positions[];
+extern DirectX::XMFLOAT3 cube_positions[8];
 
-extern const size_t CUBE_INDICES_COUNT;
-extern uint32_t cube_indices[];
+static uint32_t cube_indices[] = {
+    0, 1, 2, 0, 2, 3, // front
+    4, 5, 6, 4, 6, 7, // back
+    0, 5, 6, 0, 6, 3, // left
+    1, 4, 7, 1, 7, 2, // right
+    0, 1, 4, 0, 4, 5, // top
+    3, 2, 7, 3, 7, 6, // bottom
+};
 
 constexpr size_t SKYBOX_SPAN = 1024;
 
@@ -17,8 +24,8 @@ struct Pixel
 };
 
 Skybox::Skybox(Gfx &gfx, const char *texture_file_name)
-    : GfxAccess(gfx), vs(gfx), ps(gfx), vb(gfx, cube_positions, CUBE_POSITIONS_COUNT),
-      ib(gfx, cube_indices, CUBE_INDICES_COUNT)
+    : GfxAccess(gfx), vs(gfx), ps(gfx), vb(gfx, cube_positions, ARRAYSIZE(cube_positions)),
+      ib(gfx, cube_indices, ARRAYSIZE(cube_indices))
 {
     ComputeShader cs(gfx, Shader::ShaderSource::COMPUTE_SKYBOX);
     cs.bind();
@@ -40,7 +47,7 @@ void Skybox::bind_and_draw()
 
     ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    HANDLE_GFX_INFO(ctx->DrawIndexed(CUBE_INDICES_COUNT, 0, 0));
+    HANDLE_GFX_INFO(ctx->DrawIndexed(ARRAYSIZE(cube_indices), 0, 0));
 }
 
 // Load HDR

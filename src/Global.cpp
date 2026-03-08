@@ -19,7 +19,7 @@ CollisionSystem collision_system;
 
 LightingData lighting_data{
     DirectX::XMFLOAT4{0.0f, 20.0f, 100.0f, // diffuse
-                      0.0f},               // ambient
+                      0.15f},              // ambient
     DirectX::XMMatrixMultiplyTranspose(DirectX::XMMatrixLookAtLH(DirectX::XMVECTOR{0.0f, 20.0f, 100.0f, 1.0f},
                                                                  DirectX::XMVECTOR{0.0f, 0.0f, 0.0f, 1.0f},
                                                                  DirectX::XMVECTOR{0.0f, 1.0f, 0.0f, 0.0f}),

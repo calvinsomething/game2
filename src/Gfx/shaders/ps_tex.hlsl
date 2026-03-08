@@ -114,7 +114,7 @@ float4 main(PSIn input, bool is_front_face : SV_IsFrontFace) : SV_Target
 
 	float3 light_dir = normalize(light_position_w_ambient_amount.xyz - input.world_position);
 
-	float illumination = max(0.0f, (dot(normal, light_dir) + 0.5f) / 1.5f) * shadow(input.world_position, 0.65f) + light_position_w_ambient_amount.w;
+	float illumination = max(light_position_w_ambient_amount.w, (dot(normal, light_dir) + 0.5f) / 1.5f) * shadow(input.world_position, 0.65f);
 
 	float3 light_reflection = reflect(-light_dir, normal) * (1.0f - materials[material_index].roughness);
 

@@ -3,45 +3,65 @@
 #include <cassert>
 
 DirectX::XMFLOAT3 cube_positions[] = {
-    {-5.0f, 5.0f, 5.0f},  {5.0f, 5.0f, 5.0f},   {-5.0f, 5.0f, 5.0f},   {-5.0f, 5.0f, -5.0f}, {5.0f, 5.0f, -5.0f},
-    {5.0f, 5.0f, 5.0f},   {-5.0f, -5.0f, 5.0f}, {-5.0f, -5.0f, -5.0f}, {5.0f, -5.0f, -5.0f}, {5.0f, -5.0f, 5.0f},
-    {-5.0f, -5.0f, 5.0f}, {5.0f, -5.0f, 5.0f},  {-5.0f, 5.0f, 5.0f},   {5.0f, 5.0f, 5.0f},
+    {-5.0f, 5.0f, -5.0f}, {5.0f, 5.0f, -5.0f}, {5.0f, -5.0f, -5.0f}, {-5.0f, -5.0f, -5.0f},
+    {5.0f, 5.0f, 5.0f},   {-5.0f, 5.0f, 5.0f}, {-5.0f, -5.0f, 5.0f}, {5.0f, -5.0f, 5.0f},
 };
 
-extern const size_t CUBE_POSITIONS_COUNT = ARRAYSIZE(cube_positions);
+DirectX::XMFLOAT3 (&pos)[8] = cube_positions;
 
-DirectX::XMFLOAT3 (&pos)[CUBE_POSITIONS_COUNT] = cube_positions;
+TextureVertex vertices[] = {
+    // front
+    {pos[0], {0.0f, 0.0f, -1.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.25f)}},
+    {pos[1], {0.0f, 0.0f, -1.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.25f)}},
+    {pos[2], {0.0f, 0.0f, -1.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.50f)}},
+    {pos[3], {0.0f, 0.0f, -1.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.50f)}},
+    // back
+    {pos[4], {0.0f, 0.0f, 1.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.75f)}},
+    {pos[5], {0.0f, 0.0f, 1.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.75f)}},
+    {pos[6], {0.0f, 0.0f, 1.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 1.00f)}},
+    {pos[7], {0.0f, 0.0f, 1.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 1.00f)}},
+    // left
+    {pos[5], {-1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.00f, 0.25f)}},
+    {pos[0], {-1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.25f)}},
+    {pos[3], {-1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.50f)}},
+    {pos[6], {-1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.00f, 0.50f)}},
+    // right
+    {pos[1], {1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.25f)}},
+    {pos[4], {1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(1.00f, 0.25f)}},
+    {pos[7], {1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(1.00f, 0.50f)}},
+    {pos[2], {1.0f, 0.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.50f)}},
+    // top
+    {pos[5], {0.0f, 1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.00f)}},
+    {pos[4], {0.0f, 1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.00f)}},
+    {pos[1], {0.0f, 1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.25f)}},
+    {pos[0], {0.0f, 1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.25f)}},
+    // bottom
+    {pos[3], {0.0f, -1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.50f)}},
+    {pos[2], {0.0f, -1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.50f)}},
+    {pos[7], {0.0f, -1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.67f, 0.75f)}},
+    {pos[6], {0.0f, -1.0f, 0.0f}, {}, {}, {DirectX::XMFLOAT2(0.33f, 0.75f)}},
+};
 
-TextureVertex vertices[CUBE_POSITIONS_COUNT] = {
-    {pos[0], normalize(pos[0]), {}, {}, TextureCoordinates{DirectX::XMFLOAT2(0.33f, 0.0f)}},
-    {pos[1], normalize(pos[1]), {}, {}, {DirectX::XMFLOAT2(0.67f, 0.0f)}},
-    {pos[2], normalize(pos[2]), {}, {}, {DirectX::XMFLOAT2(0.0f, 0.25f)}},
-    {pos[3], normalize(pos[3]), {}, {}, {DirectX::XMFLOAT2(0.33f, 0.25f)}},
-    {pos[4], normalize(pos[4]), {}, {}, {DirectX::XMFLOAT2(0.67f, 0.25f)}},
-    {pos[5], normalize(pos[5]), {}, {}, {DirectX::XMFLOAT2(1.0f, 0.25f)}},
-    {pos[6], normalize(pos[6]), {}, {}, {DirectX::XMFLOAT2(0.0f, 0.5f)}},
-    {pos[7], normalize(pos[7]), {}, {}, {DirectX::XMFLOAT2(0.33f, 0.5f)}},
-    {pos[8], normalize(pos[8]), {}, {}, {DirectX::XMFLOAT2(0.67f, 0.5f)}},
-    {pos[9], normalize(pos[9]), {}, {}, {DirectX::XMFLOAT2(1.0f, 0.5f)}},
-    {pos[10], normalize(pos[10]), {}, {}, {DirectX::XMFLOAT2(0.33f, 0.75f)}},
-    {pos[11], normalize(pos[11]), {}, {}, {DirectX::XMFLOAT2(0.67f, 0.75f)}},
-    {pos[12], normalize(pos[12]), {}, {}, {DirectX::XMFLOAT2(0.33f, 1.0f)}},
-    {pos[13], normalize(pos[13]), {}, {}, {DirectX::XMFLOAT2(0.67f, 1.0f)}}};
-
-uint32_t cube_indices[] = {0, 1, 4, 4, 3, 0, 2, 3, 7,  7,  6,  2, 3,  4,  8,  8,  7,  3,
-                           4, 5, 9, 9, 8, 4, 7, 8, 11, 11, 10, 7, 10, 11, 13, 13, 12, 10};
-extern const size_t CUBE_INDICES_COUNT = ARRAYSIZE(cube_indices);
+static uint32_t cube_indices[] = {
+    0,  1,  2,  0,  2,  3,  // front
+    4,  5,  6,  4,  6,  7,  // back
+    8,  9,  10, 8,  10, 11, // left
+    12, 13, 14, 12, 14, 15, // right
+    16, 17, 18, 16, 18, 19, // top
+    20, 21, 22, 20, 22, 23, // bottom
+};
 
 Cube::Cube(Gfx &gfx, const std::wstring &texture_file_name, StdVector<TextureVertex> &vertices,
            StdVector<uint32_t> &indices, StdVector<Material> &materials, StdVector<Texture2D> &textures,
            InstanceData &instance_data)
     : Model(instance_data)
 {
-    size_t start_vertex = load_vector(vertices, ::vertices, CUBE_POSITIONS_COUNT);
+    size_t start_vertex = load_vector(vertices, ::vertices, ARRAYSIZE(::vertices));
 
-    size_t start_index = load_vector(indices, ::cube_indices, CUBE_INDICES_COUNT);
+    size_t start_index = load_vector(indices, cube_indices, ARRAYSIZE(cube_indices));
 
-    meshes.emplace_back(gfx, start_vertex, CUBE_POSITIONS_COUNT, start_index, CUBE_INDICES_COUNT, materials.size());
+    meshes.emplace_back(gfx, start_vertex, ARRAYSIZE(::vertices), start_index, ARRAYSIZE(cube_indices),
+                        materials.size());
 
     Material mat = {};
     mat.diffuse_texture_index = textures.size();
