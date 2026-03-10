@@ -1,6 +1,7 @@
 .cache
 debug
 release
+compile_commands.json
 
 vendor/bin/*
 vendor/include/assimp
