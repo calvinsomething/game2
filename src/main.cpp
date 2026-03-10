@@ -53,19 +53,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         }
 #endif
 
-        StdVector<TextureVertex> *vertices = new StdVector<TextureVertex>;
+        StdVector<TextureVertex> *vertices = Allocator<StdVector<TextureVertex>>::create();
         vertices->reserve(4096);
 
-        StdVector<Vertex> *vertices2 = new StdVector<Vertex>;
+        StdVector<Vertex> *vertices2 = Allocator<StdVector<Vertex>>::create();
         vertices2->reserve(4096);
 
-        StdVector<uint32_t> *indices = new StdVector<uint32_t>;
+        StdVector<uint32_t> *indices = Allocator<StdVector<uint32_t>>::create();
         indices->reserve(4096);
 
-        StdVector<uint32_t> *indices2 = new StdVector<uint32_t>;
+        StdVector<uint32_t> *indices2 = Allocator<StdVector<uint32_t>>::create();
         indices2->reserve(4096);
 
-        StdVector<Material> *materials = new StdVector<Material>;
+        StdVector<Material> *materials = Allocator<StdVector<Material>>::create();
         materials->reserve(64);
 
         StdVector<Texture2D> textures;
@@ -157,19 +157,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         ps.set_textures(textures);
 
         // deallocate
-        delete vertices;
+        Allocator<StdVector<TextureVertex>>::release(vertices);
         vertices = 0;
 
-        delete vertices2;
+        Allocator<StdVector<Vertex>>::release(vertices2);
         vertices2 = 0;
 
-        delete indices;
+        Allocator<StdVector<uint32_t>>::release(indices);
         indices = 0;
 
-        delete indices2;
+        Allocator<StdVector<uint32_t>>::release(indices2);
         indices2 = 0;
 
-        delete materials;
+        Allocator<StdVector<Material>>::release(materials);
         materials = 0;
         //
 
