@@ -2,12 +2,16 @@
 My second exploration into 3D game engine programming with C++.
 
 ## Overview
-Renders a scene with multiple animated models, a controllable character and camera, a skybox, and shadow mapping.
+Renders a scene with multiple animated models, a controllable character and camera, a skybox, and shadow mapping. The purpose of this project was to gain exposure to the lower level tools used in game engine programming, with a focus on construction rather than architecture.
+
+### Demo 1
+
+### Demo 2
 
 ## Toolchain
 - Win32 API
 - DirectX 11 rendering pipeline
-- Custom _STL-compatible_ block memory allocator: [calvinsomething/memory_allocator](https://github.com/calvinsomething/memory_allocator);
+- Custom _STL_-compatible block memory allocator: [calvinsomething/memory_allocator](https://github.com/calvinsomething/memory_allocator);
 - [assimp/assimp](https://github.com/assimp/assimp) asset loading library
 - [nothings/stb](https://github.com/nothings/stb) image loader (for panoramic skybox .hdr image)
 
@@ -35,7 +39,7 @@ Renders a scene with multiple animated models, a controllable character and came
 - The Model class should not be templated on the vertex type, and I would probably implement something more along the lines of a component system to group varying Mesh types under the same Model.
 - I would define systems and manager classes to support further data oriented design, encapsulating the details of data loading and access.
 - Assimp data should be copied entirely, freeing the `aiScene` afterwards.
-- By implementing the shadow pass, I learned how an SoA design can he useful, and I would separate the vertex properties into their own buffer slots. This way the positions and bone data could be front-loaded and many vertex layouts could share the same shadow map vertex shader.
+- By implementing the shadow pass, I learned how an SoA design can be useful, and I would separate the vertex properties into their own buffer slots. This way the positions and bone data could be front-loaded and many vertex layouts could share the same shadow map vertex shader.
 - Structured buffers would be cleaner than instancing for the purposes of this scene. I just wanted to implement instancing.
 - The light source's projective matrix should be dynamic, and fitted around the camera's frustum. For this small scene I get away with a static transform, but for a larger area I would need a cascaded shadow map.
 - Writing shader permutations would reduce the amount of HLSL, and make it easier to create and maintain shaders.
