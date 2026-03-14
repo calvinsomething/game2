@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/fa42fde2-d5ee-4150-a4a6-989d4d3f0764
 ## Toolchain
 - Win32 API
 - DirectX 11 rendering pipeline
-- Custom _STL_-compatible block memory allocator: [calvinsomething/memory_allocator](https://github.com/calvinsomething/memory_allocator);
+- Custom STL-compatible block memory allocator: [calvinsomething/memory_allocator](https://github.com/calvinsomething/memory_allocator);
 - [assimp/assimp](https://github.com/assimp/assimp) asset loading library
 - [nothings/stb](https://github.com/nothings/stb) image loader (for panoramic skybox .hdr image)
 
