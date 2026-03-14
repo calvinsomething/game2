@@ -1,12 +1,16 @@
 # game2
 My second exploration into 3D game engine programming with C++.
 
+<img width="3840" height="2160" alt="Image" src="https://github.com/user-attachments/assets/ae7d8158-17e1-4a67-9a41-dd5abff9a58e" />
+
 ## Overview
 Renders a scene with multiple animated models, a controllable character and camera, a skybox, and shadow mapping. The purpose of this project was to gain exposure to the lower level tools used in game engine programming, with a focus on construction rather than architecture.
 
 ### Demo 1
+https://github.com/user-attachments/assets/e1c75c89-fec1-4960-8fc6-cd47fd3a9889
 
 ### Demo 2
+https://github.com/user-attachments/assets/fa42fde2-d5ee-4150-a4a6-989d4d3f0764
 
 ## Toolchain
 - Win32 API
@@ -64,3 +68,11 @@ $ xcopy bin <project-root>\vendor\bin\assimp /i
 $ xcopy ..\include\assimp <project-root>\vendor\include\assimp /s /i
 $ xcopy include\assimp <project-root>\vendor\include\assimp /y
 ```
+
+## Free Models Used
+_poly.pizza_
+- [Ninja](https://poly.pizza/m/xGYmeDpfTu)
+- [Grass Platform](https://poly.pizza/m/7xmlX1JEkM)
+
+_free3d.com_
+- [Spider](https://free3d.com/3d-model/spider-animated-low-poly-and-game-ready-87147.html)
