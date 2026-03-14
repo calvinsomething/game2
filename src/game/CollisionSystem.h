@@ -27,7 +27,7 @@ class CollisionSystem
     CollisionFloor get_floor(const DirectX::XMFLOAT3 &position);
 
     void add_triangle(const CollisionTriangle &triangle);
-    // int get_lateral_intersected_grid_cells_count(DirectX::XMFLOAT2 &p1, DirectX::XMFLOAT2 p2, float slope_inv);
+
     bool get_first_intersected_cell_in_pos_x(DirectX::XMFLOAT2 &p1, DirectX::XMFLOAT2 p2, float slope_inv,
                                              DirectX::XMINT2 &cell);
 

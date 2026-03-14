@@ -53,19 +53,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         }
 #endif
 
-        StdVector<TextureVertex> *vertices = Allocator<StdVector<TextureVertex>>::create();
+        StdVector<TextureVertex> *vertices = Allocator<StdVector<TextureVertex>>::emplace();
         vertices->reserve(4096);
 
-        StdVector<Vertex> *vertices2 = Allocator<StdVector<Vertex>>::create();
+        StdVector<Vertex> *vertices2 = Allocator<StdVector<Vertex>>::emplace();
         vertices2->reserve(4096);
 
-        StdVector<uint32_t> *indices = Allocator<StdVector<uint32_t>>::create();
+        StdVector<uint32_t> *indices = Allocator<StdVector<uint32_t>>::emplace();
         indices->reserve(4096);
 
-        StdVector<uint32_t> *indices2 = Allocator<StdVector<uint32_t>>::create();
+        StdVector<uint32_t> *indices2 = Allocator<StdVector<uint32_t>>::emplace();
         indices2->reserve(4096);
 
-        StdVector<Material> *materials = Allocator<StdVector<Material>>::create();
+        StdVector<Material> *materials = Allocator<StdVector<Material>>::emplace();
         materials->reserve(64);
 
         StdVector<Texture2D> textures;
@@ -157,19 +157,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         ps.set_textures(textures);
 
         // deallocate
-        Allocator<StdVector<TextureVertex>>::release(vertices);
+        Allocator<StdVector<TextureVertex>>::remove(vertices);
         vertices = 0;
 
-        Allocator<StdVector<Vertex>>::release(vertices2);
+        Allocator<StdVector<Vertex>>::remove(vertices2);
         vertices2 = 0;
 
-        Allocator<StdVector<uint32_t>>::release(indices);
+        Allocator<StdVector<uint32_t>>::remove(indices);
         indices = 0;
 
-        Allocator<StdVector<uint32_t>>::release(indices2);
+        Allocator<StdVector<uint32_t>>::remove(indices2);
         indices2 = 0;
 
-        Allocator<StdVector<Material>>::release(materials);
+        Allocator<StdVector<Material>>::remove(materials);
         materials = 0;
         //
 
