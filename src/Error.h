@@ -17,8 +17,12 @@
 // Windows Error Handler
 #define HANDLE_WIN_ERR(hr) GET_HRESULT_HANDLER(hr, WindowsError)
 
+#ifdef NDEBUG
+#define HANDLE_GFX_ERR(hr) hr
+#else
 // Gfx Error Handler
 #define HANDLE_GFX_ERR(hr) GET_HRESULT_HANDLER(hr, GfxError)
+#endif
 
 // Gfx Info Handler
 #ifdef NDEBUG

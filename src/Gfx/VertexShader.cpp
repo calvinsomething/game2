@@ -1,5 +1,7 @@
 #include "VertexShader.h"
 
+#include <stdexcept>
+
 #include "../Error.h"
 
 VertexShader::VertexShader(Gfx &gfx) : Shader(gfx)

@@ -1,5 +1,7 @@
 #include "Buffer.h"
 
+#include <cstring>
+
 #include "../Error.h"
 
 Buffer::Buffer(Gfx &gfx) : GfxAccess(gfx)

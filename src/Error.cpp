@@ -41,6 +41,7 @@ const char *WindowsError::what() const
     return message;
 }
 
+#ifndef NDEBUG
 // GfxError
 //
 bool GfxError::write_message(char *msg, int len, size_t &j, bool first_line)
@@ -214,3 +215,4 @@ bool GfxError::found_new_messages()
                dxgi_message_count ||
            GfxError::d3d11_info_queue->GetNumStoredMessagesAllowedByRetrievalFilter() > d3d11_message_count;
 }
+#endif
