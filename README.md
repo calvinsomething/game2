@@ -1,7 +1,7 @@
 # game2
 My second exploration into 3D game engine programming with C++.
 
-<img width="3840" height="2160" alt="Image" src="https://github.com/user-attachments/assets/ae7d8158-17e1-4a67-9a41-dd5abff9a58e" />
+<img width="3840" height="2160" alt="Image" src="https://github.com/user-attachments/assets/bf0df1a7-800a-4288-a485-72dc1f7d9e12" />
 
 ## Overview
 Renders a scene with multiple animated models, a controllable character and camera, a skybox, and shadow mapping. The purpose of this project was to gain exposure to the lower level tools used in game engine programming, with a focus on construction rather than architecture.
