@@ -1,9 +1,12 @@
 #include "Window.h"
 
+#include "Error.h"
 #include "Global.h"
 
 Window::Window()
 {
+    WIN_ERR_IF_FALSE(SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2));
+
     WNDCLASS wc = {};
     wc.lpszClassName = L"Main Window";
     wc.hInstance = GetModuleHandleW(nullptr);
@@ -38,7 +41,8 @@ void Window::set_rect(RECT rect)
 void Window::set_full_screen()
 {
     set_rect(get_full_screen_size());
-    SetWindowLongPtrW(hwnd, GWL_STYLE, (info.dwStyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
+
+    WIN_ERR_IF_FALSE(SetWindowLongPtrW(hwnd, GWL_STYLE, (info.dwStyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP));
 }
 
 RECT Window::get_full_screen_size()
@@ -48,7 +52,7 @@ RECT Window::get_full_screen_size()
     MONITORINFO monitor_info = {};
     monitor_info.cbSize = sizeof(MONITORINFO);
 
-    GetMonitorInfoW(monitor, &monitor_info);
+    WIN_ERR_IF_FALSE(GetMonitorInfoW(monitor, &monitor_info));
 
     return monitor_info.rcMonitor;
 }

@@ -17,6 +17,14 @@
 // Windows Error Handler
 #define HANDLE_WIN_ERR(hr) GET_HRESULT_HANDLER(hr, WindowsError)
 
+#define WIN_ERR_IF_FALSE(success)                                                                                      \
+    {                                                                                                                  \
+        if (!success)                                                                                                  \
+        {                                                                                                              \
+            throw WindowsError(__FILE__, __LINE__);                                                                    \
+        }                                                                                                              \
+    }
+
 #ifdef NDEBUG
 #define HANDLE_GFX_ERR(hr) hr
 #else

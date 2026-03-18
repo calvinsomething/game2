@@ -44,13 +44,25 @@ Gfx::Gfx(HWND hwnd)
 
 #endif
 
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;
-
     HANDLE_GFX_ERR(
         swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(back_buffer.GetAddressOf())));
 
-    HANDLE_GFX_ERR(device->CreateRenderTargetView(back_buffer.Get(), nullptr, render_target_view.GetAddressOf()));
+    // MSAA texture
+    D3D11_TEXTURE2D_DESC msaaDesc{};
+    msaaDesc.Width = sd.BufferDesc.Width;
+    msaaDesc.Height = sd.BufferDesc.Height;
+    msaaDesc.MipLevels = 1;
+    msaaDesc.ArraySize = 1;
+    msaaDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    msaaDesc.SampleDesc.Count = 8;
+    msaaDesc.SampleDesc.Quality = D3D11_STANDARD_MULTISAMPLE_PATTERN;
+    msaaDesc.Usage = D3D11_USAGE_DEFAULT;
+    msaaDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
 
+    device->CreateTexture2D(&msaaDesc, nullptr, msaa_texture.GetAddressOf());
+    device->CreateRenderTargetView(msaa_texture.Get(), nullptr, msaa_rtv.GetAddressOf());
+
+    // Viewport
     viewport.Width = Global::client_width;
     viewport.Height = Global::client_height;
     viewport.MinDepth = 0.0f;
@@ -63,7 +75,6 @@ Gfx::Gfx(HWND hwnd)
 
     // Blending requires sorted mesh drawing to avoid Z-buffer writes for translucent/transparent pixels.
     D3D11_BLEND_DESC bd = {};
-
     bd.AlphaToCoverageEnable = FALSE;
     bd.IndependentBlendEnable = FALSE;
     bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
@@ -119,7 +130,7 @@ void Gfx::bind_depth_stencil_state(DepthStencil::State state)
 
 void Gfx::clear(float *color)
 {
-    HANDLE_GFX_INFO(ctx->ClearRenderTargetView(render_target_view.Get(), color));
+    HANDLE_GFX_INFO(ctx->ClearRenderTargetView(msaa_rtv.Get(), color));
 
     HANDLE_GFX_INFO(
         ctx->ClearDepthStencilView(depth_stencil.view.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
@@ -132,7 +143,7 @@ void Gfx::set_render_target(RenderTarget rt)
     switch (rt)
     {
     case RenderTarget::MAIN:
-        HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, render_target_view.GetAddressOf(), depth_stencil.view.Get()));
+        HANDLE_GFX_INFO(ctx->OMSetRenderTargets(1, msaa_rtv.GetAddressOf(), depth_stencil.view.Get()));
         ctx->PSSetShaderResources(6, 1, shadow_map.srv.GetAddressOf());
         ctx->PSSetSamplers(6, 1, shadow_map.sampler_state.GetAddressOf());
         HANDLE_GFX_INFO(ctx->RSSetViewports(1, &viewport));
@@ -150,5 +161,6 @@ void Gfx::set_render_target(RenderTarget rt)
 
 void Gfx::end_frame()
 {
+    ctx->ResolveSubresource(back_buffer.Get(), 0, msaa_texture.Get(), 0, DXGI_FORMAT_R8G8B8A8_UNORM);
     HANDLE_GFX_ERR(swap_chain->Present(0, 0));
 }

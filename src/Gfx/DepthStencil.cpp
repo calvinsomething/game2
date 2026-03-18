@@ -10,8 +10,8 @@ void Gfx::DepthStencil::init(Gfx &gfx, UINT buffer_width, UINT buffer_height)
     texture_desc.MipLevels = 1;
     texture_desc.ArraySize = 1;
     texture_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    texture_desc.SampleDesc.Count = 1;
-    texture_desc.SampleDesc.Quality = 0;
+    texture_desc.SampleDesc.Count = 8;
+    texture_desc.SampleDesc.Quality = D3D11_STANDARD_MULTISAMPLE_PATTERN;
     texture_desc.Usage = D3D11_USAGE_DEFAULT;
     texture_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     texture_desc.CPUAccessFlags = 0;

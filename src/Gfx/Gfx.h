@@ -74,7 +74,10 @@ class Gfx
     Microsoft::WRL::ComPtr<IDXGISwapChain> swap_chain;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> ctx;
 
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target_view;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> back_buffer;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> msaa_texture;
+
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> msaa_rtv;
 
     struct
     {
