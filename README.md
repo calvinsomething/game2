@@ -55,7 +55,7 @@ https://github.com/user-attachments/assets/fa42fde2-d5ee-4150-a4a6-989d4d3f0764
 - cmake 
 - ninja (unless you want to use another build tool and stray from these build instructions)
 
-If compiling shaders outside of Visual Studio, from your terminal you should execute the file `vcvars64.bat` located in a directory similar to this (depending on the version of Visual Studio): _C:\Program Files\Microsoft Visual Studio\\<year>\Community\VC\Auxiliary\Build_. This will configure several environment variables Windows requires to run _dxc_ from the command line.
+If compiling shaders outside of Visual Studio, from your terminal you should execute the file `vcvars64.bat` located in a directory similar to this (depending on the version of Visual Studio): _C:\Program Files\Microsoft Visual Studio\\<year\>\Community\VC\Auxiliary\Build_. This will configure several environment variables Windows requires to run _dxc_ from the command line.
 
 ### Assimp
 ```
