@@ -25,6 +25,7 @@ https://github.com/user-attachments/assets/fa42fde2-d5ee-4150-a4a6-989d4d3f0764
 - Shadow map pass
 - Skybox (equirectangle-to-cubemap projection via compute shader)
 - Instanced rendering
+- Normal mapping using tangent and bitangent vectors
 - Structured buffers for materials and bone transforms
 - Collision system (floor triangle detection)
 - Steady frame rate and synced movement speed
