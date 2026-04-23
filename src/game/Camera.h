@@ -34,6 +34,8 @@ class Camera
 
     BufferData buffer_data;
 
+    DirectX::XMFLOAT2 projective_surface_dimensions;
+
     void increase_pitch(float diff);
     void increase_yaw(float diff);
     void increase_distance(float diff);

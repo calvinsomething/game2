@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "../Global.h"
+
 using namespace DirectX;
 
 Camera::Camera(Gfx &gfx)
@@ -11,6 +13,8 @@ Camera::Camera(Gfx &gfx)
 {
     increase_distance(20.0f);
     update_offset();
+
+    projective_surface_dimensions = {2.0f * Global::client_width / Global::client_height, 2.0f};
 }
 
 void Camera::update_offset()
@@ -63,9 +67,9 @@ void Camera::update(Controls controls, DirectX::XMFLOAT3 focus_position)
 
     buffer_data.camera_position = XMVectorAdd(focus_pos, offset);
 
-    buffer_data.view_proj_xform =
-        XMMatrixMultiplyTranspose(XMMatrixLookAtLH(buffer_data.camera_position, focus_pos, up_dir),
-                                  XMMatrixPerspectiveLH(2.0f, 2.0f, 1.0f, 100.0f));
+    buffer_data.view_proj_xform = XMMatrixMultiplyTranspose(
+        XMMatrixLookAtLH(buffer_data.camera_position, focus_pos, up_dir),
+        XMMatrixPerspectiveLH(projective_surface_dimensions.x, projective_surface_dimensions.y, 1.0f, 100.0f));
 
     constant_buffer.write(&buffer_data, sizeof(buffer_data));
 
